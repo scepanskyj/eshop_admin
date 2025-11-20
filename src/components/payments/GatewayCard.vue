@@ -42,22 +42,9 @@ export default {
     countryFlag: { type: String, default: null },
     countryAbbreviation: { type: String, default: null }
   },
-  data() {
-    return {
-      iconError: false
-    };
-  },
   methods: {
     handleClick() {
       this.onConfigure(this.gateway);
-    },
-    handleIconError() {
-      // If icon fails to load, try fallback
-      if (!this.iconError && this.icon) {
-        this.iconError = true;
-        // Try to reload with a different path resolution
-        this.$forceUpdate();
-      }
     }
   }
 };
