@@ -37,6 +37,14 @@
               </v-sheet>
             </v-col>
             <v-col v-if="showCountryFilter" cols="12" md="auto" lg="auto">
+              <v-select
+                v-model="selectedCountryFilter"
+                :items="countryFilterOptions"
+                outlined
+                dense
+                hide-details
+                @change="onFilterChange"
+              >
                 <template v-slot:item="{ item }">
                   <span class="country-filter-item">
                     <span class="country-flag">{{ item.flag }}</span>
