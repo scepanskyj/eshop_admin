@@ -1,0 +1,62 @@
+{
+  "rules": [
+    {
+      "id": "r-1",
+      "titles": {
+        "GLO": "High value orders require PayPal",
+        "IT": "Ordini di alto valore richiedono PayPal",
+        "CZ": "Objednávky s vysokou hodnotou vyžadují PayPal",
+        "SK": "Objednávky s vysokou hodnotou vyžadujú PayPal",
+        "PL": "Zamówienia o wysokiej wartości wymagają PayPal",
+        "RO": "Comenzile cu valoare mare necesită PayPal"
+      },
+      "descriptions": {
+        "GLO": "Force PayPal for orders above 500",
+        "IT": "Forza PayPal per ordini superiori a 500",
+        "CZ": "Vynutit PayPal pro objednávky nad 500",
+        "SK": "Vynútiť PayPal pre objednávky nad 500",
+        "PL": "Wymuś PayPal dla zamówień powyżej 500",
+        "RO": "Forțează PayPal pentru comenzi peste 500"
+      }
+    },
+    {
+      "id": "r-2",
+      "titles": {
+        "GLO": "Hide COD for international",
+        "IT": "Nascondi contrassegno per internazionale",
+        "CZ": "Skrýt dobírku pro mezinárodní",
+        "SK": "Skryť dobierku pre medzinárodné",
+        "PL": "Ukryj płatność przy odbiorze dla międzynarodowych",
+        "RO": "Ascunde rambursul pentru internațional"
+      },
+      "descriptions": {
+        "GLO": "Restrict COD outside SK/CZ",
+        "IT": "Limita contrassegno fuori SK/CZ",
+        "CZ": "Omezit dobírku mimo SK/CZ",
+        "SK": "Obmedziť dobierku mimo SK/CZ",
+        "PL": "Ogranicz płatność przy odbiorze poza SK/CZ",
+        "RO": "Restricționează rambursul în afara SK/CZ"
+      }
+    },
+    {
+      "id": "r-3",
+      "titles": {
+        "GLO": "B2B prefer Bank",
+        "IT": "B2B preferisce Banca",
+        "CZ": "B2B preferuje Banku",
+        "SK": "B2B preferuje Banku",
+        "PL": "B2B preferuje Bank",
+        "RO": "B2B preferă Bancă"
+      },
+      "descriptions": {
+        "GLO": "Prefer bank transfer for B2B",
+        "IT": "Preferisci bonifico bancario per B2B",
+        "CZ": "Preferovat bankovní převod pro B2B",
+        "SK": "Preferovať bankový prevod pre B2B",
+        "PL": "Preferuj przelew bankowy dla B2B",
+        "RO": "Preferă transferul bancar pentru B2B"
+      }
+    }
+  ]
+}
+

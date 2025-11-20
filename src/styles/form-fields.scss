@@ -1,0 +1,53 @@
+@use '@/styles/tokens.scss' as tokens;
+
+// Standard form field wrapper
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: tokens.$space-lg;
+}
+
+.control-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+// Standardize all Vuetify inputs - white fill + outlined border
+:deep(.form-field .v-input__slot) {
+  background-color: white !important;
+}
+
+// Ensure outlined variant has white background
+:deep(.form-field.v-input--is-outlined .v-input__slot) {
+  background-color: white !important;
+}
+
+// Standardize heights for single-line inputs
+:deep(.form-field:not(.v-textarea) .v-input__slot) {
+  min-height: 56px !important;
+}
+
+:deep(.form-field:not(.v-textarea) .v-input__control) {
+  min-height: 56px !important;
+}
+
+:deep(.form-field:not(.v-textarea) .v-input) {
+  min-height: 56px !important;
+}
+
+// Textarea should have white background but flexible height
+:deep(.form-field.v-textarea .v-input__slot) {
+  background-color: white !important;
+}
+
+// Ensure fieldset border is visible
+:deep(.form-field.v-input--is-outlined .v-input__slot fieldset) {
+  border-color: rgba(0, 0, 0, 0.38) !important;
+}
+
+:deep(.form-field.v-input--is-outlined.v-input--is-focused .v-input__slot fieldset) {
+  border-color: rgba(0, 0, 0, 0.87) !important;
+}
+
