@@ -10,7 +10,7 @@ import paymentsStore from '@/store/paymentsStore';
 Vue.use(Router);
 
 const router = new Router({
-  mode: 'history',
+  mode: 'hash',
   routes: [
     { path: '/', redirect: { name: 'GatewaysList' } },
     { path: '/payments/gateways', name: 'GatewaysList', component: GatewaysList },
