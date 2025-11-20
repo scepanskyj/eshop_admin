@@ -26,9 +26,29 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-avatar size="32">
-        <v-icon>mdi-account-circle</v-icon>
-      </v-avatar>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn text class="role-switcher" v-bind="attrs" v-on="on">
+            <v-icon left>{{ currentRole.icon }}</v-icon>
+            <span class="role-label">{{ currentRole.label }}</span>
+            <v-icon right small>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item
+            v-for="option in roleOptions"
+            :key="option.code"
+            @click="selectRole(option.code)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ option.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>{{ option.label }}</v-list-item-title>
+            <v-spacer />
+            <v-icon v-if="option.code === currentRole.code" small>mdi-check</v-icon>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
 
     <v-navigation-drawer permanent class="app-drawer">
@@ -74,6 +94,7 @@
 
 <script>
 import tenantStore from '@/store/tenantStore';
+import roleStore from '@/store/roleStore';
 
 export default {
   name: 'App',
@@ -84,11 +105,21 @@ export default {
     currentTenant() {
       const current = tenantStore.state.current;
       return tenantStore.state.options.find(option => option.code === current) || tenantStore.state.options[0];
+    },
+    roleOptions() {
+      return roleStore.state.options;
+    },
+    currentRole() {
+      const current = roleStore.state.current;
+      return roleStore.state.options.find(option => option.code === current) || roleStore.state.options[0];
     }
   },
   methods: {
     selectTenant(code) {
       tenantStore.actions.setTenant(code);
+    },
+    selectRole(code) {
+      roleStore.actions.setRole(code);
     }
   }
 };
@@ -141,6 +172,17 @@ html, body, #app { height: 100%; }
 }
 
 .tenant-label {
+  font-size: 14px;
+}
+
+.role-switcher {
+  color: white !important;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.role-label {
   font-size: 14px;
 }
 </style>

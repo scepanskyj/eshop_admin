@@ -2,7 +2,12 @@
   <div class="gateways-page-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs" title="Gateway configuration">
       <template v-slot:actions>
-        <v-btn color="primary" @click="createGateway" :disabled="loading">
+        <v-btn 
+          v-if="canCreate" 
+          color="primary" 
+          @click="createGateway" 
+          :disabled="loading"
+        >
           <v-icon left>mdi-plus</v-icon>
           Create gateway
         </v-btn>
@@ -44,9 +49,9 @@
       v-if="!filtering && !sortedGateways.length"
       icon="mdi-credit-card-outline"
       title="No gateways match"
-      subtitle="Adjust filters or create a new gateway to get started."
-      cta-label="Create gateway"
-      @cta="createGateway"
+      :subtitle="canCreate ? 'Adjust filters or create a new gateway to get started.' : 'Adjust filters to see gateways.'"
+      :cta-label="canCreate ? 'Create gateway' : undefined"
+      @cta="canCreate && createGateway"
     />
 
     <div v-if="filtering" class="loading-container">
@@ -494,7 +499,7 @@
               </v-expansion-panels>
 
             <!-- Destructive action section - at end of content -->
-            <template v-if="!isCreating">
+            <template v-if="!isCreating && canDelete">
               <ModalCard
                 title="Delete gateway"
                 subtitle="This action is irreversible. Once deleted, this gateway cannot be recovered."
@@ -548,6 +553,8 @@ import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
+import roleStore from '@/store/roleStore';
+import { getAssetPath } from '@/utils/paths';
 
 const DETAIL_DEFAULTS = {
   mid: '',
@@ -629,10 +636,15 @@ export default {
   async created() {
     this.loading = true;
     try {
-      const response = await fetch('/payment-methods.json');
+      const response = await fetch(getAssetPath('payment-methods.json'));
       if (response.ok) {
         const payload = await response.json();
-        this.metadata = Array.isArray(payload.methods) ? payload.methods : [];
+        const methods = Array.isArray(payload.methods) ? payload.methods : [];
+        // Transform icon paths to use correct base path
+        this.metadata = methods.map(method => ({
+          ...method,
+          icon: method.icon ? getAssetPath(method.icon) : method.icon
+        }));
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -642,6 +654,12 @@ export default {
     }
   },
   computed: {
+    canCreate() {
+      return roleStore.getters.canCreate();
+    },
+    canDelete() {
+      return roleStore.getters.canDelete();
+    },
     breadcrumbs() {
       return [
         { text: 'Payment section', disabled: true },
@@ -759,7 +777,8 @@ export default {
       return text.toLowerCase().includes(query) || value.toLowerCase().includes(query);
     },
     getGatewayIcon(code) {
-      return this.metadataByCode[code]?.icon || '/icons/default.svg';
+      const iconPath = this.metadataByCode[code]?.icon || '/icons/default.svg';
+      return getAssetPath(iconPath);
     },
     countryLabel(code) {
       const tenantOption = tenantStore.state.options.find(option => option.code === code);
