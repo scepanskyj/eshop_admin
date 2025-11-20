@@ -86,74 +86,40 @@
 
           <div class="modal-form">
             <ModalCard
-              title="Gateway overview"
-              subtitle="Control availability and high level behaviour for this gateway."
+              title="General Settings"
             >
               <StatusCard v-model="editedGateway.enabled" />
 
-                    <div class="field-block">
-                      <div class="control-label">Title *</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="editedGateway.title"
-                        outlined
-                        hide-details="auto"
-                        :rules="[requiredRule]"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Code *</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="editedGateway.code"
-                        outlined
-                        hide-details="auto"
-                        :rules="[requiredRule]"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Sort order</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model.number="editedGateway.sortOrder"
-                        outlined
-                        type="number"
-                        hide-details="auto"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Gateway language</div>
-                      <v-select
-                        class="form-field"
-                        v-model="editedGateway.language"
-                        outlined
-                        :items="languages"
-                        hide-details="auto"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Payment action</div>
-                      <v-select
-                        class="form-field"
-                        v-model="editedGateway.paymentAction"
-                        outlined
-                        :items="actions"
-                        hide-details="auto"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Applicable countries</div>
-                      <v-autocomplete
-                        class="form-field"
-                        v-model="editedGateway.countries"
-                        outlined
-                        :items="allCountryOptions"
-                        multiple
-                        chips
-                        hide-details="auto"
-                        :filter="countryFilter"
-                      />
-                    </div>
+              <div class="field-block">
+                <div class="control-label">Title *</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.title"
+                  outlined
+                  hide-details="auto"
+                  :rules="[requiredRule]"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Sort order</div>
+                <v-text-field
+                  class="form-field"
+                  v-model.number="editedGateway.sortOrder"
+                  outlined
+                  type="number"
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Gateway language</div>
+                <v-select
+                  class="form-field"
+                  v-model="editedGateway.language"
+                  outlined
+                  :items="languages"
+                  hide-details="auto"
+                />
+              </div>
             </ModalCard>
 
             <template v-if="editedGateway.code === 'klarna'">
@@ -384,119 +350,137 @@
               </ModalCard>
             </template>
 
-              <v-expansion-panels>
-                <v-expansion-panel>
-                  <v-expansion-panel-header>
-                    <div>
-                      <div class="modal-card__title">Technical details</div>
-                      <div class="modal-card__subtitle">
-                        Credentials and callback URLs used by the payment gateway.
-                      </div>
-                    </div>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <div class="modal-card__body">
-                          <div class="field-block">
-                            <div class="control-label">Merchant ID</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.mid"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Gateway URL</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.url"
-                              outlined
-                              hide-details="auto"
-                              :rules="[urlRule]"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Keys path</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.keysPath"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Private key filename</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.privateKey"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Public key filename</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.publicKey"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Success page URL</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.successUrl"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Fail page URL</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.failUrl"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">Terminal page domain</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.terminalDomain"
-                              outlined
-                              hide-details="auto"
-                            />
-                          </div>
-                          <div class="field-block">
-                            <v-checkbox
-                              v-model="editedGateway.details.sendCartDescription"
-                              label="Send cart description"
-                              hide-details
-                            />
-                          </div>
-                          <div class="field-block">
-                            <v-checkbox
-                              v-model="editedGateway.details.allowPrelive"
-                              label="Allow pre-live integration controller"
-                              hide-details
-                            />
-                          </div>
-                          <div class="field-block">
-                            <div class="control-label">External GUID</div>
-                            <v-text-field
-                              class="form-field"
-                              v-model="editedGateway.details.externalGuid"
-                              outlined
-                              hide-details="auto"
-                              :readonly="!!editedGateway.details.externalGuid"
-                            />
-                          </div>
-                    </div>
-                  </v-expansion-panel-content>
-                </v-expansion-panel>
-              </v-expansion-panels>
+            <ModalCard
+              title="Details"
+            >
+              <div class="field-block">
+                <div class="control-label">Merchant ID (MID)</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.mid"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Gateway URL</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.url"
+                  outlined
+                  hide-details="auto"
+                  :rules="[urlRule]"
+                />
+              </div>
+              <div class="field-block">
+                <v-checkbox
+                  v-model="editedGateway.details.sendCartDescription"
+                  label="Send Cart Description"
+                  hide-details
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Gateway Keys Path</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.keysPath"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Private key filename</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.privateKey"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Public (gateway) key filename</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.publicKey"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Payment Fail Page</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.failUrl"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Terminal Page Domain</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.terminalDomain"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Payment Success Page</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.successUrl"
+                  outlined
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <v-checkbox
+                  v-model="editedGateway.debug"
+                  label="Debug"
+                  hide-details
+                />
+              </div>
+              <div class="field-block">
+                <v-checkbox
+                  v-model="editedGateway.details.allowPrelive"
+                  label="Allow Pre-live integration controller"
+                  hide-details
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Payment Action</div>
+                <v-select
+                  class="form-field"
+                  v-model="editedGateway.paymentAction"
+                  outlined
+                  :items="actions"
+                  hide-details="auto"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">Payment From Applicable Countries</div>
+                <v-autocomplete
+                  class="form-field"
+                  v-model="editedGateway.countries"
+                  outlined
+                  :items="allCountryOptions"
+                  multiple
+                  chips
+                  hide-details="auto"
+                  :filter="countryFilter"
+                />
+              </div>
+              <div class="field-block">
+                <div class="control-label">External GUID</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="editedGateway.details.externalGuid"
+                  outlined
+                  hide-details="auto"
+                  :readonly="!!editedGateway.details.externalGuid"
+                />
+              </div>
+            </ModalCard>
 
             <!-- Destructive action section - at end of content -->
             <template v-if="!isCreating && canDelete">
@@ -855,19 +839,16 @@ export default {
       this.loading = true;
       const payload = this.preparePayload();
       const trimmedTitle = (payload.title || '').trim();
-      const trimmedCode = (payload.code || '').trim();
       if (!trimmedTitle) {
         this.loading = false;
         this.snackbar = { show: true, text: 'Title is required' };
         return;
       }
-      if (!trimmedCode) {
-        this.loading = false;
-        this.snackbar = { show: true, text: 'Code is required' };
-        return;
-      }
       payload.title = trimmedTitle;
-      payload.code = trimmedCode;
+      // Code is auto-generated for new gateways, or preserved for existing ones
+      if (!payload.code && this.isCreating) {
+        payload.code = `new-${Math.random().toString(36).slice(2, 7)}`;
+      }
 
       try {
         if (this.isCreating) {
