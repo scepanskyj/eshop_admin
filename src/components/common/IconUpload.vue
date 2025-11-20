@@ -120,9 +120,22 @@ export default {
   },
   watch: {
     value(newVal) {
+      // Always resolve the path for display
       this.previewUrl = resolveIconPath(newVal);
       if (!newVal) {
         this.currentFileName = null;
+      }
+      // If the value is a resolved path (contains base URL), normalize it before emitting
+      // This ensures we always store canonical paths (without base URL)
+      if (newVal && !newVal.startsWith('data:') && newVal.startsWith('/')) {
+        const baseUrl = import.meta.env.BASE_URL || '/';
+        if (baseUrl !== '/' && newVal.startsWith(baseUrl)) {
+          // Path is already resolved, normalize it
+          const normalized = newVal.slice(baseUrl.length);
+          if (normalized !== this.value) {
+            this.$emit('input', normalized.startsWith('/') ? normalized : '/' + normalized);
+          }
+        }
       }
     }
   },

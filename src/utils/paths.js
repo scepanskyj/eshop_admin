@@ -6,21 +6,37 @@
  * This function ensures the base path is correctly prepended.
  */
 export function getAssetPath(path) {
+  if (!path) return '';
+  
   // Get the base URL from Vite (set in vite.config.js)
   // BASE_URL always ends with '/' in Vite (e.g., '/eshop_admin/')
   // In production builds, Vite replaces import.meta.env.BASE_URL with the actual value
   const baseUrl = import.meta.env.BASE_URL || '/';
   
-  // If path already starts with base URL, return as is
-  if (path.startsWith(baseUrl)) {
+  // If path is a data URL, return as is
+  if (path.startsWith('data:')) {
     return path;
   }
   
-  // Remove leading slash from path if present
-  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  // If path already starts with base URL, return as is (already resolved)
+  if (baseUrl !== '/' && path.startsWith(baseUrl)) {
+    return path;
+  }
   
-  // Combine base URL with path
-  // baseUrl already has trailing slash, so we just concatenate
+  // Normalize the path: ensure it starts with /
+  let normalizedPath = path;
+  if (!normalizedPath.startsWith('/')) {
+    normalizedPath = '/' + normalizedPath;
+  }
+  
+  // If base URL is root (/), return normalized path as is
+  if (baseUrl === '/') {
+    return normalizedPath;
+  }
+  
+  // Combine base URL with normalized path
+  // Remove leading slash from normalized path since baseUrl has trailing slash
+  const cleanPath = normalizedPath.startsWith('/') ? normalizedPath.slice(1) : normalizedPath;
   return `${baseUrl}${cleanPath}`;
 }
 
