@@ -41,6 +41,15 @@
             </div>
 
             <div class="field-block">
+              <div class="control-label">Disabled Icon (optional)</div>
+              <IconUpload
+                v-model="form.disabledIcon"
+                :disabled="saving"
+              />
+              <div class="field-hint">Icon to display when this payment method is disabled</div>
+            </div>
+
+            <div class="field-block">
               <div class="control-label">Description</div>
               <v-textarea
                 class="form-field"
@@ -431,6 +440,7 @@ function buildPaymentMethodTemplate(countryCode) {
     title: '',
     description: '',
     icon: '',
+    disabledIcon: '',
     enabled: true,
     sortOrder: 0,
     countryCode: countryCode || tenantStore.state.current,
@@ -599,6 +609,7 @@ export default {
       // Ensure all new fields exist
       if (!gateway.description) gateway.description = '';
       if (!gateway.icon) gateway.icon = '';
+      if (!gateway.disabledIcon) gateway.disabledIcon = '';
       if (!gateway.countryCode) gateway.countryCode = tenantStore.state.current;
       if (!gateway.currency) gateway.currency = getCurrencyForCountry(gateway.countryCode);
 

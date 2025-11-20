@@ -730,6 +730,7 @@ function buildGatewayTemplate(code = '') {
     code,
     title: '',
     icon: '',
+    disabledIcon: '',
     description: '',
     enabled: true,
     sortOrder: 0,
@@ -947,8 +948,15 @@ export default {
     getGatewayIcon(code) {
       // Use icon from gateway if set, otherwise fall back to metadata
       const gateway = this.sortedGateways.find(g => g.code === code);
-      if (gateway && gateway.icon) {
-        return getAssetPath(typeof gateway.icon === 'string' ? gateway.icon : gateway.icon.value);
+      if (gateway) {
+        // If payment method is disabled and has a disabled icon, use it
+        if (!gateway.enabled && gateway.disabledIcon) {
+          return getAssetPath(typeof gateway.disabledIcon === 'string' ? gateway.disabledIcon : gateway.disabledIcon.value);
+        }
+        // Otherwise use regular icon
+        if (gateway.icon) {
+          return getAssetPath(typeof gateway.icon === 'string' ? gateway.icon : gateway.icon.value);
+        }
       }
       const iconPath = this.metadataByCode[code]?.icon || '/icons/default.svg';
       return getAssetPath(iconPath);
@@ -981,6 +989,8 @@ export default {
     },
     ensureDetails(gateway) {
       gateway.details = { ...DETAIL_DEFAULTS, ...(gateway.details || {}) };
+      if (!gateway.icon) gateway.icon = '';
+      if (!gateway.disabledIcon) gateway.disabledIcon = '';
       if (!gateway.feeSettings) {
         gateway.feeSettings = {
           priceType: 'Fixed price',

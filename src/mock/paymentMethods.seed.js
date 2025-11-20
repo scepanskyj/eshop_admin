@@ -26,6 +26,7 @@ function createPaymentMethod(code, title, countryCode, options = {}) {
     title,
     description: options.description || '',
     icon: options.icon || '',
+    disabledIcon: options.disabledIcon || '',
     enabled: options.enabled !== undefined ? options.enabled : true,
     sortOrder: options.sortOrder || 0,
     countryCode,
