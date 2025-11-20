@@ -65,6 +65,22 @@
 </template>
 
 <script>
+import { getAssetPath } from '@/utils/paths';
+
+function resolveIconPath(value) {
+  if (!value) return '';
+  // If it's a data URL (starts with data:), return as is
+  if (value.startsWith('data:')) {
+    return value;
+  }
+  // If it's a path (starts with /), resolve it through getAssetPath
+  if (value.startsWith('/')) {
+    return getAssetPath(value);
+  }
+  // Otherwise return as is
+  return value;
+}
+
 export default {
   name: 'IconUpload',
   props: {
@@ -79,7 +95,7 @@ export default {
   },
   data() {
     return {
-      previewUrl: this.value || '',
+      previewUrl: resolveIconPath(this.value),
       currentFileName: null
     };
   },
@@ -104,7 +120,7 @@ export default {
   },
   watch: {
     value(newVal) {
-      this.previewUrl = newVal || '';
+      this.previewUrl = resolveIconPath(newVal);
       if (!newVal) {
         this.currentFileName = null;
       }
