@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrapper">
-    <PageHeader :breadcrumbs="breadcrumbs" title="Payment restrictions overview">
+    <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
         <v-btn color="primary" @click="startNewRule">
           <v-icon left>mdi-plus</v-icon>New rule
@@ -115,6 +115,7 @@
                     :items="shopTypeOptions"
                     multiple
                     chips
+                    small-chips
                     outlined
                     hide-details="auto"
                   />
@@ -127,6 +128,7 @@
                     :items="availablePaymentMethods"
                     multiple
                     chips
+                    small-chips
                     outlined
                     hide-details="auto"
                   />
@@ -315,7 +317,7 @@ export default {
     breadcrumbs() {
       return [
         { text: 'Payment methods', disabled: true },
-        { text: 'Payment restrictions', disabled: true }
+        { text: 'Payment restrictions overview', disabled: true }
       ];
     },
     showShopTypeField() {

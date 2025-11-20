@@ -1,9 +1,6 @@
 <template>
   <div class="page-wrapper">
-    <PageHeader 
-      :breadcrumbs="breadcrumbs" 
-      :title="isCreate ? 'Create gateway' : 'Gateway configuration'" 
-    />
+    <PageHeader :breadcrumbs="breadcrumbs" />
 
     <StickyActionsBar>
       <v-btn outlined @click="onCancel">Cancel</v-btn>
@@ -41,7 +38,7 @@
             </div>
             <div class="field-block">
               <div class="control-label">Applicable countries</div>
-              <v-autocomplete class="form-field" v-model="form.countries" :items="['US','GB','DE','IT','SK','CZ','HU','AT']" multiple chips outlined hide-details="auto" />
+              <v-autocomplete class="form-field" v-model="form.countries" :items="['US','GB','DE','IT','SK','CZ','HU','AT']" multiple chips small-chips outlined hide-details="auto" />
             </div>
             <div class="field-block">
               <v-checkbox v-model="form.details.showDescription" label="Show description" hide-details />
@@ -169,11 +166,9 @@ export default {
   computed: {
     isCreate() { return !store.state.gateways.some(g => g.code === this.code); },
     breadcrumbs() {
-      const codeLabel = (this.form && this.form.code) || this.code || 'new';
       return [
         { text: 'Payment methods', disabled: true },
-        { text: 'Gateway configuration', to: { name: 'GatewaysList' } },
-        { text: codeLabel, disabled: true }
+        { text: this.isCreate ? 'Create gateway' : 'Gateway configuration', disabled: true }
       ];
     },
     urlRules() {

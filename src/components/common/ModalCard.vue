@@ -45,9 +45,10 @@ export default {
 
 .modal-card {
   border-radius: 12px;
-  padding: tokens.$space-md;
-  margin-bottom: tokens.$space-md;
-  background-color: tokens.$color-surface-muted;
+  padding: tokens.$space-lg;
+  margin-bottom: tokens.$space-lg;
+  background-color: tokens.$color-surface-default;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .destructive-card {

@@ -2,6 +2,8 @@ import Vue from 'vue';
 import seed from '@/mock/payments.mock';
 
 const STORAGE_KEY = 'esa.payments';
+const SEED_VERSION = '2.2'; // Increment this to force reload from seed data
+const VERSION_KEY = 'esa.payments.version';
 
 function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
@@ -12,6 +14,7 @@ const state = Vue.observable({
   // page dirty flags
   _dirty: {
     gatewayDetail: false,
+    paymentMethodDetail: false,
     rulesForm: false,
     feeForm: false
   }
@@ -23,7 +26,21 @@ function persist() {
 }
 
 function hydrate() {
+  const storedVersion = localStorage.getItem(VERSION_KEY);
   const raw = localStorage.getItem(STORAGE_KEY);
+  
+  // If version changed or no data exists, use seed data
+  if (storedVersion !== SEED_VERSION || !raw) {
+    console.log('Loading seed data - version:', SEED_VERSION, 'stored version:', storedVersion, 'gateways count:', seed.gateways?.length);
+    state.gateways = deepClone(seed.gateways);
+    state.rules = deepClone(seed.rules);
+    state.fee = deepClone(seed.fee);
+    localStorage.setItem(VERSION_KEY, SEED_VERSION);
+    persist();
+    return;
+  }
+  
+  // Otherwise, try to load from localStorage
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
@@ -32,17 +49,14 @@ function hydrate() {
       state.fee = parsed.fee || null;
     } catch (e) {
       // reset storage on parse error
+      console.log('Parse error, resetting to seed data');
       localStorage.removeItem(STORAGE_KEY);
       state.gateways = deepClone(seed.gateways);
       state.rules = deepClone(seed.rules);
       state.fee = deepClone(seed.fee);
+      localStorage.setItem(VERSION_KEY, SEED_VERSION);
       persist();
     }
-  } else {
-    state.gateways = deepClone(seed.gateways);
-    state.rules = deepClone(seed.rules);
-    state.fee = deepClone(seed.fee);
-    persist();
   }
 }
 

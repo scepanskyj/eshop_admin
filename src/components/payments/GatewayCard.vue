@@ -11,6 +11,10 @@
             <v-chip small :class="[gateway.enabled ? 'chip-enabled' : 'chip-disabled', 'ml-2']" text-color="white">
               {{ gateway.enabled ? 'Enabled' : 'Disabled' }}
             </v-chip>
+            <v-chip v-if="showCountryBadge && countryFlag" small outlined class="ml-2 country-chip">
+              <span class="country-flag">{{ countryFlag }}</span>
+              <span v-if="countryAbbreviation" class="country-code">{{ countryAbbreviation }}</span>
+            </v-chip>
           </div>
           <div class="gateway-updated">
             <span class="sr-only">Last updated</span>
@@ -33,7 +37,10 @@ export default {
     gateway: { type: Object, required: true },
     icon: { type: String, required: true },
     updatedLabel: { type: String, required: true },
-    onConfigure: { type: Function, required: true }
+    onConfigure: { type: Function, required: true },
+    showCountryBadge: { type: Boolean, default: false },
+    countryFlag: { type: String, default: null },
+    countryAbbreviation: { type: String, default: null }
   },
   methods: {
     handleClick() {
@@ -99,6 +106,24 @@ export default {
 
 .chip-disabled {
   background-color: #757575 !important;
+}
+
+.country-chip {
+  background-color: transparent !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.country-flag {
+  font-size: 14px;
+  line-height: 1;
+  margin-right: 4px;
+}
+
+.country-code {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-left: 2px;
 }
 
 .sr-only {

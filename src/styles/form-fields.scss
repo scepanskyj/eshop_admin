@@ -24,19 +24,6 @@
   background-color: white !important;
 }
 
-// Standardize heights for single-line inputs
-:deep(.form-field:not(.v-textarea) .v-input__slot) {
-  min-height: 56px !important;
-}
-
-:deep(.form-field:not(.v-textarea) .v-input__control) {
-  min-height: 56px !important;
-}
-
-:deep(.form-field:not(.v-textarea) .v-input) {
-  min-height: 56px !important;
-}
-
 // Textarea should have white background but flexible height
 :deep(.form-field.v-textarea .v-input__slot) {
   background-color: white !important;

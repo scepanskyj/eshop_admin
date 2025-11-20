@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrapper">
-    <PageHeader :breadcrumbs="breadcrumbs" title="Payment fee" />
+    <PageHeader :breadcrumbs="breadcrumbs" />
 
     <StickyActionsBar>
       <v-btn text @click="onReset">Reset</v-btn>
@@ -190,6 +190,7 @@
                 :items="segmentsOptions"
                 multiple
                 chips
+                small-chips
                 item-text="label"
                 item-value="value"
                 placeholder="Select customer groups"

@@ -63,7 +63,7 @@
           <v-list-item :to="{ name: 'GatewaysList' }" link class="nested-link">
             <v-list-item-action><v-icon>mdi-credit-card-outline</v-icon></v-list-item-action>
             <v-list-item-content>
-              <v-list-item-title>Gateways</v-list-item-title>
+              <v-list-item-title>Payment methods</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
 
@@ -71,13 +71,6 @@
             <v-list-item-action><v-icon>mdi-shield-half-full</v-icon></v-list-item-action>
             <v-list-item-content>
               <v-list-item-title>Payment restrictions</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item :to="{ name: 'PaymentFee' }" link class="nested-link">
-            <v-list-item-action><v-icon>mdi-cash-plus</v-icon></v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Payment fee</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>

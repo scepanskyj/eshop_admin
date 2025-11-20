@@ -3,6 +3,7 @@ import Router from 'vue-router';
 
 import GatewaysList from '@/views/payments/GatewaysList.vue';
 import GatewayDetail from '@/views/payments/GatewayDetail.vue';
+import PaymentMethodDetail from '@/views/payments/PaymentMethodDetail.vue';
 import PaymentRestrictions from '@/views/payments/PaymentRestrictions.vue';
 import PaymentFee from '@/views/payments/PaymentFee.vue';
 import paymentsStore from '@/store/paymentsStore';
@@ -15,6 +16,8 @@ const router = new Router({
     { path: '/', redirect: { name: 'GatewaysList' } },
     { path: '/payments/gateways', name: 'GatewaysList', component: GatewaysList },
     { path: '/payments/gateways/:code', name: 'GatewayDetail', component: GatewayDetail, props: true },
+    { path: '/payments/methods', name: 'PaymentMethodCreate', component: PaymentMethodDetail },
+    { path: '/payments/methods/:code', name: 'PaymentMethodDetail', component: PaymentMethodDetail, props: true },
     { path: '/payments/restrictions', name: 'PaymentRestrictions', component: PaymentRestrictions },
     { path: '/payments/fee', name: 'PaymentFee', component: PaymentFee }
   ]

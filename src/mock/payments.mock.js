@@ -1,9 +1,14 @@
+import paymentMethodsSeed, { paymentMethods } from './paymentMethods.seed';
+
 function nowIso(offsetMinutes = 0) {
   const d = new Date(Date.now() - offsetMinutes * 60 * 1000);
   return d.toISOString();
 }
 
-export const gateways = [
+// Use new payment methods seed data if available, otherwise fall back to old gateways
+export const gateways = (paymentMethods && paymentMethods.length > 0) 
+  ? paymentMethods 
+  : [
   {
     code: 'cod',
     title: 'Cash on Delivery',

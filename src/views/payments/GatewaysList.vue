@@ -1,6 +1,6 @@
 <template>
   <div class="gateways-page-wrapper">
-    <PageHeader :breadcrumbs="breadcrumbs" title="Gateway configuration">
+    <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
         <v-btn 
           v-if="canCreate" 
@@ -9,7 +9,7 @@
           :disabled="loading"
         >
           <v-icon left>mdi-plus</v-icon>
-          Create gateway
+          Create payment method
         </v-btn>
       </template>
       <template v-slot:filters>
@@ -36,6 +36,21 @@
                 />
               </v-sheet>
             </v-col>
+            <v-col v-if="showCountryFilter" cols="12" md="auto" lg="auto">
+                <template v-slot:item="{ item }">
+                  <span class="country-filter-item">
+                    <span class="country-flag">{{ item.flag }}</span>
+                    <span>{{ item.text }}</span>
+                  </span>
+                </template>
+                <template v-slot:selection="{ item }">
+                  <span v-if="item" class="country-filter-item">
+                    <span class="country-flag">{{ item.flag }}</span>
+                    <span>{{ item.text }}</span>
+                  </span>
+                </template>
+              </v-select>
+            </v-col>
           </v-row>
         </section>
       </template>
@@ -48,9 +63,9 @@
     <EmptyState
       v-if="!filtering && !sortedGateways.length"
       icon="mdi-credit-card-outline"
-      title="No gateways match"
-      :subtitle="canCreate ? 'Adjust filters or create a new gateway to get started.' : 'Adjust filters to see gateways.'"
-      :cta-label="canCreate ? 'Create gateway' : undefined"
+      title="No payment methods match"
+      :subtitle="canCreate ? 'Adjust filters or create a new payment method to get started.' : 'Adjust filters to see payment methods.'"
+      :cta-label="canCreate ? 'Create payment method' : undefined"
       @cta="canCreate && createGateway"
     />
 
@@ -66,12 +81,15 @@
         :icon="getGatewayIcon(gateway.code)"
         :updated-label="formatUpdated(gateway.updatedAt)"
         :on-configure="openConfigure"
+        :show-country-badge="showCountryBadge"
+        :country-flag="getCountryFlag(gateway.countryCode)"
+        :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
       />
     </div>
 
     <Modal v-model="configDialog" :title="dialogTitle" max-width="720" @close="handleDialogClose">
       <template v-slot:content>
-        <v-form ref="gatewayForm" lazy-validation v-if="editedGateway">
+        <v-form ref="gatewayForm" lazy-validation v-if="editedGateway && editedGateway.feeSettings">
           <v-alert
             v-if="showDeleteConfirmation"
             type="error"
@@ -86,7 +104,7 @@
 
           <div class="modal-form">
             <ModalCard
-              title="General Settings"
+              title="Payment Method"
             >
               <StatusCard v-model="editedGateway.enabled" />
 
@@ -101,26 +119,283 @@
                 />
               </div>
               <div class="field-block">
-                <div class="control-label">Sort order</div>
-                <v-text-field
-                  class="form-field"
-                  v-model.number="editedGateway.sortOrder"
-                  outlined
-                  type="number"
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Gateway language</div>
+                <div class="control-label">Icon</div>
                 <v-select
                   class="form-field"
-                  v-model="editedGateway.language"
+                  v-model="editedGateway.icon"
                   outlined
-                  :items="languages"
+                  :items="iconOptions"
+                  item-text="text"
+                  item-value="value"
                   hide-details="auto"
+                >
+                  <template v-slot:item="{ item }">
+                    <div class="d-flex align-center">
+                      <v-avatar size="32" class="mr-3">
+                        <v-img :src="getAssetPath(item.value)" contain />
+                      </v-avatar>
+                      <span>{{ item.text }}</span>
+                    </div>
+                  </template>
+                  <template v-slot:selection="{ item }">
+                    <div class="d-flex align-center">
+                      <v-avatar size="24" class="mr-2">
+                        <v-img :src="getAssetPath(item.value)" contain />
+                      </v-avatar>
+                      <span>{{ item.text }}</span>
+                    </div>
+                  </template>
+                </v-select>
+              </div>
+              <div class="field-block">
+                <div class="control-label">Description (optional)</div>
+                <v-textarea
+                  class="form-field"
+                  v-model="editedGateway.description"
+                  outlined
+                  rows="3"
+                  hide-details="auto"
+                  placeholder="Enter description for this payment method"
                 />
               </div>
             </ModalCard>
+
+            <v-expansion-panels multiple>
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  <div>
+                    <div class="modal-card__title">Payment Fee Settings</div>
+                    <div class="modal-card__subtitle">
+                      Configure fee settings for this payment method
+                    </div>
+                  </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <div class="modal-card__body">
+                    <div class="field-block">
+                      <div class="control-label">Price Type</div>
+                      <v-select
+                        class="form-field"
+                        outlined
+                        v-model="editedGateway.feeSettings.priceType"
+                        :items="['Fixed price', 'Percent']"
+                        placeholder="Select price type"
+                        hide-details="auto"
+                      />
+                    </div>
+                    <div class="field-flex">
+                      <div class="field-block">
+                        <div class="control-label">Minimum Order Amount</div>
+                        <v-text-field
+                          class="form-field"
+                          outlined
+                          v-model.number="editedGateway.feeSettings.minAmount"
+                          type="number"
+                          placeholder="0"
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Maximum Order Amount</div>
+                        <v-text-field
+                          class="form-field"
+                          outlined
+                          v-model.number="editedGateway.feeSettings.maxAmount"
+                          type="number"
+                          placeholder="9999"
+                          hide-details="auto"
+                        />
+                      </div>
+                    </div>
+                    <div class="field-block">
+                      <div class="control-label">Fee Amount</div>
+                      <v-text-field
+                        class="form-field"
+                        outlined
+                        v-model.number="editedGateway.feeSettings.amount"
+                        type="number"
+                        placeholder="0.00"
+                        hide-details="auto"
+                      />
+                    </div>
+                    <div class="field-block">
+                      <v-checkbox
+                        v-model="editedGateway.feeSettings.refundable"
+                        label="Refund fee when order is refunded"
+                        hide-details
+                      />
+                    </div>
+                  </div>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+
+              <v-expansion-panel>
+                <v-expansion-panel-header>
+                  <div>
+                    <div class="modal-card__title">Gateway Settings</div>
+                    <div class="modal-card__subtitle">
+                      Technical configuration for the payment gateway (if needed)
+                    </div>
+                  </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                  <div class="modal-card__body">
+                    <div class="field-block">
+                      <div class="control-label">Sort order</div>
+                      <v-text-field
+                        class="form-field"
+                        v-model.number="editedGateway.sortOrder"
+                        outlined
+                        type="number"
+                        hide-details="auto"
+                      />
+                    </div>
+                    <div class="field-block">
+                      <div class="control-label">Gateway language</div>
+                      <v-select
+                        class="form-field"
+                        v-model="editedGateway.language"
+                        outlined
+                        :items="languages"
+                        hide-details="auto"
+                      />
+                    </div>
+                    <ModalCard
+                      title="Details"
+                    >
+                      <div class="field-block">
+                        <div class="control-label">Merchant ID (MID)</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.mid"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Gateway URL</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.url"
+                          outlined
+                          hide-details="auto"
+                          :rules="[urlRule]"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <v-checkbox
+                          v-model="editedGateway.details.sendCartDescription"
+                          label="Send Cart Description"
+                          hide-details
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Gateway Keys Path</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.keysPath"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Private key filename</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.privateKey"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Public (gateway) key filename</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.publicKey"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Payment Fail Page</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.failUrl"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Terminal Page Domain</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.terminalDomain"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Payment Success Page</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.successUrl"
+                          outlined
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <v-checkbox
+                          v-model="editedGateway.debug"
+                          label="Debug"
+                          hide-details
+                        />
+                      </div>
+                      <div class="field-block">
+                        <v-checkbox
+                          v-model="editedGateway.details.allowPrelive"
+                          label="Allow Pre-live integration controller"
+                          hide-details
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Payment Action</div>
+                        <v-select
+                          class="form-field"
+                          v-model="editedGateway.paymentAction"
+                          outlined
+                          :items="actions"
+                          hide-details="auto"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">Payment From Applicable Countries</div>
+                        <v-autocomplete
+                          class="form-field"
+                          v-model="editedGateway.countries"
+                          outlined
+                          :items="allCountryOptions"
+                          multiple
+                          chips
+                          small-chips
+                          hide-details="auto"
+                          :filter="countryFilter"
+                        />
+                      </div>
+                      <div class="field-block">
+                        <div class="control-label">External GUID</div>
+                        <v-text-field
+                          class="form-field"
+                          v-model="editedGateway.details.externalGuid"
+                          outlined
+                          hide-details="auto"
+                          :readonly="!!editedGateway.details.externalGuid"
+                        />
+                      </div>
+                    </ModalCard>
+                  </div>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
+            </v-expansion-panels>
 
             <template v-if="editedGateway.code === 'klarna'">
               <ModalCard
@@ -350,138 +625,6 @@
               </ModalCard>
             </template>
 
-            <ModalCard
-              title="Details"
-            >
-              <div class="field-block">
-                <div class="control-label">Merchant ID (MID)</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.mid"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Gateway URL</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.url"
-                  outlined
-                  hide-details="auto"
-                  :rules="[urlRule]"
-                />
-              </div>
-              <div class="field-block">
-                <v-checkbox
-                  v-model="editedGateway.details.sendCartDescription"
-                  label="Send Cart Description"
-                  hide-details
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Gateway Keys Path</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.keysPath"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Private key filename</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.privateKey"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Public (gateway) key filename</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.publicKey"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Payment Fail Page</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.failUrl"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Terminal Page Domain</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.terminalDomain"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Payment Success Page</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.successUrl"
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <v-checkbox
-                  v-model="editedGateway.debug"
-                  label="Debug"
-                  hide-details
-                />
-              </div>
-              <div class="field-block">
-                <v-checkbox
-                  v-model="editedGateway.details.allowPrelive"
-                  label="Allow Pre-live integration controller"
-                  hide-details
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Payment Action</div>
-                <v-select
-                  class="form-field"
-                  v-model="editedGateway.paymentAction"
-                  outlined
-                  :items="actions"
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Payment From Applicable Countries</div>
-                <v-autocomplete
-                  class="form-field"
-                  v-model="editedGateway.countries"
-                  outlined
-                  :items="allCountryOptions"
-                  multiple
-                  chips
-                  hide-details="auto"
-                  :filter="countryFilter"
-                />
-              </div>
-              <div class="field-block">
-                <div class="control-label">External GUID</div>
-                <v-text-field
-                  class="form-field"
-                  v-model="editedGateway.details.externalGuid"
-                  outlined
-                  hide-details="auto"
-                  :readonly="!!editedGateway.details.externalGuid"
-                />
-              </div>
-            </ModalCard>
-
             <!-- Destructive action section - at end of content -->
             <template v-if="!isCreating && canDelete">
               <ModalCard
@@ -586,6 +729,8 @@ function buildGatewayTemplate(code = '') {
   return {
     code,
     title: '',
+    icon: '',
+    description: '',
     enabled: true,
     sortOrder: 0,
     language: 'EN',
@@ -593,6 +738,13 @@ function buildGatewayTemplate(code = '') {
     updatedAt: new Date().toISOString(),
     countries: ['GLO'],
     debug: false,
+    feeSettings: {
+      priceType: 'Fixed price',
+      minAmount: 0,
+      maxAmount: 9999,
+      refundable: false,
+      amount: 0
+    },
     details: { ...DETAIL_DEFAULTS }
   };
 }
@@ -604,6 +756,7 @@ export default {
     return {
       search: '',
       showEnabledOnly: false,
+      selectedCountry: null,
       metadata: [],
       configDialog: false,
       editedGateway: null,
@@ -644,11 +797,37 @@ export default {
     canDelete() {
       return roleStore.getters.canDelete();
     },
+    isAdminOrDev() {
+      return roleStore.getters.canCreate(); // Admin and developer can create
+    },
+    isGlobalView() {
+      return tenantStore.state.current === 'GLO';
+    },
+    showCountryFilter() {
+      return this.isAdminOrDev && this.isGlobalView;
+    },
+    showCountryBadge() {
+      return this.isAdminOrDev && this.isGlobalView;
+    },
+    countryFilterOptions() {
+      return tenantStore.state.options.map(option => ({
+        text: option.label,
+        value: option.code,
+        flag: option.flag
+      }));
+    },
     breadcrumbs() {
       return [
         { text: 'Payment section', disabled: true },
-        { text: 'Gateways', disabled: true }
+        { text: 'Payment methods', disabled: true }
       ];
+    },
+    iconOptions() {
+      return this.metadata.map(method => ({
+        text: method.title,
+        value: method.icon,
+        code: method.code
+      }));
     },
     languages() {
       return ['EN', 'SK', 'IT', 'PL', 'CZ', 'RO'];
@@ -708,8 +887,13 @@ export default {
           tenantCode === 'GLO' ||
           countries.includes('GLO') ||
           countries.includes(tenantCode);
+        
+        // Additional country filter for admin/dev on global view
+        const matchesCountryFilter = !this.selectedCountry || 
+          gateway.countryCode === this.selectedCountry ||
+          countries.includes(this.selectedCountry);
 
-        return matchesSearch && matchesStatus && matchesCountry;
+        return matchesSearch && matchesStatus && matchesCountry && matchesCountryFilter;
       });
     },
     sortedGateways() {
@@ -761,8 +945,29 @@ export default {
       return text.toLowerCase().includes(query) || value.toLowerCase().includes(query);
     },
     getGatewayIcon(code) {
+      // Use icon from gateway if set, otherwise fall back to metadata
+      const gateway = this.sortedGateways.find(g => g.code === code);
+      if (gateway && gateway.icon) {
+        return getAssetPath(typeof gateway.icon === 'string' ? gateway.icon : gateway.icon.value);
+      }
       const iconPath = this.metadataByCode[code]?.icon || '/icons/default.svg';
       return getAssetPath(iconPath);
+    },
+    getCountryFlag(countryCode) {
+      if (!countryCode) return null;
+      const option = tenantStore.state.options.find(opt => opt.code === countryCode);
+      return option ? option.flag : null;
+    },
+    getCountryAbbreviation(countryCode) {
+      const abbreviations = {
+        'IT': 'ITA',
+        'SK': 'SVK',
+        'CZ': 'CZE',
+        'RO': 'ROU',
+        'PL': 'POL',
+        'GLO': 'GLO'
+      };
+      return abbreviations[countryCode] || countryCode;
     },
     countryLabel(code) {
       const tenantOption = tenantStore.state.options.find(option => option.code === code);
@@ -776,31 +981,24 @@ export default {
     },
     ensureDetails(gateway) {
       gateway.details = { ...DETAIL_DEFAULTS, ...(gateway.details || {}) };
+      if (!gateway.feeSettings) {
+        gateway.feeSettings = {
+          priceType: 'Fixed price',
+          minAmount: 0,
+          maxAmount: 9999,
+          refundable: false,
+          amount: 0
+        };
+      }
       return gateway;
     },
     openConfigure(gateway) {
-      const snapshot = this.ensureDetails(cloneGateway(gateway));
-      this.editedGateway = snapshot;
-      this.originalCode = gateway.code;
-      this.isCreating = false;
-      this.dialogDirty = false;
-      this.suspendDialogDirty = true;
-      this.configDialog = true;
-      this.$nextTick(() => {
-        this.suspendDialogDirty = false;
-      });
+      // Navigate to detail page instead of opening modal
+      this.$router.push({ name: 'PaymentMethodDetail', params: { code: gateway.code } });
     },
     createGateway() {
-      const code = `new-${Math.random().toString(36).slice(2, 7)}`;
-      this.editedGateway = buildGatewayTemplate(code);
-      this.originalCode = null;
-      this.isCreating = true;
-      this.dialogDirty = false;
-      this.suspendDialogDirty = true;
-      this.configDialog = true;
-      this.$nextTick(() => {
-        this.suspendDialogDirty = false;
-      });
+      // Navigate to create page
+      this.$router.push({ name: 'PaymentMethodCreate' });
     },
     handleDialogClose() {
       if (this.dialogDirty) {
@@ -930,6 +1128,21 @@ export default {
   display: inline-flex;
   align-items: center;
   width: fit-content;
+}
+
+.country-filter {
+  min-width: 180px;
+}
+
+.country-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-filter-item .country-flag {
+  font-size: 16px;
+  line-height: 1;
 }
 
 .section-heading {
