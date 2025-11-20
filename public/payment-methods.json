@@ -3,37 +3,37 @@
     {
       "code": "bank",
       "title": "Bank Transfer",
-      "icon": "/icons/BankTransfer.svg",
+      "icon": "/icons/banktransfer.svg",
       "countries": ["GLO"]
     },
     {
       "code": "cod",
       "title": "Cash on Delivery",
-      "icon": "/icons/CashOnDelivery.svg",
+      "icon": "/icons/cashondelivery.svg",
       "countries": ["GLO"]
     },
     {
       "code": "klarna",
       "title": "Klarna",
-      "icon": "/icons/Klarna.svg",
+      "icon": "/icons/klarna.svg",
       "countries": ["GLO"]
     },
     {
       "code": "paypal",
       "title": "PayPal",
-      "icon": "/icons/PayPal.svg",
+      "icon": "/icons/paypal.svg",
       "countries": ["IT"]
     },
     {
       "code": "przelewy",
       "title": "Przelewy24",
-      "icon": "/icons/Przelewy.svg",
+      "icon": "/icons/przelewy.svg",
       "countries": ["PL"]
     },
     {
       "code": "sporopay",
       "title": "SporoPay Gateway",
-      "icon": "/icons/SporoPay.svg",
+      "icon": "/icons/sporopay.svg",
       "countries": ["SK"]
     },
     {
@@ -45,7 +45,7 @@
     {
       "code": "zero_total",
       "title": "Zero Payment Total",
-      "icon": "/icons/ZeroSubtotalCheckout.svg",
+      "icon": "/icons/zeropayment.svg",
       "countries": ["GLO"]
     }
   ]

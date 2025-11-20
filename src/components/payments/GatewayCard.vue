@@ -1,5 +1,5 @@
 <template>
-  <v-card outlined class="gateway-card" @click="handleClick">
+  <v-card outlined class="gateway-card">
     <div class="gateway-content">
       <div class="gateway-header">
         <v-avatar size="48" class="gateway-avatar">
@@ -42,11 +42,7 @@ export default {
     countryFlag: { type: String, default: null },
     countryAbbreviation: { type: String, default: null }
   },
-  methods: {
-    handleClick() {
-      this.onConfigure(this.gateway);
-    }
-  }
+  methods: {}
 };
 </script>
 
@@ -56,13 +52,6 @@ export default {
 .gateway-card {
   padding: tokens.$space-lg;
   border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.gateway-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
 }
 
 .gateway-content {
