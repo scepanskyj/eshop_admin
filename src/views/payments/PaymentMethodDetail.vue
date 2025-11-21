@@ -76,15 +76,14 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Uses Gateway</div>
+              <div class="control-label">Gateway</div>
               <v-select
                 class="form-field"
                 v-model="form.gatewayCode"
                 :items="gatewayOptions"
                 outlined
                 hide-details="auto"
-                clearable
-                placeholder="Select a gateway (optional)"
+                placeholder="Select a gateway"
               >
                 <template v-slot:item="{ item }">
                   <div class="d-flex align-center">
@@ -96,7 +95,6 @@
                   <span>{{ item ? item.text : '' }}</span>
                 </template>
               </v-select>
-              <div class="field-hint">Select which gateway this payment method uses</div>
             </div>
           </ModalCard>
 
@@ -351,11 +349,16 @@ export default {
       ];
     },
     gatewayOptions() {
-      return store.state.gatewaysOnly.map(gateway => ({
+      const gateways = store.state.gatewaysOnly.map(gateway => ({
         text: gateway.title || gateway.code,
         value: gateway.code,
         enabled: gateway.enabled
       }));
+      // Add "No gateway" option at the beginning
+      return [
+        { text: 'No gateway', value: null },
+        ...gateways
+      ];
     },
     customerTypeOptions() {
       return [
