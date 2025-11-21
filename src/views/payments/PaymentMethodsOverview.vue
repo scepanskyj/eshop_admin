@@ -36,29 +36,6 @@
                 />
               </v-sheet>
             </v-col>
-            <v-col v-if="showCountryFilter" cols="12" md="auto" lg="auto">
-              <v-select
-                v-model="selectedCountryFilter"
-                :items="countryFilterOptions"
-                outlined
-                dense
-                hide-details
-                @change="onFilterChange"
-              >
-                <template v-slot:item="{ item }">
-                  <span class="country-filter-item">
-                    <span class="country-flag">{{ item.flag }}</span>
-                    <span>{{ item.text }}</span>
-                  </span>
-                </template>
-                <template v-slot:selection="{ item }">
-                  <span v-if="item" class="country-filter-item">
-                    <span class="country-flag">{{ item.flag }}</span>
-                    <span>{{ item.text }}</span>
-                  </span>
-                </template>
-              </v-select>
-            </v-col>
           </v-row>
         </section>
       </template>
@@ -759,13 +736,12 @@ function buildGatewayTemplate(code = '') {
 }
 
 export default {
-  name: 'GatewaysList',
+  name: 'PaymentMethodsOverview',
   components: { EmptyState, GatewayCard, PageHeader, Modal, ModalCard, StatusCard },
   data() {
     return {
       search: '',
       showEnabledOnly: false,
-      selectedCountry: null,
       metadata: [],
       configDialog: false,
       editedGateway: null,
@@ -812,23 +788,13 @@ export default {
     isGlobalView() {
       return tenantStore.state.current === 'GLO';
     },
-    showCountryFilter() {
-      return this.isAdminOrDev && this.isGlobalView;
-    },
     showCountryBadge() {
       return this.isAdminOrDev && this.isGlobalView;
-    },
-    countryFilterOptions() {
-      return tenantStore.state.options.map(option => ({
-        text: option.label,
-        value: option.code,
-        flag: option.flag
-      }));
     },
     breadcrumbs() {
       return [
         { text: 'Payment section', disabled: true },
-        { text: 'Payment methods', disabled: true }
+        { text: 'Payment methods overview', disabled: true }
       ];
     },
     iconOptions() {
@@ -896,13 +862,8 @@ export default {
           tenantCode === 'GLO' ||
           countries.includes('GLO') ||
           countries.includes(tenantCode);
-        
-        // Additional country filter for admin/dev on global view
-        const matchesCountryFilter = !this.selectedCountry || 
-          gateway.countryCode === this.selectedCountry ||
-          countries.includes(this.selectedCountry);
 
-        return matchesSearch && matchesStatus && matchesCountry && matchesCountryFilter;
+        return matchesSearch && matchesStatus && matchesCountry;
       });
     },
     sortedGateways() {

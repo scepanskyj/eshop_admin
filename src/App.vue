@@ -60,7 +60,7 @@
             </v-list-item-content>
           </template>
 
-          <v-list-item :to="{ name: 'GatewaysList' }" link class="nested-link">
+          <v-list-item :to="{ name: 'PaymentMethodsOverview' }" link class="nested-link">
             <v-list-item-action><v-icon>mdi-credit-card-outline</v-icon></v-list-item-action>
             <v-list-item-content>
               <v-list-item-title>Payment methods</v-list-item-title>

@@ -227,7 +227,7 @@ export default {
         }
         store.dirty.clear('gatewayDetail');
         this.snackbar = { show: true, text: 'Gateway saved' };
-        this.$router.push({ name: 'GatewaysList' });
+        this.$router.push({ name: 'PaymentMethodsOverview' });
       } catch (e) {
         this.snackbar = { show: true, text: e.message || 'Save failed' };
       }
@@ -236,13 +236,13 @@ export default {
       const proceed = !store.dirty.shouldBlockNavigation() || window.confirm('Discard changes?');
       if (!proceed) return;
       store.dirty.clear('gatewayDetail');
-      this.$router.push({ name: 'GatewaysList' });
+      this.$router.push({ name: 'PaymentMethodsOverview' });
     },
     onDelete() {
       store.actions.deleteGateway(this.code);
       store.dirty.clear('gatewayDetail');
       this.confirmDelete = false;
-      this.$router.push({ name: 'GatewaysList' });
+      this.$router.push({ name: 'PaymentMethodsOverview' });
       this.snackbar = { show: true, text: 'Gateway deleted' };
     }
   }

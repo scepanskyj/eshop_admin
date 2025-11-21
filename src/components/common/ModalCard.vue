@@ -77,6 +77,12 @@ export default {
 .modal-card__body {
   display: flex;
   flex-direction: column;
+  gap: tokens.$space-md;
+  
+  // Remove margin-bottom from direct children to use gap instead
+  > * {
+    margin-bottom: 0;
+  }
 }
 </style>
 

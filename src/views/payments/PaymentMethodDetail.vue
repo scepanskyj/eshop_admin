@@ -41,7 +41,7 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Disabled Icon (optional)</div>
+              <div class="control-label">Disabled Icon</div>
               <IconUpload
                 v-model="form.disabledIcon"
                 :disabled="saving"
@@ -69,7 +69,8 @@
                 outlined
                 type="number"
                 hide-details="auto"
-                hint="Lower numbers appear first"
+                :rules="[sortOrderRule]"
+                hint="Lower numbers appear first (min: 1, max: current maximum)"
                 persistent-hint
               />
             </div>
@@ -86,7 +87,7 @@
             </div>
 
             <template v-if="form.feeEnabled">
-              <div class="field-block">
+              <div class="field-block fee-amount-field">
                 <div class="control-label">Fee Amount *</div>
                 <v-text-field
                   class="form-field"
@@ -100,34 +101,36 @@
                 />
               </div>
 
-              <div class="field-block">
-                <div class="control-label">Min Order Amount</div>
-                <v-text-field
-                  class="form-field"
-                  v-model.number="form.feeSettings.minOrderAmount"
-                  outlined
-                  type="number"
-                  step="0.01"
-                  hide-details="auto"
-                  :suffix="form.currency"
-                  hint="Minimum order amount to apply payment fee"
-                  persistent-hint
-                />
-              </div>
+              <div class="field-flex">
+                <div class="field-block">
+                  <div class="control-label">Min Order Amount</div>
+                  <v-text-field
+                    class="form-field"
+                    v-model.number="form.feeSettings.minOrderAmount"
+                    outlined
+                    type="number"
+                    step="0.01"
+                    hide-details="auto"
+                    :suffix="form.currency"
+                    hint="Minimum order amount to apply payment fee"
+                    persistent-hint
+                  />
+                </div>
 
-              <div class="field-block">
-                <div class="control-label">Max Order Amount</div>
-                <v-text-field
-                  class="form-field"
-                  v-model.number="form.feeSettings.maxOrderAmount"
-                  outlined
-                  type="number"
-                  step="0.01"
-                  hide-details="auto"
-                  :suffix="form.currency"
-                  hint="Maximum order amount to apply payment fee"
-                  persistent-hint
-                />
+                <div class="field-block">
+                  <div class="control-label">Max Order Amount</div>
+                  <v-text-field
+                    class="form-field"
+                    v-model.number="form.feeSettings.maxOrderAmount"
+                    outlined
+                    type="number"
+                    step="0.01"
+                    hide-details="auto"
+                    :suffix="form.currency"
+                    hint="Maximum order amount to apply payment fee"
+                    persistent-hint
+                  />
+                </div>
               </div>
 
               <div class="field-block">
@@ -506,7 +509,7 @@ export default {
       const title = this.form && this.form.title ? `${baseTitle} - ${this.form.title}` : baseTitle;
       return [
         { text: 'Payment section', disabled: true },
-        { text: 'Payment methods', to: { name: 'GatewaysList' } },
+        { text: 'Payment methods', to: { name: 'PaymentMethodsOverview' } },
         { text: title, disabled: true }
       ];
     },
@@ -549,6 +552,23 @@ export default {
     },
     currentTenant() {
       return tenantStore.state.current;
+    },
+    maxSortOrder() {
+      // Get the maximum sortOrder from all payment methods
+      const gateways = store.state.gateways || [];
+      if (gateways.length === 0) return 1;
+      const maxOrder = Math.max(...gateways.map(g => g.sortOrder || 0));
+      return Math.max(maxOrder, 1); // Ensure at least 1
+    },
+    sortOrderRule() {
+      return v => {
+        if (v === null || v === undefined || v === '') return true; // Allow empty
+        const num = Number(v);
+        if (isNaN(num)) return 'Must be a number';
+        if (num < 1) return 'Position must be at least 1';
+        if (num > this.maxSortOrder) return `Position cannot exceed ${this.maxSortOrder} (current maximum)`;
+        return true;
+      };
     }
   },
   watch: {
@@ -578,7 +598,7 @@ export default {
             if (!proceed) return;
           }
           store.dirty.clear('paymentMethodDetail');
-          this.$router.push({ name: 'GatewaysList' });
+          this.$router.push({ name: 'PaymentMethodsOverview' });
         }
       }
     }
@@ -598,7 +618,7 @@ export default {
       } else {
         const gateway = store.state.gateways.find(g => g.code === this.code);
         if (!gateway) {
-          this.$router.push({ name: 'GatewaysList' });
+          this.$router.push({ name: 'PaymentMethodsOverview' });
           return;
         }
         this.form = this.ensureDefaults(JSON.parse(JSON.stringify(gateway)));
@@ -653,7 +673,7 @@ export default {
       // Always clear ALL dirty flags to prevent router guard from blocking
       store.dirty.clearAll();
       // Navigate back to payment methods list
-      this.$router.push({ name: 'GatewaysList' });
+      this.$router.push({ name: 'PaymentMethodsOverview' });
     },
     async handleSave() {
       if (!this.form.title || !this.form.title.trim()) {
@@ -679,7 +699,7 @@ export default {
 
         store.dirty.clear('paymentMethodDetail');
         setTimeout(() => {
-          this.$router.push({ name: 'GatewaysList' });
+          this.$router.push({ name: 'PaymentMethodsOverview' });
         }, 1000);
       } catch (error) {
         this.snackbar = { show: true, text: error.message || 'Unable to save payment method' };
@@ -694,7 +714,7 @@ export default {
         this.snackbar = { show: true, text: 'Payment method deleted' };
         store.dirty.clear('paymentMethodDetail');
         setTimeout(() => {
-          this.$router.push({ name: 'GatewaysList' });
+          this.$router.push({ name: 'PaymentMethodsOverview' });
         }, 1000);
       } catch (error) {
         this.snackbar = { show: true, text: error.message || 'Unable to delete payment method' };
@@ -822,6 +842,22 @@ export default {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.5);
   margin-top: 4px;
+}
+
+.field-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: tokens.$space-lg;
+}
+
+.field-flex .field-block {
+  flex: 1 1 240px;
+  margin-bottom: 0;
+}
+
+.fee-amount-field :deep(.v-input) {
+  max-width: 50%;
 }
 
 // Truncate breadcrumb title if too long
