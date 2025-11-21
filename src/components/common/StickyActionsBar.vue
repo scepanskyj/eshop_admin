@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="sticky-actions" elevation="2">
+  <v-sheet class="sticky-actions">
     <div class="actions">
       <slot />
     </div>
@@ -17,13 +17,13 @@ export default {
   position: sticky;
   top: 64px; /* app bar height */
   z-index: 3;
-  background: white;
-  padding: 8px 16px;
+  padding: 12px 16px;
 }
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 0;
 }
 </style>
 

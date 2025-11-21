@@ -5,216 +5,13 @@ function nowIso(offsetMinutes = 0) {
   return d.toISOString();
 }
 
-// Use new payment methods seed data if available, otherwise fall back to old gateways
-export const gateways = (paymentMethods && paymentMethods.length > 0) 
-  ? paymentMethods 
-  : [
-  {
-    code: 'cod',
-    title: 'Cash on Delivery',
-    enabled: true,
-    sortOrder: 1,
-    language: 'EN',
-    paymentAction: 'Authorize & Capture',
-    updatedAt: nowIso(40),
-    countries: ['GLO'],
-    debug: false,
-    details: {
-      mid: '',
-      url: '',
-      keysPath: '',
-      privateKey: '',
-      publicKey: '',
-      successUrl: '',
-      failUrl: '',
-      terminalDomain: '',
-      sendCartDescription: false,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: true,
-      sortOrder: 1
-    }
-  },
-  {
-    code: 'bank',
-    title: 'Bank Transfer',
-    enabled: true,
-    sortOrder: 2,
-    language: 'EN',
-    paymentAction: 'Authorize only',
-    updatedAt: nowIso(90),
-    countries: ['GLO'],
-    debug: false,
-    details: {
-      mid: '',
-      url: '',
-      keysPath: '',
-      privateKey: '',
-      publicKey: '',
-      successUrl: '',
-      failUrl: '',
-      terminalDomain: '',
-      sendCartDescription: true,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: false,
-      sortOrder: 2
-    }
-  },
-  {
-    code: 'zero_total',
-    title: 'Zero Payment Total',
-    enabled: true,
-    sortOrder: 3,
-    language: 'EN',
-    paymentAction: 'Authorize & Capture',
-    updatedAt: nowIso(180),
-    countries: ['GLO'],
-    debug: false,
-    details: {
-      mid: '',
-      url: '',
-      keysPath: '',
-      privateKey: '',
-      publicKey: '',
-      successUrl: '',
-      failUrl: '',
-      terminalDomain: '',
-      sendCartDescription: false,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: true,
-      sortOrder: 3
-    }
-  },
-  {
-    code: 'klarna',
-    title: 'Klarna Payments',
-    enabled: true,
-    sortOrder: 4,
-    language: 'EN',
-    paymentAction: 'Authorize & Capture',
-    updatedAt: nowIso(25),
-    countries: ['GLO'],
-    debug: true,
-    details: {
-      klarnaApiEndpoint: 'Klarna Payments (Europe)',
-      klarnaApiUsername: '',
-      klarnaApiPassword: '',
-      klarnaMode: 'Playground',
-      klarnaLogging: 'Disable',
-      klarnaPaymentsEnable: false,
-      klarnaPaymentsAllowedCountries: 'All Allowed Countries',
-      klarnaPaymentsEnableB2B: false,
-      klarnaPaymentsDataSharing: true,
-      klarnaPaymentsDataSharingOnLoad: true,
-      klarnaMessagingEnable: false,
-      klarnaMessagingPlacement: 'cart',
-      mid: '',
-      url: '',
-      keysPath: '',
-      privateKey: '',
-      publicKey: '',
-      successUrl: '',
-      failUrl: '',
-      terminalDomain: '',
-      sendCartDescription: true,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: true
-    }
-  },
-  {
-    code: 'sporopay',
-    title: 'SporoPay Gateway',
-    enabled: false,
-    sortOrder: 5,
-    language: 'SK',
-    paymentAction: 'Authorize & Capture',
-    updatedAt: nowIso(320),
-    countries: ['SK'],
-    debug: false,
-    details: {
-      bankAccountPrefix: '000000',
-      bankAccountNumber: '511287879',
-      bankCode: '0900',
-      constantSymbol: '0308',
-      safeKey: '',
-      currency: 'EUR',
-      paymentTargetUrl: 'MUST_BE_GENERATED',
-      paymentReturnUrl: 'MUST_BE_GENERATED',
-      debug: false,
-      allowedCountries: 'All Allowed Countries',
-      specificCountries: [],
-      mid: '',
-      url: '',
-      keysPath: '',
-      privateKey: '',
-      publicKey: '',
-      successUrl: '',
-      failUrl: '',
-      terminalDomain: '',
-      sendCartDescription: false,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: true
-    }
-  },
-  {
-    code: 'przelewy',
-    title: 'Przelewy24',
-    enabled: true,
-    sortOrder: 6,
-    language: 'PL',
-    paymentAction: 'Authorize & Capture',
-    updatedAt: nowIso(55),
-    countries: ['PL'],
-    debug: false,
-    details: {
-      mid: 'prz_merchant',
-      url: 'https://api.przelewy24.pl',
-      keysPath: '/keys/przelewy',
-      privateKey: 'przelewy.key',
-      publicKey: 'przelewy.pub',
-      successUrl: 'https://shop.example.pl/p24/success',
-      failUrl: 'https://shop.example.pl/p24/fail',
-      terminalDomain: 'przelewy24.pl',
-      sendCartDescription: true,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: true
-    }
-  },
-  {
-    code: 'paypal',
-    title: 'PayPal',
-    enabled: true,
-    sortOrder: 7,
-    language: 'IT',
-    paymentAction: 'Authorize & Capture',
-    updatedAt: nowIso(12),
-    countries: ['IT'],
-    debug: false,
-    details: {
-      mid: 'merchant_pp',
-      url: 'https://api.paypal.com',
-      keysPath: '/keys/paypal',
-      privateKey: 'paypal.key',
-      publicKey: 'paypal.pub',
-      successUrl: 'https://shop.example.it/pp/success',
-      failUrl: 'https://shop.example.it/pp/fail',
-      terminalDomain: 'paypal.com',
-      sendCartDescription: true,
-      allowPrelive: false,
-      externalGuid: '',
-      showDescription: true
-    }
-  },
+// Gateways are separate entities - only Stripe for now
+const gatewaysSeed = [
   {
     code: 'stripe',
     title: 'Stripe',
     enabled: true,
-    sortOrder: 8,
+    sortOrder: 1,
     language: 'EN',
     paymentAction: 'Authorize & Capture',
     updatedAt: nowIso(15),
@@ -236,6 +33,15 @@ export const gateways = (paymentMethods && paymentMethods.length > 0)
     }
   }
 ];
+
+// Payment methods use paymentMethods seed data
+// Gateways are separate entities - only Stripe for now
+export const gateways = (paymentMethods && paymentMethods.length > 0) 
+  ? paymentMethods  // Payment methods use this (for backward compatibility)
+  : gatewaysSeed;   // Fallback
+
+// Separate export for gateways only (used by GatewaysList)
+export const gatewaysOnly = gatewaysSeed;
 
 export const rules = [
   {

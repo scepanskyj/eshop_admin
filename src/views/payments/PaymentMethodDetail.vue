@@ -74,6 +74,30 @@
                 persistent-hint
               />
             </div>
+
+            <div class="field-block">
+              <div class="control-label">Uses Gateway</div>
+              <v-select
+                class="form-field"
+                v-model="form.gatewayCode"
+                :items="gatewayOptions"
+                outlined
+                hide-details="auto"
+                clearable
+                placeholder="Select a gateway (optional)"
+              >
+                <template v-slot:item="{ item }">
+                  <div class="d-flex align-center">
+                    <span>{{ item.text }}</span>
+                    <v-chip v-if="item.enabled === false" x-small color="grey" text-color="white" class="ml-2">Disabled</v-chip>
+                  </div>
+                </template>
+                <template v-slot:selection="{ item }">
+                  <span>{{ item ? item.text : '' }}</span>
+                </template>
+              </v-select>
+              <div class="field-hint">Select which gateway this payment method uses</div>
+            </div>
           </ModalCard>
 
           <!-- Payment Fee Settings -->
@@ -171,189 +195,6 @@
               </div>
             </template>
           </ModalCard>
-
-          <!-- Gateway Settings -->
-          <v-expansion-panels v-model="gatewayPanel" class="gateway-settings-accordions">
-            <v-expansion-panel>
-              <v-expansion-panel-header>
-                <div>
-                  <div class="modal-card__title">Gateway Settings</div>
-                  <div class="modal-card__subtitle">
-                    {{ canEditGateway ? 'Configure gateway settings for this payment method' : 'View gateway settings (read-only)' }}
-                  </div>
-                </div>
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <div class="gateway-settings-content">
-                    <div class="field-block">
-                      <div class="control-label">Gateway Title</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.gatewayTitle"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                        placeholder="Defaults to payment method title"
-                      />
-                      <div class="field-hint">Only for internal differentiation (e.g. "Stripe" for online payment method)</div>
-                    </div>
-
-                    <div class="field-block">
-                      <div class="control-label">Gateway language</div>
-                      <v-select
-                        class="form-field"
-                        v-model="form.language"
-                        outlined
-                        :items="languages"
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Payment Action</div>
-                      <v-select
-                        class="form-field"
-                        v-model="form.paymentAction"
-                        outlined
-                        :items="actions"
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Payment From Applicable Countries</div>
-                      <v-combobox
-                        class="form-field"
-                        v-model="form.countries"
-                        outlined
-                        :items="allCountryOptions"
-                        multiple
-                        small-chips
-                        hide-details="auto"
-                        :filter="countryFilter"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Merchant ID (MID)</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.mid"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Gateway URL</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.url"
-                        outlined
-                        hide-details="auto"
-                        :rules="[urlRule]"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <v-checkbox
-                        v-model="form.details.sendCartDescription"
-                        label="Send Cart Description"
-                        hide-details
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Gateway Keys Path</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.keysPath"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Private key filename</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.privateKey"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Public (gateway) key filename</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.publicKey"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Payment Fail Page</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.failUrl"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Terminal Page Domain</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.terminalDomain"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">Payment Success Page</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.successUrl"
-                        outlined
-                        hide-details="auto"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <v-checkbox
-                        v-model="form.debug"
-                        label="Debug"
-                        hide-details
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <v-checkbox
-                        v-model="form.details.allowPrelive"
-                        label="Allow Pre-live integration controller"
-                        hide-details
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                    <div class="field-block">
-                      <div class="control-label">External GUID</div>
-                      <v-text-field
-                        class="form-field"
-                        v-model="form.details.externalGuid"
-                        outlined
-                        hide-details="auto"
-                        :readonly="!!form.details.externalGuid"
-                        :disabled="!canEditGateway"
-                      />
-                    </div>
-                </div>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
         </v-col>
       </v-row>
     </div>
@@ -467,11 +308,8 @@ function buildPaymentMethodTemplate(countryCode) {
       }
     },
     gatewayEnabled: false,
-    gatewayTitle: '',
-    language: countryCode === 'IT' ? 'IT' : countryCode === 'SK' ? 'SK' : countryCode === 'CZ' ? 'CZ' : countryCode === 'RO' ? 'RO' : countryCode === 'PL' ? 'PL' : 'EN',
-    paymentAction: 'Authorize & Capture',
-    debug: false,
-    details: { ...DETAIL_DEFAULTS }
+    gatewayCode: '',
+    details: {}
   };
 }
 
@@ -493,8 +331,7 @@ export default {
       showDeleteConfirmation: false,
       snackbar: { show: false, text: '' },
       suspendDirty: true,
-      previousTenant: tenantStore.state.current,
-      gatewayPanel: []
+      previousTenant: tenantStore.state.current
     };
   },
   computed: {
@@ -513,14 +350,12 @@ export default {
         { text: title, disabled: true }
       ];
     },
-    canEditGateway() {
-      return roleStore.getters.canCreate(); // Admin and developer can edit gateway settings
-    },
-    languages() {
-      return ['EN', 'SK', 'IT', 'PL', 'CZ', 'RO'];
-    },
-    actions() {
-      return ['Authorize & Capture', 'Authorize only'];
+    gatewayOptions() {
+      return store.state.gatewaysOnly.map(gateway => ({
+        text: gateway.title || gateway.code,
+        value: gateway.code,
+        enabled: gateway.enabled
+      }));
     },
     customerTypeOptions() {
       return [
@@ -529,26 +364,8 @@ export default {
         { text: 'Wholesale', value: 'wholesale' }
       ];
     },
-    allCountryOptions() {
-      return [
-        { text: 'ALL', value: 'GLO' },
-        { text: 'Austria (AT)', value: 'AT' },
-        { text: 'Czechia (CZ)', value: 'CZ' },
-        { text: 'Germany (DE)', value: 'DE' },
-        { text: 'United Kingdom (GB)', value: 'GB' },
-        { text: 'Hungary (HU)', value: 'HU' },
-        { text: 'Italy (IT)', value: 'IT' },
-        { text: 'Poland (PL)', value: 'PL' },
-        { text: 'Romania (RO)', value: 'RO' },
-        { text: 'Slovakia (SK)', value: 'SK' },
-        { text: 'United States (US)', value: 'US' }
-      ];
-    },
     requiredRule() {
       return v => !!v || 'This field is required';
-    },
-    urlRule() {
-      return v => !v || /^https?:\/\/.+/.test(v) || 'Must be a valid URL';
     },
     currentTenant() {
       return tenantStore.state.current;
@@ -576,18 +393,8 @@ export default {
       handler() {
         if (this.suspendDirty) return;
         store.dirty.set('paymentMethodDetail', true);
-        // Sync gatewayTitle with title if gatewayTitle is empty
-        if (this.form && this.form.title && !this.form.gatewayTitle) {
-          this.form.gatewayTitle = this.form.title;
-        }
       },
       deep: true
-    },
-    'form.title'(newTitle) {
-      // Update gatewayTitle when title changes if gatewayTitle is empty or matches old title
-      if (this.form && newTitle && (!this.form.gatewayTitle || this.form.gatewayTitle === this.original?.title)) {
-        this.form.gatewayTitle = newTitle;
-      }
     },
     currentTenant: {
       handler(newTenant, oldTenant) {
@@ -656,18 +463,11 @@ export default {
       if (gateway.feeSettings.minOrderAmount === undefined) gateway.feeSettings.minOrderAmount = 0;
       if (gateway.feeSettings.maxOrderAmount === undefined) gateway.feeSettings.maxOrderAmount = 0;
 
-      // Ensure gateway settings
-      if (gateway.gatewayEnabled === undefined) gateway.gatewayEnabled = !!gateway.details;
-      if (!gateway.gatewayTitle) gateway.gatewayTitle = gateway.title || '';
-      if (!gateway.details) gateway.details = { ...DETAIL_DEFAULTS };
+      // Ensure gateway code
+      if (!gateway.gatewayCode) gateway.gatewayCode = '';
+      if (!gateway.details) gateway.details = {};
 
       return gateway;
-    },
-    countryFilter(item, queryText) {
-      const text = item.text || '';
-      const value = item.value || '';
-      const query = queryText.toLowerCase();
-      return text.toLowerCase().includes(query) || value.toLowerCase().includes(query);
     },
     handleCancel() {
       // Always clear ALL dirty flags to prevent router guard from blocking
@@ -797,46 +597,6 @@ export default {
   padding: 0 tokens.$space-lg tokens.$space-lg tokens.$space-lg !important;
 }
 
-// Gateway Settings accordion - standalone card styling
-:deep(.gateway-settings-accordions) {
-  margin-bottom: tokens.$space-lg;
-}
-
-:deep(.gateway-settings-accordions .v-expansion-panels) {
-  background-color: transparent !important;
-  box-shadow: none !important;
-}
-
-:deep(.gateway-settings-accordions .v-expansion-panel) {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-  border-radius: 12px !important;
-  margin-bottom: 0 !important;
-  background-color: tokens.$color-surface-default !important;
-  border: none !important;
-}
-
-:deep(.gateway-settings-accordions .v-expansion-panel:before) {
-  box-shadow: none !important;
-}
-
-:deep(.gateway-settings-accordions .v-expansion-panel-header) {
-  padding: tokens.$space-lg !important;
-  background-color: tokens.$color-surface-default !important;
-}
-
-:deep(.gateway-settings-accordions .v-expansion-panel-header:hover) {
-  background-color: rgba(0, 0, 0, 0.02) !important;
-}
-
-:deep(.gateway-settings-accordions .v-expansion-panel-content) {
-  padding: 0 tokens.$space-lg tokens.$space-lg tokens.$space-lg !important;
-  background-color: tokens.$color-surface-default !important;
-}
-
-.gateway-settings-content {
-  display: flex;
-  flex-direction: column;
-}
 
 .field-hint {
   font-size: 12px;

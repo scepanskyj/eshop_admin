@@ -73,6 +73,13 @@
               <v-list-item-title>Payment restrictions</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
+          <v-list-item v-if="canAccessGateways" :to="{ name: 'GatewaysList' }" link class="nested-link">
+            <v-list-item-action><v-icon>mdi-server</v-icon></v-list-item-action>
+            <v-list-item-content>
+              <v-list-item-title>Gateways</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
@@ -105,6 +112,9 @@ export default {
     currentRole() {
       const current = roleStore.state.current;
       return roleStore.state.options.find(option => option.code === current) || roleStore.state.options[0];
+    },
+    canAccessGateways() {
+      return roleStore.getters.canCreate(); // Only developers and admins
     }
   },
   methods: {

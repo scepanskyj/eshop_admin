@@ -1,14 +1,18 @@
 import Vue from 'vue';
-import seed from '@/mock/payments.mock';
+import seed, { gatewaysOnly } from '@/mock/payments.mock';
+import { paymentMethods } from '@/mock/paymentMethods.seed';
 
 const STORAGE_KEY = 'esa.payments';
-const SEED_VERSION = '2.2'; // Increment this to force reload from seed data
+const GATEWAYS_STORAGE_KEY = 'esa.gateways';
+const SEED_VERSION = '2.4'; // Increment this to force reload from seed data
 const VERSION_KEY = 'esa.payments.version';
+const GATEWAYS_VERSION_KEY = 'esa.gateways.version';
 
 function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
 const state = Vue.observable({
-  gateways: [],
+  gateways: [], // Payment methods (backward compatibility)
+  gatewaysOnly: [], // Separate gateways list (only Stripe)
   rules: [],
   fee: null,
   // page dirty flags
@@ -23,6 +27,8 @@ const state = Vue.observable({
 function persist() {
   const data = { gateways: state.gateways, rules: state.rules, fee: state.fee };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const gatewaysData = { gatewaysOnly: state.gatewaysOnly };
+  localStorage.setItem(GATEWAYS_STORAGE_KEY, JSON.stringify(gatewaysData));
 }
 
 function hydrate() {
@@ -31,11 +37,29 @@ function hydrate() {
   
   // If version changed or no data exists, use seed data
   if (storedVersion !== SEED_VERSION || !raw) {
-    console.log('Loading seed data - version:', SEED_VERSION, 'stored version:', storedVersion, 'gateways count:', seed.gateways?.length);
-    state.gateways = deepClone(seed.gateways);
+    console.log('Loading seed data - version:', SEED_VERSION, 'stored version:', storedVersion, 'payment methods count:', paymentMethods?.length);
+    // Payment methods come from paymentMethods.seed.js
+    state.gateways = deepClone(paymentMethods && paymentMethods.length > 0 ? paymentMethods : seed.gateways);
     state.rules = deepClone(seed.rules);
     state.fee = deepClone(seed.fee);
     localStorage.setItem(VERSION_KEY, SEED_VERSION);
+    
+    // Load gateways separately
+    const gatewaysVersion = localStorage.getItem(GATEWAYS_VERSION_KEY);
+    const gatewaysRaw = localStorage.getItem(GATEWAYS_STORAGE_KEY);
+    if (gatewaysVersion !== SEED_VERSION || !gatewaysRaw) {
+      state.gatewaysOnly = deepClone(gatewaysOnly);
+      localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
+    } else {
+      try {
+        const parsed = JSON.parse(gatewaysRaw);
+        state.gatewaysOnly = parsed.gatewaysOnly || [];
+      } catch (e) {
+        state.gatewaysOnly = deepClone(gatewaysOnly);
+        localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
+      }
+    }
+    
     persist();
     return;
   }
@@ -51,13 +75,29 @@ function hydrate() {
       // reset storage on parse error
       console.log('Parse error, resetting to seed data');
       localStorage.removeItem(STORAGE_KEY);
-      state.gateways = deepClone(seed.gateways);
+      state.gateways = deepClone(paymentMethods && paymentMethods.length > 0 ? paymentMethods : seed.gateways);
       state.rules = deepClone(seed.rules);
       state.fee = deepClone(seed.fee);
       localStorage.setItem(VERSION_KEY, SEED_VERSION);
-      persist();
     }
   }
+  
+  // Load gateways separately
+  const gatewaysRaw = localStorage.getItem(GATEWAYS_STORAGE_KEY);
+  if (gatewaysRaw) {
+    try {
+      const parsed = JSON.parse(gatewaysRaw);
+      state.gatewaysOnly = parsed.gatewaysOnly || [];
+    } catch (e) {
+      state.gatewaysOnly = deepClone(gatewaysOnly);
+      localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
+    }
+  } else {
+    state.gatewaysOnly = deepClone(gatewaysOnly);
+    localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
+  }
+  
+  persist();
 }
 
 const getters = {
@@ -125,29 +165,29 @@ const getters = {
 
 const actions = {
   createGateway(gateway) {
-    const exists = state.gateways.some(g => g.code === gateway.code);
+    const exists = state.gatewaysOnly.some(g => g.code === gateway.code);
     if (exists) throw new Error('Gateway code already exists');
     const gw = deepClone(gateway);
     gw.updatedAt = new Date().toISOString();
-    state.gateways.push(gw);
+    state.gatewaysOnly.push(gw);
     persist();
   },
   updateGateway(code, data) {
-    const idx = state.gateways.findIndex(g => g.code === code);
+    const idx = state.gatewaysOnly.findIndex(g => g.code === code);
     if (idx === -1) throw new Error('Gateway not found');
     const incoming = deepClone(data);
     if (incoming.code && incoming.code !== code) {
-      const conflict = state.gateways.some((g, i) => g.code === incoming.code && i !== idx);
+      const conflict = state.gatewaysOnly.some((g, i) => g.code === incoming.code && i !== idx);
       if (conflict) throw new Error('Gateway code already exists');
     }
-    const merged = { ...state.gateways[idx], ...incoming, updatedAt: new Date().toISOString() };
-    Vue.set(state.gateways, idx, merged);
+    const merged = { ...state.gatewaysOnly[idx], ...incoming, updatedAt: new Date().toISOString() };
+    Vue.set(state.gatewaysOnly, idx, merged);
     persist();
   },
   deleteGateway(code) {
-    const idx = state.gateways.findIndex(g => g.code === code);
+    const idx = state.gatewaysOnly.findIndex(g => g.code === code);
     if (idx !== -1) {
-      state.gateways.splice(idx, 1);
+      state.gatewaysOnly.splice(idx, 1);
       persist();
     }
   },
@@ -191,5 +231,6 @@ export default {
   dirty,
   init: hydrate
 };
+
 
 
