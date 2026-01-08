@@ -4,20 +4,53 @@ import { paymentMethods } from '@/mock/paymentMethods.seed';
 
 const STORAGE_KEY = 'esa.payments';
 const GATEWAYS_STORAGE_KEY = 'esa.gateways';
-const SEED_VERSION = '2.4'; // Increment this to force reload from seed data
+const SEED_VERSION = '2.5'; // Increment this to force reload from seed data (2.5 = merged gateways)
 const VERSION_KEY = 'esa.payments.version';
 const GATEWAYS_VERSION_KEY = 'esa.gateways.version';
 
 function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
+// Helper function to merge Stripe gateway config into card payment methods
+function mergeStripeGatewayIntoCardMethods(paymentMethods, stripeGateway) {
+  if (!stripeGateway || !stripeGateway.details) return paymentMethods;
+  
+  const updatedMethods = paymentMethods.map(method => {
+    // Check if this is a card payment method (contains 'card' in code or uses cardonline icon)
+    const isCardMethod = method.code.includes('card') || method.icon?.includes('cardonline');
+    
+    if (isCardMethod) {
+      return {
+        ...method,
+        needsGatewayConfig: true,
+        stripeTitle: stripeGateway.details.checkoutItemTitle || method.title,
+        gatewayConfig: JSON.stringify({
+          mid: stripeGateway.details.mid || '',
+          url: stripeGateway.details.url || '',
+          keysPath: stripeGateway.details.keysPath || '',
+          privateKey: stripeGateway.details.privateKey || '',
+          publicKey: stripeGateway.details.publicKey || '',
+          successUrl: stripeGateway.details.successUrl || '',
+          failUrl: stripeGateway.details.failUrl || '',
+          terminalDomain: stripeGateway.details.terminalDomain || '',
+          sendCartDescription: stripeGateway.details.sendCartDescription !== undefined ? stripeGateway.details.sendCartDescription : true,
+          allowPrelive: stripeGateway.details.allowPrelive || false,
+          externalGuid: stripeGateway.details.externalGuid || '',
+          checkoutItemTitle: stripeGateway.details.checkoutItemTitle || method.title
+        }, null, 2)
+      };
+    }
+    return method;
+  });
+  
+  return updatedMethods;
+}
+
 const state = Vue.observable({
-  gateways: [], // Payment methods (backward compatibility)
-  gatewaysOnly: [], // Separate gateways list (only Stripe)
+  gateways: [], // Payment methods (backward compatibility name)
   rules: [],
   fee: null,
   // page dirty flags
   _dirty: {
-    gatewayDetail: false,
     paymentMethodDetail: false,
     rulesForm: false,
     feeForm: false
@@ -27,38 +60,47 @@ const state = Vue.observable({
 function persist() {
   const data = { gateways: state.gateways, rules: state.rules, fee: state.fee };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  const gatewaysData = { gatewaysOnly: state.gatewaysOnly };
-  localStorage.setItem(GATEWAYS_STORAGE_KEY, JSON.stringify(gatewaysData));
+  // Remove old gateways storage
+  localStorage.removeItem(GATEWAYS_STORAGE_KEY);
+  localStorage.removeItem(GATEWAYS_VERSION_KEY);
 }
 
 function hydrate() {
   const storedVersion = localStorage.getItem(VERSION_KEY);
   const raw = localStorage.getItem(STORAGE_KEY);
   
-  // If version changed or no data exists, use seed data
+  // If version changed or no data exists, use seed data and migrate
   if (storedVersion !== SEED_VERSION || !raw) {
-    console.log('Loading seed data - version:', SEED_VERSION, 'stored version:', storedVersion, 'payment methods count:', paymentMethods?.length);
-    // Payment methods come from paymentMethods.seed.js
-    state.gateways = deepClone(paymentMethods && paymentMethods.length > 0 ? paymentMethods : seed.gateways);
+    console.log('Loading seed data - version:', SEED_VERSION, 'stored version:', storedVersion);
+    
+    // Start with payment methods from seed
+    let methods = deepClone(paymentMethods && paymentMethods.length > 0 ? paymentMethods : seed.gateways);
+    
+    // Try to load existing Stripe gateway data and merge it
+    const gatewaysRaw = localStorage.getItem(GATEWAYS_STORAGE_KEY);
+    if (gatewaysRaw) {
+      try {
+        const parsed = JSON.parse(gatewaysRaw);
+        const stripeGateway = parsed.gatewaysOnly?.find(g => g.code === 'stripe');
+        if (stripeGateway) {
+          console.log('Merging Stripe gateway config into card payment methods');
+          methods = mergeStripeGatewayIntoCardMethods(methods, stripeGateway);
+        }
+      } catch (e) {
+        console.warn('Failed to parse existing gateway data:', e);
+      }
+    } else {
+      // Use seed gateway data if no stored data exists
+      const stripeGateway = gatewaysOnly?.find(g => g.code === 'stripe');
+      if (stripeGateway) {
+        methods = mergeStripeGatewayIntoCardMethods(methods, stripeGateway);
+      }
+    }
+    
+    state.gateways = methods;
     state.rules = deepClone(seed.rules);
     state.fee = deepClone(seed.fee);
     localStorage.setItem(VERSION_KEY, SEED_VERSION);
-    
-    // Load gateways separately
-    const gatewaysVersion = localStorage.getItem(GATEWAYS_VERSION_KEY);
-    const gatewaysRaw = localStorage.getItem(GATEWAYS_STORAGE_KEY);
-    if (gatewaysVersion !== SEED_VERSION || !gatewaysRaw) {
-      state.gatewaysOnly = deepClone(gatewaysOnly);
-      localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
-    } else {
-      try {
-        const parsed = JSON.parse(gatewaysRaw);
-        state.gatewaysOnly = parsed.gatewaysOnly || [];
-      } catch (e) {
-        state.gatewaysOnly = deepClone(gatewaysOnly);
-        localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
-      }
-    }
     
     persist();
     return;
@@ -71,30 +113,43 @@ function hydrate() {
       state.gateways = parsed.gateways || [];
       state.rules = parsed.rules || [];
       state.fee = parsed.fee || null;
+      
+      // Migrate old gateway data if it exists and hasn't been merged yet
+      const gatewaysRaw = localStorage.getItem(GATEWAYS_STORAGE_KEY);
+      if (gatewaysRaw) {
+        try {
+          const parsedGateways = JSON.parse(gatewaysRaw);
+          const stripeGateway = parsedGateways.gatewaysOnly?.find(g => g.code === 'stripe');
+          if (stripeGateway) {
+            // Check if any card method already has gateway config
+            const hasGatewayConfig = state.gateways.some(m => 
+              m.code.includes('card') && m.gatewayConfig
+            );
+            
+            if (!hasGatewayConfig) {
+              console.log('Migrating Stripe gateway config to card payment methods');
+              state.gateways = mergeStripeGatewayIntoCardMethods(state.gateways, stripeGateway);
+              persist();
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to migrate gateway data:', e);
+        }
+      }
     } catch (e) {
       // reset storage on parse error
       console.log('Parse error, resetting to seed data');
       localStorage.removeItem(STORAGE_KEY);
-      state.gateways = deepClone(paymentMethods && paymentMethods.length > 0 ? paymentMethods : seed.gateways);
+      let methods = deepClone(paymentMethods && paymentMethods.length > 0 ? paymentMethods : seed.gateways);
+      const stripeGateway = gatewaysOnly?.find(g => g.code === 'stripe');
+      if (stripeGateway) {
+        methods = mergeStripeGatewayIntoCardMethods(methods, stripeGateway);
+      }
+      state.gateways = methods;
       state.rules = deepClone(seed.rules);
       state.fee = deepClone(seed.fee);
       localStorage.setItem(VERSION_KEY, SEED_VERSION);
     }
-  }
-  
-  // Load gateways separately
-  const gatewaysRaw = localStorage.getItem(GATEWAYS_STORAGE_KEY);
-  if (gatewaysRaw) {
-    try {
-      const parsed = JSON.parse(gatewaysRaw);
-      state.gatewaysOnly = parsed.gatewaysOnly || [];
-    } catch (e) {
-      state.gatewaysOnly = deepClone(gatewaysOnly);
-      localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
-    }
-  } else {
-    state.gatewaysOnly = deepClone(gatewaysOnly);
-    localStorage.setItem(GATEWAYS_VERSION_KEY, SEED_VERSION);
   }
   
   persist();
@@ -164,32 +219,42 @@ const getters = {
 };
 
 const actions = {
-  createGateway(gateway) {
-    const exists = state.gatewaysOnly.some(g => g.code === gateway.code);
-    if (exists) throw new Error('Gateway code already exists');
-    const gw = deepClone(gateway);
-    gw.updatedAt = new Date().toISOString();
-    state.gatewaysOnly.push(gw);
+  createPaymentMethod(method) {
+    const exists = state.gateways.some(m => m.code === method.code);
+    if (exists) throw new Error('Payment method code already exists');
+    const pm = deepClone(method);
+    pm.updatedAt = new Date().toISOString();
+    state.gateways.push(pm);
     persist();
   },
-  updateGateway(code, data) {
-    const idx = state.gatewaysOnly.findIndex(g => g.code === code);
-    if (idx === -1) throw new Error('Gateway not found');
+  updatePaymentMethod(code, data) {
+    const idx = state.gateways.findIndex(m => m.code === code);
+    if (idx === -1) throw new Error('Payment method not found');
     const incoming = deepClone(data);
     if (incoming.code && incoming.code !== code) {
-      const conflict = state.gatewaysOnly.some((g, i) => g.code === incoming.code && i !== idx);
-      if (conflict) throw new Error('Gateway code already exists');
+      const conflict = state.gateways.some((m, i) => m.code === incoming.code && i !== idx);
+      if (conflict) throw new Error('Payment method code already exists');
     }
-    const merged = { ...state.gatewaysOnly[idx], ...incoming, updatedAt: new Date().toISOString() };
-    Vue.set(state.gatewaysOnly, idx, merged);
+    const merged = { ...state.gateways[idx], ...incoming, updatedAt: new Date().toISOString() };
+    Vue.set(state.gateways, idx, merged);
     persist();
   },
-  deleteGateway(code) {
-    const idx = state.gatewaysOnly.findIndex(g => g.code === code);
+  deletePaymentMethod(code) {
+    const idx = state.gateways.findIndex(m => m.code === code);
     if (idx !== -1) {
-      state.gatewaysOnly.splice(idx, 1);
+      state.gateways.splice(idx, 1);
       persist();
     }
+  },
+  // Legacy gateway methods - now redirect to payment method methods
+  createGateway(gateway) {
+    return this.createPaymentMethod(gateway);
+  },
+  updateGateway(code, data) {
+    return this.updatePaymentMethod(code, data);
+  },
+  deleteGateway(code) {
+    return this.deletePaymentMethod(code);
   },
   createRule(rule) {
     const r = { ...deepClone(rule), id: rule.id || `r-${Date.now()}`, updatedAt: new Date().toISOString() };

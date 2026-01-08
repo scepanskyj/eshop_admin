@@ -11,8 +11,7 @@ export const COUNTRY_CURRENCIES = {
   DE: 'EUR',
   GB: 'GBP',
   HU: 'HUF',
-  US: 'USD',
-  GLO: 'EUR' // Default for global
+  US: 'USD'
 };
 
 /**

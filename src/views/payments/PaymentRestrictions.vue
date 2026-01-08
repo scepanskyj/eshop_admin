@@ -349,13 +349,10 @@ export default {
         text: g.title,
         value: g.code
       }));
-      if (currentTenant === 'GLO') {
-        return allMethods;
-      }
       return allMethods.filter(m => {
         const gateway = store.state.gateways.find(g => g.code === m.value);
         if (!gateway) return false;
-        return gateway.countries.includes('GLO') || gateway.countries.includes(currentTenant);
+        return gateway.countries.includes(currentTenant);
       });
     },
     methodCodes() {
@@ -368,13 +365,11 @@ export default {
       const currentTenant = tenantStore.state.current;
       let rules = store.state.rules;
       
-      // Filter by tenant - rules should be visible if they apply to current tenant or GLO
-      if (currentTenant !== 'GLO') {
-        rules = rules.filter(rule => {
-          // For now, show all rules. In a real app, you'd filter based on rule applicability
-          return true;
-        });
-      }
+      // Filter by tenant - rules should be visible if they apply to current tenant
+      rules = rules.filter(rule => {
+        // For now, show all rules. In a real app, you'd filter based on rule applicability
+        return true;
+      });
       
       // Global search - search across all columns
       if (this.search) {

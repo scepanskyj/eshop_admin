@@ -75,27 +75,19 @@
               />
             </div>
 
-            <div class="field-block">
-              <div class="control-label">Gateway</div>
-              <v-select
-                class="form-field"
-                v-model="form.gatewayCode"
-                :items="gatewayOptions"
-                outlined
-                hide-details="auto"
-                placeholder="Select a gateway"
-              >
-                <template v-slot:item="{ item }">
-                  <div class="d-flex align-center">
-                    <span>{{ item.text }}</span>
-                    <v-chip v-if="item.enabled === false" x-small color="grey" text-color="white" class="ml-2">Disabled</v-chip>
-                  </div>
-                </template>
-                <template v-slot:selection="{ item }">
-                  <span>{{ item ? item.text : '' }}</span>
-                </template>
-              </v-select>
-            </div>
+            <template v-if="form.needsGatewayConfig && shouldShowStripeTitle">
+              <div class="field-block">
+                <div class="control-label">Stripe title</div>
+                <v-text-field
+                  class="form-field"
+                  v-model="form.stripeTitle"
+                  outlined
+                  hide-details="auto"
+                  placeholder="Text shown in Stripe gateway as title"
+                />
+                <div class="field-hint">Text shown in Stripe gateway as title</div>
+              </div>
+            </template>
           </ModalCard>
 
           <!-- Payment Fee Settings -->
@@ -190,6 +182,34 @@
                   label="Fee already contains tax"
                   hide-details
                 />
+              </div>
+            </template>
+          </ModalCard>
+
+          <!-- Gateway Configuration (Developer/Admin only) -->
+          <ModalCard v-if="canAccessGatewayConfig" title="Gateway Configuration">
+            <div class="field-block">
+              <v-checkbox
+                v-model="form.needsGatewayConfig"
+                label="Gateway configuration is needed"
+                hide-details
+              />
+              <div class="field-hint">Enable this if this payment method requires gateway configuration (e.g., Stripe, Klarna)</div>
+            </div>
+
+            <template v-if="form.needsGatewayConfig">
+              <div class="field-block">
+                <div class="control-label">Configuration (JSON) *</div>
+                <v-textarea
+                  class="form-field json-editor"
+                  v-model="form.gatewayConfig"
+                  outlined
+                  rows="20"
+                  hide-details="auto"
+                  placeholder='{"key": "value"}'
+                  :rules="[jsonRule]"
+                />
+                <div class="field-hint">Enter gateway configuration as JSON.</div>
               </div>
             </template>
           </ModalCard>
@@ -305,9 +325,9 @@ function buildPaymentMethodTemplate(countryCode) {
         feeContainsTax: false
       }
     },
-    gatewayEnabled: false,
-    gatewayCode: '',
-    details: {}
+    needsGatewayConfig: false,
+    stripeTitle: '',
+    gatewayConfig: ''
   };
 }
 
@@ -339,6 +359,9 @@ export default {
     canDelete() {
       return roleStore.getters.canDelete();
     },
+    canAccessGatewayConfig() {
+      return roleStore.getters.canCreate(); // Only developers and admins
+    },
     breadcrumbs() {
       const baseTitle = this.isCreate ? 'Create payment method' : 'Edit payment method';
       const title = this.form && this.form.title ? `${baseTitle} - ${this.form.title}` : baseTitle;
@@ -346,18 +369,6 @@ export default {
         { text: 'Payment section', disabled: true },
         { text: 'Payment methods', to: { name: 'PaymentMethodsOverview' } },
         { text: title, disabled: true }
-      ];
-    },
-    gatewayOptions() {
-      const gateways = store.state.gatewaysOnly.map(gateway => ({
-        text: gateway.title || gateway.code,
-        value: gateway.code,
-        enabled: gateway.enabled
-      }));
-      // Add "No gateway" option at the beginning
-      return [
-        { text: 'No gateway', value: null },
-        ...gateways
       ];
     },
     customerTypeOptions() {
@@ -389,6 +400,32 @@ export default {
         if (num > this.maxSortOrder) return `Position cannot exceed ${this.maxSortOrder} (current maximum)`;
         return true;
       };
+    },
+    jsonRule() {
+      return v => {
+        if (!this.form.needsGatewayConfig) return true;
+        if (!v || !v.trim()) return 'Gateway configuration is required when gateway config is needed';
+        try {
+          JSON.parse(v);
+          return true;
+        } catch (e) {
+          return 'Invalid JSON format';
+        }
+      };
+    },
+    shouldShowStripeTitle() {
+      if (!this.form || !this.form.title) return false;
+      
+      // List of card payment method titles that should show Stripe title field
+      const cardPaymentTitles = [
+        'Carte di credito, Apple Pay, Google Pay',
+        'Blik / Karty / Apple Pay / Google Pay',
+        'Kartou online',
+        'Online platba kartou / Apple Pay / GooglePay',
+        'Plata cu cardul.'
+      ];
+      
+      return cardPaymentTitles.includes(this.form.title);
     }
   },
   watch: {
@@ -466,9 +503,21 @@ export default {
       if (gateway.feeSettings.minOrderAmount === undefined) gateway.feeSettings.minOrderAmount = 0;
       if (gateway.feeSettings.maxOrderAmount === undefined) gateway.feeSettings.maxOrderAmount = 0;
 
-      // Ensure gateway code
-      if (!gateway.gatewayCode) gateway.gatewayCode = '';
-      if (!gateway.details) gateway.details = {};
+      // Ensure gateway configuration fields
+      if (gateway.needsGatewayConfig === undefined) gateway.needsGatewayConfig = false;
+      if (!gateway.stripeTitle) gateway.stripeTitle = gateway.title || '';
+      if (!gateway.gatewayConfig) {
+        // If gatewayConfig doesn't exist but needsGatewayConfig is true, create default JSON
+        if (gateway.needsGatewayConfig) {
+          gateway.gatewayConfig = JSON.stringify({}, null, 2);
+        } else {
+          gateway.gatewayConfig = '';
+        }
+      }
+      // If gatewayConfig is an object, stringify it
+      if (typeof gateway.gatewayConfig === 'object') {
+        gateway.gatewayConfig = JSON.stringify(gateway.gatewayConfig, null, 2);
+      }
 
       return gateway;
     },
@@ -484,6 +533,16 @@ export default {
         return;
       }
 
+      // Validate JSON if gateway config is needed
+      if (this.form.needsGatewayConfig && this.form.gatewayConfig) {
+        try {
+          JSON.parse(this.form.gatewayConfig);
+        } catch (e) {
+          this.snackbar = { show: true, text: 'Invalid JSON in gateway configuration' };
+          return;
+        }
+      }
+
       this.saving = true;
       try {
         const payload = {
@@ -492,11 +551,17 @@ export default {
           code: this.form.code || `pm-${Date.now()}`
         };
 
+        // Clean up gatewayConfig if not needed
+        if (!payload.needsGatewayConfig) {
+          payload.gatewayConfig = '';
+          payload.stripeTitle = '';
+        }
+
         if (this.isCreate) {
-          store.actions.createGateway(payload);
+          store.actions.createPaymentMethod(payload);
           this.snackbar = { show: true, text: 'Payment method created' };
         } else {
-          store.actions.updateGateway(this.code, payload);
+          store.actions.updatePaymentMethod(this.code, payload);
           this.snackbar = { show: true, text: 'Payment method updated' };
         }
 
@@ -513,7 +578,7 @@ export default {
     async handleDelete() {
       this.saving = true;
       try {
-        store.actions.deleteGateway(this.code);
+        store.actions.deletePaymentMethod(this.code);
         this.snackbar = { show: true, text: 'Payment method deleted' };
         store.dirty.clear('paymentMethodDetail');
         setTimeout(() => {
@@ -621,6 +686,11 @@ export default {
 
 .fee-amount-field :deep(.v-input) {
   max-width: 50%;
+}
+
+.json-editor {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
 }
 
 // Truncate breadcrumb title if too long

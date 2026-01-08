@@ -1,7 +1,6 @@
 import Vue from 'vue';
 
 const TENANT_OPTIONS = [
-  { code: 'GLO', label: 'Global', flag: '🌐' },
   { code: 'IT', label: 'Italy', flag: '🇮🇹' },
   { code: 'SK', label: 'Slovakia', flag: '🇸🇰' },
   { code: 'CZ', label: 'Czechia', flag: '🇨🇿' },
@@ -10,7 +9,7 @@ const TENANT_OPTIONS = [
 ];
 
 const state = Vue.observable({
-  current: 'GLO',
+  current: 'IT',
   options: TENANT_OPTIONS
 });
 
