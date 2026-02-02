@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-app-bar class="app-header" dark>
+      <img src="/logo/drmaxlogo.svg" alt="DRMax Logo" class="app-logo" />
       <v-toolbar-title>Eshop Admin</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu offset-y>
@@ -131,6 +132,13 @@ html, body, #app { height: 100%; }
   right: 0;
   z-index: 1000;
   height: 64px !important;
+}
+
+.app-logo {
+  height: 40px;
+  width: auto;
+  margin-right: 16px;
+  margin-left: 8px;
 }
 
 .app-drawer {
