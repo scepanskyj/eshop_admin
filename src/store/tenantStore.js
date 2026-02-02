@@ -5,7 +5,8 @@ const TENANT_OPTIONS = [
   { code: 'SK', label: 'Slovakia', flag: '🇸🇰' },
   { code: 'CZ', label: 'Czechia', flag: '🇨🇿' },
   { code: 'PL', label: 'Poland', flag: '🇵🇱' },
-  { code: 'RO', label: 'Romania', flag: '🇷🇴' }
+  { code: 'RO', label: 'Romania', flag: '🇷🇴' },
+  { code: 'RS', label: 'Serbia', flag: '🇷🇸' }
 ];
 
 const state = Vue.observable({

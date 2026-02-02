@@ -120,7 +120,7 @@ export default {
       );
     },
     enabledFilterCount() {
-      return store.state.gatewaysOnly.filter(g => g.enabled).length;
+      return this.filteredGateways.filter(g => g.enabled).length;
     }
   },
   methods: {

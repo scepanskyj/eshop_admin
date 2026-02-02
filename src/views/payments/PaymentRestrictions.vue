@@ -2,7 +2,7 @@
   <div class="page-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn color="primary" @click="startNewRule">
+        <v-btn color="primary" @click="$router.push({ name: 'PaymentRestrictionCreate' })">
           <v-icon left>mdi-plus</v-icon>New rule
         </v-btn>
       </template>
@@ -53,7 +53,7 @@
         {{ item.shopType || '1P' }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn icon @click="editRule(item)">
+        <v-btn icon @click="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
         <v-btn icon @click="confirmDelete(item)">
@@ -61,161 +61,6 @@
         </v-btn>
       </template>
     </v-data-table>
-
-    <!-- New/Edit Rule Modal -->
-    <Modal v-model="ruleDialog" :title="isEditing ? 'Edit rule' : 'New rule'" @close="handleDialogClose">
-      <template v-slot:content>
-        <v-form ref="ruleForm" v-if="ruleForm">
-          <ModalCard
-            title="Rule overview"
-            subtitle="Configure the basic settings and behavior for this payment restriction rule."
-          >
-            <StatusCard
-              v-model="ruleForm.active"
-              label="Status"
-              enabled-label="ACTIVE"
-              disabled-label="INACTIVE"
-            />
-
-                <div class="field-block">
-                  <div class="control-label">Name *</div>
-                  <v-text-field
-                    class="form-field"
-                    v-model="ruleForm.name"
-                    :rules="[v=>!!v||'Required']"
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div class="field-block">
-                  <div class="control-label">Store view</div>
-                  <v-select
-                    class="form-field"
-                    v-model="ruleForm.storeView"
-                    :items="storeViews"
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div class="field-block" v-if="showShopTypeField">
-                  <div class="control-label">Shop type</div>
-                  <v-select
-                    class="form-field"
-                    v-model="ruleForm.shopType"
-                    :items="shopTypeOptions"
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div class="field-block" v-if="showShopTypeField">
-                  <div class="control-label">Target shop types</div>
-                  <v-select
-                    class="form-field"
-                    v-model="ruleForm.targetShopTypes"
-                    :items="shopTypeOptions"
-                    multiple
-                    chips
-                    small-chips
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div class="field-block">
-                  <div class="control-label">Payment method</div>
-                  <v-autocomplete
-                    class="form-field"
-                    v-model="ruleForm.paymentMethods"
-                    :items="availablePaymentMethods"
-                    multiple
-                    chips
-                    small-chips
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div class="field-block">
-                  <div class="control-label">Description</div>
-                  <v-textarea
-                    class="form-field"
-                    v-model="ruleForm.description"
-                    rows="2"
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div class="field-block">
-                  <v-checkbox v-model="ruleForm.showWhenApplied" label="Show when applied" hide-details />
-                </div>
-            <div class="field-block">
-              <div class="control-label">Reason</div>
-              <RichTextStub v-model="ruleForm.reason" />
-            </div>
-          </ModalCard>
-
-          <ModalCard
-            title="Condition Builder"
-            subtitle="Define conditions that determine when this rule should be applied."
-          >
-                <div class="field-block">
-                  <div class="control-label">Operator</div>
-                  <v-select
-                    class="form-field"
-                    v-model="ruleForm.conditions.operator"
-                    :items="['AND','OR']"
-                    outlined
-                    hide-details="auto"
-                  />
-                </div>
-                <div v-for="(c, idx) in ruleForm.conditions.conditions" :key="idx" class="d-flex align-center mb-2">
-                  <div class="field-block mr-2" style="flex: 1;">
-                    <div class="control-label">Field</div>
-                    <v-select
-                      class="form-field"
-                      :items="conditionFields"
-                      v-model="c.field"
-                      outlined
-                      hide-details="auto"
-                    />
-                  </div>
-                  <div class="field-block mr-2" style="flex: 1;">
-                    <div class="control-label">Comparator</div>
-                    <v-select
-                      class="form-field"
-                      :items="comparators"
-                      v-model="c.comparator"
-                      outlined
-                      hide-details="auto"
-                    />
-                  </div>
-                  <div class="field-block mr-2" style="flex: 1;">
-                    <div class="control-label">Value</div>
-                    <v-text-field
-                      class="form-field"
-                      v-model="c.value"
-                      outlined
-                      hide-details="auto"
-                    />
-                  </div>
-                  <v-btn icon @click="ruleForm.conditions.conditions.splice(idx,1)">
-                    <v-icon color="red">mdi-close</v-icon>
-                  </v-btn>
-                </div>
-                <v-btn small outlined @click="addCondition">
-                  <v-icon left>mdi-plus</v-icon>Add condition
-                </v-btn>
-            <v-alert class="mt-4" type="info" outlined>
-              <strong>Preview:</strong> {{ previewSummary }}
-            </v-alert>
-          </ModalCard>
-        </v-form>
-      </template>
-      
-      <template v-slot:footer>
-        <v-spacer />
-        <v-btn text @click="handleDialogClose">Cancel</v-btn>
-        <v-btn color="primary" @click="saveRule">Save</v-btn>
-      </template>
-    </Modal>
 
     <!-- Delete Confirmation Dialog -->
     <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
@@ -269,18 +114,15 @@
 </template>
 
 <script>
-import RichTextStub from '@/components/common/RichTextStub.vue';
 import QuickFilter from '@/components/common/QuickFilter.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
-import ModalCard from '@/components/common/ModalCard.vue';
-import StatusCard from '@/components/common/StatusCard.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { RichTextStub, QuickFilter, PageHeader, Modal, ModalCard, StatusCard },
+  components: { QuickFilter, PageHeader, Modal },
   data() {
     return {
       search: '',
@@ -291,28 +133,22 @@ export default {
       showDeleteConfirm: false,
       toDelete: null,
       snackbar: { show: false, text: '' },
-      ruleDialog: false,
-      ruleForm: null,
-      editingId: null,
-      suspendDirty: true,
       rulesMetadata: [],
       filtering: false
     };
   },
-  async created() {
-    try {
-      const response = await fetch('/rules-metadata.json');
-      if (response.ok) {
-        const payload = await response.json();
-        this.rulesMetadata = Array.isArray(payload.rules) ? payload.rules : [];
+    async created() {
+      try {
+        const response = await fetch('/rules-metadata.json');
+        if (response.ok) {
+          const payload = await response.json();
+          this.rulesMetadata = Array.isArray(payload.rules) ? payload.rules : [];
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('Unable to load rules metadata', error);
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Unable to load rules metadata', error);
-    }
-    this.resetRuleForm();
-    this.$nextTick(() => { this.suspendDirty = false; });
-  },
+    },
   computed: {
     breadcrumbs() {
       return [
@@ -342,24 +178,6 @@ export default {
     },
     activeFilterCount() {
       return store.state.rules.filter(r => r.active).length;
-    },
-    availablePaymentMethods() {
-      const currentTenant = tenantStore.state.current;
-      const allMethods = store.state.gateways.map(g => ({
-        text: g.title,
-        value: g.code
-      }));
-      return allMethods.filter(m => {
-        const gateway = store.state.gateways.find(g => g.code === m.value);
-        if (!gateway) return false;
-        return gateway.countries.includes(currentTenant);
-      });
-    },
-    methodCodes() {
-      return Array.from(new Set(store.state.gateways.map(g => g.code).concat(['paypal','card','cod','bank'])));
-    },
-    storeViews() {
-      return ['Default','Wholesale'];
     },
     filteredRules() {
       const currentTenant = tenantStore.state.current;
@@ -400,33 +218,6 @@ export default {
     },
     sortedRules() {
       return store.getters.sortItems(this.filteredRules, this.sortBy, this.sortDesc);
-    },
-    conditionFields() {
-      return ['country','cartTotal','customerSegment','paymentMethod'];
-    },
-    comparators() {
-      return ['=','!=','>','<','in','not in'];
-    },
-    previewSummary() {
-      if (!this.ruleForm || !this.ruleForm.conditions) return '—';
-      const c = this.ruleForm.conditions;
-      const parts = (c.conditions || []).map(x => {
-        const value = Array.isArray(x.value) ? '['+x.value.join(', ')+']' : x.value;
-        return `${x.field} ${x.comparator} ${value}`;
-      });
-      return parts.join(` ${c.operator} `) || '—';
-    },
-    isEditing() {
-      return !!this.editingId;
-    }
-  },
-  watch: {
-    ruleForm: {
-      deep: true,
-      handler() {
-        if (this.suspendDirty) return;
-        store.dirty.set('rulesForm', true);
-      }
     }
   },
   methods: {
@@ -448,53 +239,6 @@ export default {
         this.filtering = false;
       }, 800);
     },
-    setRuleForm(payload) {
-      this.suspendDirty = true;
-      this.ruleForm = JSON.parse(JSON.stringify(payload));
-      if (!this.ruleForm.shopType) {
-        this.ruleForm.shopType = '1P';
-      }
-      this.$nextTick(() => { this.suspendDirty = false; });
-    },
-    resetRuleForm() {
-      this.editingId = null;
-      this.setRuleForm(this.buildRuleForm());
-    },
-    buildRuleForm() {
-      return {
-        active: true,
-        name: '',
-        storeView: 'Default',
-        shopType: '1P',
-        targetShopTypes: this.showShopTypeField ? ['1P'] : [],
-        paymentMethods: [],
-        description: '',
-        showWhenApplied: false,
-        reason: '',
-        updatedBy: 'you',
-        conditions: { operator: 'AND', conditions: [] }
-      };
-    },
-    startNewRule() {
-      this.resetRuleForm();
-      store.dirty.clear('rulesForm');
-      this.ruleDialog = true;
-    },
-    editRule(item) {
-      this.editingId = item.id;
-      this.setRuleForm(item);
-      store.dirty.clear('rulesForm');
-      this.ruleDialog = true;
-    },
-    handleDialogClose() {
-      if (store.dirty.shouldBlockNavigation()) {
-        const proceed = window.confirm('Discard unsaved changes?');
-        if (!proceed) return;
-      }
-      this.resetRuleForm();
-      store.dirty.clear('rulesForm');
-      this.ruleDialog = false;
-    },
     confirmDelete(item) {
       this.toDelete = item;
       this.showDeleteConfirm = false;
@@ -509,43 +253,11 @@ export default {
       if (this.toDelete) {
         const deletedId = this.toDelete.id;
         store.actions.deleteRule(deletedId);
-        if (this.editingId === deletedId) {
-          this.resetRuleForm();
-          store.dirty.clear('rulesForm');
-          this.ruleDialog = false;
-        }
         this.snackbar = { show: true, text: 'Rule deleted' };
       }
       this.deleteDialog = false;
       this.showDeleteConfirm = false;
       this.toDelete = null;
-    },
-    addCondition() {
-      this.ruleForm.conditions.conditions.push({ field: 'country', comparator: '=', value: '' });
-    },
-    saveRule() {
-      if (!this.$refs.ruleForm || !this.$refs.ruleForm.validate()) {
-        this.snackbar = { show: true, text: 'Please fill in all required fields' };
-        return;
-      }
-      if (!this.ruleForm.name) {
-        this.snackbar = { show: true, text: 'Name is required' };
-        return;
-      }
-      try {
-        if (this.editingId) {
-          store.actions.updateRule(this.editingId, this.ruleForm);
-        } else {
-          const created = store.actions.createRule(this.ruleForm);
-          this.editingId = created.id;
-        }
-        store.dirty.clear('rulesForm');
-        this.resetRuleForm();
-        this.snackbar = { show: true, text: 'Rule saved' };
-        this.ruleDialog = false;
-      } catch(e) {
-        this.snackbar = { show: true, text: e.message || 'Save failed' };
-      }
     }
   }
 };
@@ -697,6 +409,11 @@ export default {
 
 .state-switch {
   margin: 0;
+}
+
+.builder-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 </style>
