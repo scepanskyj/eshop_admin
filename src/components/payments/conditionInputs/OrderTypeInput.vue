@@ -43,10 +43,10 @@ export default {
 
 .native-select {
   width: 100%;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border: 1px solid rgba(0, 0, 0, 0.38);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   background-color: white;
   color: rgba(0, 0, 0, 0.87);
   cursor: pointer;
@@ -61,10 +61,11 @@ export default {
   outline: none;
   border-color: tokens.$color-green;
   border-width: 2px;
-  padding: 11px 15px;
+  padding: 7px 11px;
 }
 
 .native-select option {
-  padding: 8px;
+  padding: 6px;
+  font-size: 13px;
 }
 </style>

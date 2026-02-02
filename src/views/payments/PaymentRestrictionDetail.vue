@@ -35,6 +35,7 @@
                   class="form-field"
                   v-model="ruleForm.name"
                   :rules="[v=>!!v||'Required']"
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -45,6 +46,7 @@
                   class="form-field"
                   v-model="ruleForm.storeView"
                   :items="storeViews"
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -55,6 +57,7 @@
                   class="form-field"
                   v-model="ruleForm.shopType"
                   :items="shopTypeOptions"
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -68,6 +71,7 @@
                   multiple
                   chips
                   small-chips
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -81,6 +85,7 @@
                   multiple
                   chips
                   small-chips
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -91,6 +96,7 @@
                   class="form-field"
                   v-model="ruleForm.description"
                   rows="2"
+                  dense
                   outlined
                   hide-details="auto"
                 />

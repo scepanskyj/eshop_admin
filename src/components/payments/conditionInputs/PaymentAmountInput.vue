@@ -5,6 +5,7 @@
       :value="value && value.min"
       @input="updateBetweenValue('min', $event)"
       type="number"
+      dense
       outlined
       hide-details="auto"
       placeholder="Min amount"
@@ -15,6 +16,7 @@
       :value="value && value.max"
       @input="updateBetweenValue('max', $event)"
       type="number"
+      dense
       outlined
       hide-details="auto"
       placeholder="Max amount"
@@ -23,6 +25,7 @@
       v-else-if="operator === 'equals_zero'"
       :value="0"
       disabled
+      dense
       outlined
       hide-details="auto"
       placeholder="0"
@@ -32,6 +35,7 @@
       :value="value"
       @input="$emit('input', $event ? parseFloat($event) : null)"
       type="number"
+      dense
       outlined
       hide-details="auto"
       :placeholder="placeholder"
