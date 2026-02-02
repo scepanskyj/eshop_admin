@@ -2,29 +2,37 @@
   <div class="condition-row">
     <div class="condition-field">
       <div class="control-label">Condition Type</div>
-      <v-select
+      <select
         :value="condition.type"
-        @input="updateCondition('type', $event)"
-        :items="conditionTypes"
-        item-value="value"
-        item-text="label"
-        outlined
-        hide-details="auto"
-        placeholder="Select condition type"
-      />
+        @change="updateCondition('type', $event.target.value)"
+        class="native-select"
+      >
+        <option value="">Select condition type</option>
+        <option
+          v-for="type in conditionTypes"
+          :key="type.value"
+          :value="type.value"
+        >
+          {{ type.label }}
+        </option>
+      </select>
     </div>
     <div class="condition-field" v-if="condition.type">
       <div class="control-label">Operator</div>
-      <v-select
+      <select
         :value="condition.operator"
-        @input="updateCondition('operator', $event)"
-        :items="availableOperators"
-        item-value="value"
-        item-text="label"
-        outlined
-        hide-details="auto"
-        placeholder="Select operator"
-      />
+        @change="updateCondition('operator', $event.target.value)"
+        class="native-select"
+      >
+        <option value="">Select operator</option>
+        <option
+          v-for="op in availableOperators"
+          :key="op.value"
+          :value="op.value"
+        >
+          {{ op.label }}
+        </option>
+      </select>
     </div>
     <div class="condition-field condition-value" v-if="condition.type && condition.operator">
       <div class="control-label">Value</div>
@@ -123,6 +131,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/tokens.scss' as tokens;
+
 .condition-row {
   display: flex;
   align-items: flex-start;
@@ -144,6 +154,33 @@ export default {
   font-weight: 500;
   color: rgba(0, 0, 0, 0.65);
   margin-bottom: 6px;
+}
+
+.native-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.38);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  color: rgba(0, 0, 0, 0.87);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.native-select:hover {
+  border-color: rgba(0, 0, 0, 0.6);
+}
+
+.native-select:focus {
+  outline: none;
+  border-color: tokens.$color-green;
+  border-width: 2px;
+  padding: 11px 15px; // Adjust for border width change
+}
+
+.native-select option {
+  padding: 8px;
 }
 
 .remove-btn {

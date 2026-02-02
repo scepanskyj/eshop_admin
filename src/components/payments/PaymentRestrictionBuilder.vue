@@ -8,57 +8,59 @@
     </div>
 
     <div class="groups-container">
-      <div
-        v-for="(group, groupIndex) in groups"
-        :key="group.id"
-        class="condition-group"
-      >
-        <div class="group-header">
-          <span class="group-label">Group {{ groupIndex + 1 }}</span>
-          <v-btn
-            v-if="groups.length > 1"
-            icon
-            small
-            @click="removeGroup(groupIndex)"
-            class="remove-group-btn"
-          >
-            <v-icon small color="red">mdi-close</v-icon>
-          </v-btn>
-        </div>
-
-        <div class="conditions-list">
-          <div
-            v-for="(condition, conditionIndex) in group.conditions"
-            :key="condition.id"
-            class="condition-item"
-          >
-            <div v-if="conditionIndex > 0" class="and-divider">
-              <span class="and-label">AND</span>
-            </div>
-            <ConditionRow
-              :condition="condition"
-              @update="updateCondition(groupIndex, conditionIndex, $event)"
-              @remove="removeCondition(groupIndex, conditionIndex)"
-            />
+      <template v-for="(group, groupIndex) in groups">
+        <div
+          :key="group.id"
+          class="condition-group"
+        >
+          <div class="group-header">
+            <span class="group-label">Group {{ groupIndex + 1 }}</span>
+            <v-btn
+              v-if="groups.length > 1"
+              icon
+              small
+              @click="removeGroup(groupIndex)"
+              class="remove-group-btn"
+            >
+              <v-icon small color="red">mdi-close</v-icon>
+            </v-btn>
           </div>
 
-          <v-btn
-            small
-            outlined
-            @click="addCondition(groupIndex)"
-            class="add-condition-btn"
-          >
-            <v-icon left small>mdi-plus</v-icon>
-            Add condition
-          </v-btn>
-        </div>
-      </div>
+          <div class="conditions-list">
+            <div
+              v-for="(condition, conditionIndex) in group.conditions"
+              :key="condition.id"
+              class="condition-item"
+            >
+              <div v-if="conditionIndex > 0" class="and-divider">
+                <span class="and-label">AND</span>
+              </div>
+              <ConditionRow
+                :condition="condition"
+                @update="updateCondition(groupIndex, conditionIndex, $event)"
+                @remove="removeCondition(groupIndex, conditionIndex)"
+              />
+            </div>
 
-      <div class="or-divider" v-if="groups.length > 0">
-        <div class="or-line"></div>
-        <span class="or-label">OR</span>
-        <div class="or-line"></div>
-      </div>
+            <v-btn
+              small
+              outlined
+              @click="addCondition(groupIndex)"
+              class="add-condition-btn"
+            >
+              <v-icon left small>mdi-plus</v-icon>
+              Add condition
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- OR divider between groups (not after the last one) -->
+        <div v-if="groupIndex < groups.length - 1" :key="`or-${groupIndex}`" class="or-divider">
+          <div class="or-line"></div>
+          <span class="or-label">OR</span>
+          <div class="or-line"></div>
+        </div>
+      </template>
 
       <v-btn
         outlined
