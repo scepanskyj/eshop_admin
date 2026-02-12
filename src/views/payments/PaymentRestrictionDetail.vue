@@ -2,15 +2,15 @@
   <div class="payment-restriction-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn text @click="handleCancel">Cancel</v-btn>
+        <SecondaryButton text @click="handleCancel">Cancel</SecondaryButton>
         <v-btn v-if="!isCreate" text color="red" @click="showDeleteConfirm = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
-        <v-btn color="primary" @click="handleSave" :loading="saving" class="ml-2">
+        <PrimaryButton @click="handleSave" :loading="saving" class="ml-2">
           <v-icon left>mdi-check</v-icon>
           Save
-        </v-btn>
+        </PrimaryButton>
       </template>
     </PageHeader>
 
@@ -18,17 +18,9 @@
       <v-row>
         <v-col cols="12" md="8" offset-md="0">
           <v-form ref="ruleFormRef" v-model="formValid">
-            <ModalCard
-              title="Rule overview"
-              subtitle="Configure the basic settings and behavior for this payment restriction rule."
-            >
-              <StatusCard
-                v-model="ruleForm.active"
-                label="Status"
-                enabled-label="ACTIVE"
-                disabled-label="INACTIVE"
-              />
-
+            <section class="section-block">
+              <h2 class="h2 section-title">Rule overview</h2>
+              
               <div class="field-block">
                 <div class="control-label">Name *</div>
                 <v-text-field
@@ -40,42 +32,14 @@
                   hide-details="auto"
                 />
               </div>
-              <div class="field-block">
-                <div class="control-label">Store view</div>
-                <v-select
-                  class="form-field"
-                  v-model="ruleForm.storeView"
-                  :items="storeViews"
-                  dense
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block" v-if="showShopTypeField">
-                <div class="control-label">Shop type</div>
-                <v-select
-                  class="form-field"
-                  v-model="ruleForm.shopType"
-                  :items="shopTypeOptions"
-                  dense
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
-              <div class="field-block" v-if="showShopTypeField">
-                <div class="control-label">Target shop types</div>
-                <v-select
-                  class="form-field"
-                  v-model="ruleForm.targetShopTypes"
-                  :items="shopTypeOptions"
-                  multiple
-                  chips
-                  small-chips
-                  dense
-                  outlined
-                  hide-details="auto"
-                />
-              </div>
+
+              <StatusCard
+                v-model="ruleForm.active"
+                label="Status"
+                enabled-label="ACTIVE"
+                disabled-label="INACTIVE"
+              />
+
               <div class="field-block">
                 <div class="control-label">Payment method</div>
                 <v-autocomplete
@@ -90,41 +54,48 @@
                   hide-details="auto"
                 />
               </div>
+
               <div class="field-block">
                 <div class="control-label">Description</div>
+                <div class="control-label-secondary">This is only internal and will serve for your purposes</div>
                 <v-textarea
-                  class="form-field"
+                  class="form-field description-textarea"
                   v-model="ruleForm.description"
-                  rows="2"
                   dense
                   outlined
                   hide-details="auto"
                 />
               </div>
+
               <div class="field-block">
-                <v-checkbox v-model="ruleForm.showWhenApplied" label="Show when applied" hide-details />
-              </div>
-              <div class="field-block">
-                <div class="control-label">Reason</div>
+                <div class="control-label">Reason (shown to customer when payment method is disabled)</div>
                 <RichTextStub v-model="ruleForm.reason" />
               </div>
-            </ModalCard>
 
-            <ModalCard
-              title="Condition Builder"
-              subtitle="Define conditions that determine when this rule should be applied."
-            >
+              <div class="field-block">
+                <v-checkbox 
+                  v-model="ruleForm.showWhenApplied" 
+                  label="Display reason to customer" 
+                  color="primary"
+                  hide-details 
+                />
+              </div>
+            </section>
+
+            <section class="section-block">
+              <h2 class="h2 section-title">Condition Builder</h2>
+              
               <div class="builder-actions mb-4">
-                <v-btn small outlined @click="loadSampleRules">
+                <SecondaryButton small @click="loadSampleRules">
                   <v-icon left small>mdi-file-document-outline</v-icon>
                   Load sample rules
-                </v-btn>
+                </SecondaryButton>
               </div>
               <PaymentRestrictionBuilder v-model="ruleForm.groups" />
               <v-alert class="mt-4" type="info" outlined>
                 <strong>Preview:</strong> {{ previewSummary }}
               </v-alert>
-            </ModalCard>
+            </section>
           </v-form>
         </v-col>
       </v-row>
@@ -152,7 +123,7 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <v-btn text @click="cancelDelete">Cancel</v-btn>
+        <SecondaryButton text @click="cancelDelete">Cancel</SecondaryButton>
         <v-btn
           v-if="!showDeleteConfirm"
           outlined
@@ -176,7 +147,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <SecondaryButton text @click="snackbar.show=false">Close</SecondaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -185,9 +156,10 @@
 import RichTextStub from '@/components/common/RichTextStub.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
-import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionBuilder.vue';
+import PrimaryButton from '@/components/common/PrimaryButton.vue';
+import SecondaryButton from '@/components/common/SecondaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
@@ -195,7 +167,7 @@ import { getConditionTypeLabel, getOperatorLabel, getOptionsForType } from '@/ut
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder },
+  components: { RichTextStub, PageHeader, Modal, StatusCard, PaymentRestrictionBuilder, PrimaryButton, SecondaryButton },
   props: {
     id: {
       type: String,
@@ -229,13 +201,6 @@ export default {
       }
       return crumbs;
     },
-    showShopTypeField() {
-      const currentTenant = tenantStore.state.current;
-      return currentTenant === 'CZ' || currentTenant === 'SK';
-    },
-    shopTypeOptions() {
-      return ['1P', '3P'];
-    },
     availablePaymentMethods() {
       const currentTenant = tenantStore.state.current;
       const allMethods = store.state.gateways.map(g => ({
@@ -247,9 +212,6 @@ export default {
         if (!gateway) return false;
         return gateway.countries.includes(currentTenant);
       });
-    },
-    storeViews() {
-      return ['Default','Wholesale'];
     },
     previewSummary() {
       if (!this.ruleForm || !this.ruleForm.groups || !this.ruleForm.groups.length) return '—';
@@ -304,9 +266,6 @@ export default {
     setRuleForm(payload) {
       this.suspendDirty = true;
       this.ruleForm = JSON.parse(JSON.stringify(payload));
-      if (!this.ruleForm.shopType) {
-        this.ruleForm.shopType = '1P';
-      }
       // Ensure groups exist (for migrated rules)
       if (!this.ruleForm.groups || !Array.isArray(this.ruleForm.groups) || this.ruleForm.groups.length === 0) {
         this.ruleForm.groups = [createConditionGroup()];
@@ -320,9 +279,6 @@ export default {
       return {
         active: true,
         name: '',
-        storeView: 'Default',
-        shopType: '1P',
-        targetShopTypes: this.showShopTypeField ? ['1P'] : [],
         paymentMethods: [],
         description: '',
         showWhenApplied: false,
@@ -521,15 +477,54 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .payment-restriction-detail-wrapper {
-  padding: tokens.$space-md;
+  padding: tokens.$space-lg;
 }
 
 .payment-restriction-content {
-  margin-top: tokens.$space-md;
+  margin-top: tokens.$space-lg;
+}
+
+.section-block {
+  margin-bottom: tokens.$space-4xl;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.section-title {
+  margin-bottom: tokens.$space-xl;
+  margin-top: 0;
+  padding-bottom: tokens.$space-md;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+}
+
+.field-block {
+  margin-bottom: tokens.$space-xl !important;
+  
+  &:last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+.control-label-secondary {
+  font-size: 12px;
+  color: tokens.$color-text-tertiary;
+  margin-bottom: tokens.$space-sm;
+  margin-top: -4px;
+}
+
+.description-textarea {
+  min-height: 120px;
+  
+  :deep(.v-input__control textarea) {
+    min-height: 120px !important;
+  }
 }
 
 .builder-actions {
   display: flex;
   justify-content: flex-end;
+  margin-bottom: tokens.$space-lg;
 }
 </style>
