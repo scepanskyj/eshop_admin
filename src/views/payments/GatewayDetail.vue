@@ -2,7 +2,7 @@
   <div class="gateway-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn text @click="onCancel">Cancel</v-btn>
+        <TertiaryButton text @click="onCancel">Cancel</TertiaryButton>
         <v-btn v-if="!isCreate && canDelete" text color="red" @click="confirmDelete = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
@@ -72,7 +72,7 @@
           <v-divider />
           <v-card-actions class="modal-footer">
             <v-spacer />
-            <v-btn text @click="confirmDelete = false">Cancel</v-btn>
+            <TertiaryButton text @click="confirmDelete = false">Cancel</TertiaryButton>
             <v-btn :disabled="deleteConfirmText !== code" color="red" dark @click="onDelete">
               <v-icon left>mdi-delete</v-icon>
               Delete
@@ -82,7 +82,7 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show">{{ snackbar.text }}<v-btn text @click="snackbar.show=false">Close</v-btn></v-snackbar>
+    <v-snackbar v-model="snackbar.show">{{ snackbar.text }}<TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton></v-snackbar>
   </div>
 </template>
 
@@ -90,12 +90,13 @@
 import PageHeader from '@/components/common/PageHeader.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import roleStore from '@/store/roleStore';
 
 export default {
   name: 'GatewayDetail',
-  components: { PageHeader, ModalCard, StatusCard },
+  components: { PageHeader, ModalCard, StatusCard, TertiaryButton },
   props: { code: String },
   data() {
     return {

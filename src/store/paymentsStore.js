@@ -5,7 +5,7 @@ import { migrateRules } from '@/utils/ruleMigration';
 
 const STORAGE_KEY = 'esa.payments';
 const GATEWAYS_STORAGE_KEY = 'esa.gateways';
-const SEED_VERSION = '2.6'; // Increment this to force reload from seed data (2.6 = added Serbia payment methods)
+const SEED_VERSION = '2.7'; // Increment this to force reload from seed data (2.7 = added Italy pay in pharmacy)
 const VERSION_KEY = 'esa.payments.version';
 const GATEWAYS_VERSION_KEY = 'esa.gateways.version';
 

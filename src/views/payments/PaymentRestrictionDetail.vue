@@ -2,7 +2,7 @@
   <div class="payment-restriction-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <SecondaryButton text @click="handleCancel">Cancel</SecondaryButton>
+        <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
         <v-btn v-if="!isCreate" text color="red" @click="showDeleteConfirm = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
@@ -84,17 +84,12 @@
 
             <section class="section-block">
               <h2 class="h2 section-title">Condition Builder</h2>
-              
-              <div class="builder-actions mb-4">
-                <SecondaryButton small @click="loadSampleRules">
-                  <v-icon left small>mdi-file-document-outline</v-icon>
-                  Load sample rules
-                </SecondaryButton>
-              </div>
               <PaymentRestrictionBuilder v-model="ruleForm.groups" />
-              <v-alert class="mt-4" type="info" outlined>
-                <strong>Preview:</strong> {{ previewSummary }}
-              </v-alert>
+              <PaymentRestrictionPreview
+                class="mt-4"
+                :payment-methods="ruleForm.paymentMethods"
+                :groups="ruleForm.groups"
+              />
             </section>
           </v-form>
         </v-col>
@@ -123,7 +118,7 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <SecondaryButton text @click="cancelDelete">Cancel</SecondaryButton>
+        <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
         <v-btn
           v-if="!showDeleteConfirm"
           outlined
@@ -147,7 +142,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <SecondaryButton text @click="snackbar.show=false">Close</SecondaryButton>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -158,16 +153,16 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionBuilder.vue';
+import PaymentRestrictionPreview from '@/components/payments/PaymentRestrictionPreview.vue';
 import PrimaryButton from '@/components/common/PrimaryButton.vue';
-import SecondaryButton from '@/components/common/SecondaryButton.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
-import { getConditionTypeLabel, getOperatorLabel, getOptionsForType } from '@/utils/conditionConfig';
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, StatusCard, PaymentRestrictionBuilder, PrimaryButton, SecondaryButton },
+  components: { RichTextStub, PageHeader, Modal, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton },
   props: {
     id: {
       type: String,
@@ -213,28 +208,6 @@ export default {
         return gateway.countries.includes(currentTenant);
       });
     },
-    previewSummary() {
-      if (!this.ruleForm || !this.ruleForm.groups || !this.ruleForm.groups.length) return '—';
-      
-      const groups = this.ruleForm.groups.filter(g => g.conditions && g.conditions.length > 0);
-      if (groups.length === 0) return '—';
-      
-      const groupSummaries = groups.map(group => {
-        const conditionParts = group.conditions
-          .filter(c => c.type && c.operator && c.value !== null && c.value !== undefined && c.value !== '')
-          .map(cond => {
-            const typeLabel = getConditionTypeLabel(cond.type);
-            const operatorLabel = getOperatorLabel(cond.type, cond.operator);
-            let valueLabel = this.formatConditionValue(cond.type, cond.value);
-            
-            return `${typeLabel} ${operatorLabel} ${valueLabel}`;
-          });
-        
-        return conditionParts.join(' AND ');
-      });
-      
-      return groupSummaries.join(' OR ') || '—';
-    }
   },
   watch: {
     ruleForm: {
@@ -247,6 +220,9 @@ export default {
   },
   created() {
     this.initializeForm();
+    if (this.isCreate && this.$route.query.loadPreset) {
+      this.$nextTick(() => this.loadPresetFromStorage());
+    }
   },
   methods: {
     initializeForm() {
@@ -287,123 +263,25 @@ export default {
         groups: [createConditionGroup()]
       };
     },
-    formatConditionValue(conditionType, value) {
-      if (value === null || value === undefined || value === '') return '';
-      
-      // Handle between operator (object with min/max)
-      if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
-        if (value.min !== undefined && value.max !== undefined) {
-          return `${value.min} - ${value.max}`;
+    loadPresetFromStorage() {
+      const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
+      try {
+        const raw = sessionStorage.getItem(PRESET_STORAGE_KEY);
+        if (raw) {
+          const preset = JSON.parse(raw);
+          sessionStorage.removeItem(PRESET_STORAGE_KEY);
+          this.ruleForm.name = preset.name || '';
+          this.ruleForm.description = preset.description || '';
+          this.ruleForm.paymentMethods = Array.isArray(preset.paymentMethods) ? [...preset.paymentMethods] : [];
+          this.ruleForm.groups = preset.groups && preset.groups.length
+            ? JSON.parse(JSON.stringify(preset.groups))
+            : this.ruleForm.groups;
+          this.snackbar = { show: true, text: `Loaded example: ${preset.name}` };
         }
-        return '';
-      }
-      
-      // Get options for this condition type to map values to labels
-      const options = getOptionsForType(conditionType);
-      const optionMap = {};
-      if (options && Array.isArray(options)) {
-        options.forEach(opt => {
-          optionMap[opt.value] = opt.label;
-        });
-      }
-      
-      // Handle arrays (multiselect values)
-      if (Array.isArray(value)) {
-        return value.map(v => {
-          // Handle boolean values
-          if (typeof v === 'boolean') {
-            return v ? 'Yes' : 'No';
-          }
-          return optionMap[v] || String(v);
-        }).join(', ');
-      }
-      
-      // Handle boolean values
-      if (typeof value === 'boolean') {
-        return value ? 'Yes' : 'No';
-      }
-      
-      // Handle single values
-      return optionMap[value] || String(value);
-    },
-    loadSampleRules() {
-      const samples = [
-        {
-          name: 'Disable Stripe for zero amount orders',
-          groups: [createConditionGroup()],
-          description: 'Disable Stripe when Amount = 0 AND Shipping method is Click & Collect AND Order type is MarketplaceMix'
-        },
-        {
-          name: 'COD only below 1200',
-          groups: [createConditionGroup()],
-          description: 'Restrict COD when Payment amount is above 1200'
-        },
-        {
-          name: 'Stripe disabled for 0 CZK orders',
-          groups: [createConditionGroup()],
-          description: 'Disable Stripe when Payment amount = 0'
-        },
-        {
-          name: 'COD only for logged-in users',
-          groups: [createConditionGroup()],
-          description: 'Disable COD when Customer type is Guest'
-        },
-        {
-          name: 'PayPal disabled when Gift Card is applied',
-          groups: [createConditionGroup()],
-          description: 'Disable PayPal when Gift Card applied is Yes'
-        }
-      ];
-
-      // Sample 1: Disable Stripe when Amount = 0 AND Shipping method is Click & Collect AND Order type is MarketplaceMix
-      samples[0].groups[0].conditions = [
-        { ...createCondition('PAYMENT_AMOUNT'), operator: 'equals_zero', value: 0 },
-        { ...createCondition('SHIPPING_METHOD'), operator: 'includes', value: ['click_collect'] },
-        { ...createCondition('ORDER_TYPE'), operator: 'is', value: 'marketplace_mix' }
-      ];
-
-      // Sample 2: COD only below 1200 (Payment amount above 1200)
-      samples[1].groups[0].conditions = [
-        { ...createCondition('PAYMENT_AMOUNT'), operator: 'above', value: 1200 }
-      ];
-
-      // Sample 3: Stripe disabled for 0 CZK orders
-      samples[2].groups[0].conditions = [
-        { ...createCondition('PAYMENT_AMOUNT'), operator: 'equals_zero', value: 0 }
-      ];
-
-      // Sample 4: COD only for logged-in users (disable when Guest)
-      samples[3].groups[0].conditions = [
-        { ...createCondition('CUSTOMER_TYPE'), operator: 'is', value: 'guest' }
-      ];
-
-      // Sample 5: PayPal disabled when Gift Card is applied
-      samples[4].groups[0].conditions = [
-        { ...createCondition('GIFT_CARD_APPLIED'), operator: 'is', value: true }
-      ];
-
-      // Show a menu to select which sample to load
-      const selected = window.prompt(
-        'Select a sample rule to load:\n\n' +
-        '1. Disable Stripe for zero amount orders\n' +
-        '2. COD only below 1200\n' +
-        '3. Stripe disabled for 0 CZK orders\n' +
-        '4. COD only for logged-in users\n' +
-        '5. PayPal disabled when Gift Card is applied\n\n' +
-        'Enter number (1-5):'
-      );
-
-      const index = parseInt(selected) - 1;
-      if (index >= 0 && index < samples.length) {
-        const sample = samples[index];
-        this.ruleForm.groups = JSON.parse(JSON.stringify(sample.groups));
-        if (!this.ruleForm.name) {
-          this.ruleForm.name = sample.name;
-        }
-        if (!this.ruleForm.description) {
-          this.ruleForm.description = sample.description;
-        }
-        this.snackbar = { show: true, text: `Loaded sample: ${sample.name}` };
+        this.$router.replace({ path: this.$route.path, query: {} });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Could not load preset', e);
       }
     },
     handleCancel() {
@@ -522,9 +400,4 @@ export default {
   }
 }
 
-.builder-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: tokens.$space-lg;
-}
 </style>

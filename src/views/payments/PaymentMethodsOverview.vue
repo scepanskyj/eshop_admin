@@ -629,7 +629,7 @@
                     Delete gateway
                   </v-btn>
                   <div v-else class="d-flex align-center" style="gap: 8px;">
-                    <v-btn text @click="showDeleteConfirmation = false">Cancel</v-btn>
+                    <TertiaryButton text @click="showDeleteConfirmation = false">Cancel</TertiaryButton>
                     <v-btn color="red" dark @click="confirmDelete">
                       <v-icon left>mdi-delete</v-icon>
                       Confirm delete
@@ -644,14 +644,14 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <v-btn text @click="handleDialogClose">Cancel</v-btn>
+        <TertiaryButton text @click="handleDialogClose">Cancel</TertiaryButton>
         <v-btn color="primary" @click="saveGateway">Save</v-btn>
       </template>
     </Modal>
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -663,6 +663,7 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -738,7 +739,7 @@ function buildGatewayTemplate(code = '') {
 
 export default {
   name: 'PaymentMethodsOverview',
-  components: { EmptyState, GatewayCard, PageHeader, Modal, ModalCard, StatusCard },
+  components: { EmptyState, GatewayCard, PageHeader, Modal, ModalCard, StatusCard, TertiaryButton },
   data() {
     return {
       search: '',

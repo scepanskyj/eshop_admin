@@ -3,7 +3,7 @@
     <PageHeader :breadcrumbs="breadcrumbs" />
 
     <StickyActionsBar>
-      <v-btn text @click="onReset">Reset</v-btn>
+      <TertiaryButton text @click="onReset">Reset</TertiaryButton>
       <v-btn color="primary" @click="onSave">Save</v-btn>
     </StickyActionsBar>
 
@@ -227,7 +227,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
  </template>
@@ -235,11 +235,12 @@
 <script>
 import StickyActionsBar from '@/components/common/StickyActionsBar.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 
 export default {
   name: 'PaymentFee',
-  components: { StickyActionsBar, PageHeader },
+  components: { StickyActionsBar, PageHeader, TertiaryButton },
   data() {
     return {
       form: JSON.parse(JSON.stringify(store.state.fee)),

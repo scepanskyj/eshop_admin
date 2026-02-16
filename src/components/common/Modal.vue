@@ -35,7 +35,7 @@
         <v-card-actions class="modal-footer">
           <slot name="footer">
             <v-spacer />
-            <v-btn text @click="handleClose">Cancel</v-btn>
+            <TertiaryButton text @click="handleClose">Cancel</TertiaryButton>
             <v-btn color="primary" @click="handleSave">Save</v-btn>
           </slot>
         </v-card-actions>
@@ -45,8 +45,11 @@
 </template>
 
 <script>
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
+
 export default {
   name: 'Modal',
+  components: { TertiaryButton },
   props: {
     value: {
       type: Boolean,

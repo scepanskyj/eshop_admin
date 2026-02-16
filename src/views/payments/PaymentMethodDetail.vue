@@ -2,7 +2,7 @@
   <div class="payment-method-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn text @click="handleCancel">Cancel</v-btn>
+        <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
         <v-btn v-if="!isCreate && canDelete" text color="red" @click="showDeleteConfirm = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
@@ -247,7 +247,7 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <v-btn text @click="showDeleteConfirm = false; showDeleteConfirmation = false">Cancel</v-btn>
+        <TertiaryButton text @click="showDeleteConfirm = false; showDeleteConfirmation = false">Cancel</TertiaryButton>
         <v-btn
           v-if="!showDeleteConfirmation"
           outlined
@@ -271,7 +271,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -282,6 +282,7 @@ import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import IconUpload from '@/components/common/IconUpload.vue';
 import Modal from '@/components/common/Modal.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -342,7 +343,7 @@ function buildPaymentMethodTemplate(countryCode) {
 
 export default {
   name: 'PaymentMethodDetail',
-  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal },
+  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal, TertiaryButton },
   props: {
     code: {
       type: String,

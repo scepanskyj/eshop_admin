@@ -25,6 +25,10 @@ export default {
       type: Array,
       default: () => []
     },
+    optionKey: {
+      type: String,
+      default: 'PRODUCT_TYPE'
+    },
     placeholder: {
       type: String,
       default: 'Select product types'
@@ -32,7 +36,7 @@ export default {
   },
   computed: {
     options() {
-      return OPTIONS_BY_TYPE.PRODUCT_TYPE;
+      return OPTIONS_BY_TYPE[this.optionKey] || OPTIONS_BY_TYPE.PRODUCT_TYPE;
     }
   }
 };
