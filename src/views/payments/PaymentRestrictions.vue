@@ -345,8 +345,12 @@ export default {
       this.showDeleteConfirm = false;
       this.toDelete = null;
     },
-    onRowClick(_, item) {
-      this.$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } });
+    onRowClick(cellOrItem, slotOrItem) {
+      // Vuetify click:row passes (cellData, slot) where slot may be { item } or the item directly
+      const item = (slotOrItem && slotOrItem.item) || slotOrItem || cellOrItem;
+      if (item && item.id != null) {
+        this.$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } });
+      }
     },
     startNewRule(loadPreset) {
       this.newRuleDialog = false;

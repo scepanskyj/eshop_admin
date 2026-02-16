@@ -210,6 +210,14 @@ export default {
     },
   },
   watch: {
+    id: {
+      handler() {
+        this.initializeForm();
+        if (this.isCreate && this.$route.query.loadPreset) {
+          this.$nextTick(() => this.loadPresetFromStorage());
+        }
+      }
+    },
     ruleForm: {
       deep: true,
       handler() {
@@ -229,7 +237,7 @@ export default {
       if (this.isCreate) {
         this.resetRuleForm();
       } else {
-        const rule = store.state.rules.find(r => r.id === this.id);
+        const rule = store.state.rules.find(r => String(r.id) === String(this.id));
         if (rule) {
           this.setRuleForm(rule);
         } else {
