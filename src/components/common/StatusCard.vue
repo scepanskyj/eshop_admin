@@ -68,8 +68,8 @@ export default {
 }
 
 .status-card--enabled {
-  background-color: rgba(71, 133, 10, 0.08);
-  border-color: rgba(71, 133, 10, 0.2);
+  background-color: tokens.$color-green-50;
+  border-color: rgba(tokens.$color-green-500, 0.2);
 }
 
 .status-card__header {
@@ -101,15 +101,23 @@ export default {
 }
 
 .switch-state--on {
-  color: tokens.$color-green;
+  color: tokens.$color-green-500;
 }
 
 .state-switch {
   margin: 0;
+  
+  :deep(.v-input--selection-controls__input .v-input--switch__thumb) {
+    color: white !important;
+  }
+  
+  :deep(.v-input--is-label-active .v-input--switch__track) {
+    background-color: tokens.$color-green-500 !important;
+  }
 }
 
 .chip-enabled {
-  background-color: tokens.$color-green !important;
+  background-color: tokens.$color-green-500 !important;
 }
 
 .chip-disabled {

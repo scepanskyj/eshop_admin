@@ -50,7 +50,7 @@ function createPaymentMethod(code, title, countryCode, options = {}) {
     },
     // Gateway settings
     gatewayEnabled: options.gatewayEnabled !== undefined ? options.gatewayEnabled : false,
-    language: options.language || countryCode === 'IT' ? 'IT' : countryCode === 'SK' ? 'SK' : countryCode === 'CZ' ? 'CZ' : countryCode === 'RO' ? 'RO' : countryCode === 'PL' ? 'PL' : 'EN',
+    language: options.language || countryCode === 'IT' ? 'IT' : countryCode === 'SK' ? 'SK' : countryCode === 'CZ' ? 'CZ' : countryCode === 'RO' ? 'RO' : countryCode === 'PL' ? 'PL' : countryCode === 'RS' ? 'SR' : 'EN',
     paymentAction: 'Authorize & Capture',
     debug: false,
     details: { ...DETAIL_DEFAULTS, ...(options.details || {}) }
@@ -265,12 +265,29 @@ const polandMethods = [
   })
 ];
 
+// Serbia payment methods
+const serbiaMethods = [
+  createPaymentMethod('rs_cod', 'Plaćanje pouzećem', 'RS', {
+    icon: '/icons/cashondelivery.svg',
+    feeEnabled: false,
+    gatewayEnabled: true,
+    sortOrder: 1
+  }),
+  createPaymentMethod('rs_card', 'Platna kartica', 'RS', {
+    icon: '/icons/cardonline.svg',
+    feeEnabled: false,
+    gatewayEnabled: true,
+    sortOrder: 2
+  })
+];
+
 export const paymentMethods = [
   ...italyMethods,
   ...slovakiaMethods,
   ...czechiaMethods,
   ...romaniaMethods,
-  ...polandMethods
+  ...polandMethods,
+  ...serbiaMethods
 ];
 
 export default paymentMethods;

@@ -3,7 +3,7 @@
     <v-breadcrumbs :items="breadcrumbs" class="pa-0 breadcrumbs-spacing breadcrumbs-text" />
 
     <div class="d-flex align-center heading-spacing">
-      <h1 class="text-h5 page-title">{{ pageTitle }}</h1>
+      <h1 class="h1 page-title">{{ pageTitle }}</h1>
       <v-spacer />
       <slot name="actions"></slot>
     </div>

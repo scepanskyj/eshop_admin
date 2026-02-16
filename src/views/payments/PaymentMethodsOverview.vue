@@ -66,6 +66,9 @@
         :icon="getGatewayIcon(gateway.code)"
         :updated-label="formatUpdated(gateway.updatedAt)"
         :on-configure="openConfigure"
+        :show-country-badge="showCountryBadge"
+        :country-flag="getCountryFlag(gateway.countryCode)"
+        :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
       />
     </div>
 
@@ -708,6 +711,7 @@ function cloneGateway(gateway) {
 }
 
 function buildGatewayTemplate(code = '') {
+  const currentTenant = tenantStore.state.current;
   return {
     code,
     title: '',
@@ -719,7 +723,7 @@ function buildGatewayTemplate(code = '') {
     language: 'EN',
     paymentAction: 'Authorize & Capture',
     updatedAt: new Date().toISOString(),
-    countries: [tenantStore.state.current],
+    countries: [currentTenant],
     debug: false,
     feeSettings: {
       priceType: 'Fixed price',
@@ -782,6 +786,12 @@ export default {
     isAdminOrDev() {
       return roleStore.getters.canCreate(); // Admin and developer can create
     },
+    isGlobalView() {
+      return false;
+    },
+    showCountryBadge() {
+      return false;
+    },
     breadcrumbs() {
       return [
         { text: 'Payment section', disabled: true },
@@ -796,7 +806,7 @@ export default {
       }));
     },
     languages() {
-      return ['EN', 'SK', 'IT', 'PL', 'CZ', 'RO'];
+      return ['EN', 'SK', 'IT', 'PL', 'CZ', 'RO', 'SR'];
     },
     actions() {
       return ['Authorize & Capture', 'Authorize only'];
@@ -812,7 +822,9 @@ export default {
     countryOptions() {
       const codes = new Set();
       this.metadata.forEach(method => {
-        (method.countries || []).forEach(code => codes.add(code));
+        (method.countries || []).forEach(code => {
+          if (code !== 'GLO') codes.add(code);
+        });
       });
       const ordered = Array.from(codes).sort((a, b) => a.localeCompare(b));
       return ordered.map(code => ({ label: this.countryLabel(code), value: code }));
@@ -827,6 +839,7 @@ export default {
         { text: 'Italy (IT)', value: 'IT' },
         { text: 'Poland (PL)', value: 'PL' },
         { text: 'Romania (RO)', value: 'RO' },
+        { text: 'Serbia (RS)', value: 'RS' },
         { text: 'Slovakia (SK)', value: 'SK' },
         { text: 'United States (US)', value: 'US' }
       ];
@@ -841,8 +854,8 @@ export default {
         const matchesStatus = !this.showEnabledOnly || gateway.enabled;
         const countries =
           (gateway.countries && gateway.countries.length
-            ? gateway.countries
-            : (this.metadataByCode[gateway.code]?.countries || [tenantStore.state.current]));
+            ? gateway.countries.filter(c => c !== 'GLO')
+            : (this.metadataByCode[gateway.code]?.countries || []).filter(c => c !== 'GLO'));
         const tenantCode = tenantStore.state.current;
         const matchesCountry = countries.includes(tenantCode);
 
@@ -858,7 +871,7 @@ export default {
       return this.sortedGateways.filter(g => g.enabled).length;
     },
     enabledFilterCount() {
-      return store.state.gateways.filter(g => g.enabled).length;
+      return this.filteredGateways.filter(g => g.enabled).length;
     },
     dialogTitle() {
       if (this.isCreating) return 'Create gateway';
@@ -912,6 +925,22 @@ export default {
       }
       const iconPath = this.metadataByCode[code]?.icon || '/icons/default.svg';
       return getAssetPath(iconPath);
+    },
+    getCountryFlag(countryCode) {
+      if (!countryCode) return null;
+      const option = tenantStore.state.options.find(opt => opt.code === countryCode);
+      return option ? option.flag : null;
+    },
+    getCountryAbbreviation(countryCode) {
+      const abbreviations = {
+        'IT': 'ITA',
+        'SK': 'SVK',
+        'CZ': 'CZE',
+        'RO': 'ROU',
+        'PL': 'POL',
+        'RS': 'SRB'
+      };
+      return abbreviations[countryCode] || countryCode;
     },
     countryLabel(code) {
       const tenantOption = tenantStore.state.options.find(option => option.code === code);
@@ -974,7 +1003,8 @@ export default {
       const payload = cloneGateway(this.editedGateway);
       payload.details = this.ensureDetails(payload).details;
       if (!payload.countries || !payload.countries.length) {
-        payload.countries = this.metadataByCode[payload.code]?.countries || [tenantStore.state.current];
+        const defaultCountries = (this.metadataByCode[payload.code]?.countries || []).filter(c => c !== 'GLO');
+        payload.countries = defaultCountries.length ? defaultCountries : [tenantStore.state.current];
       }
       return payload;
     },

@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <v-app-bar class="app-header" dark>
-      <img src="/logo/drmaxlogo.svg" alt="DRMax Logo" class="app-logo" />
+    <v-app-bar class="app-header">
+      <img src="/logo/drmaxlogo-border.svg" alt="DRMax Logo" class="app-logo" />
       <v-toolbar-title>Eshop Admin</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu offset-y>
@@ -124,14 +124,91 @@ export default {
 
 html, body, #app { height: 100%; }
 
+// Global typography overrides for Vuetify classes
+h1, .text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: tokens.$font-family-base !important;
+}
+
+h1, .text-h1 {
+  font: tokens.$text-h1 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h2 {
+  font: tokens.$text-h2 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h3 {
+  font: tokens.$text-h3 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h4 {
+  font: tokens.$text-h4 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h5 {
+  font: tokens.$text-h5 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h6 {
+  font: tokens.$text-h6 !important;
+  color: tokens.$color-text-primary !important;
+}
+
 .app-header {
-  background-color: tokens.$color-green !important;
+  background-color: white !important;
+  border-bottom: 1px solid tokens.$color-border-subtle !important;
   position: fixed !important;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
   height: 64px !important;
+  box-shadow: none !important;
+  
+  // Toolbar title - black
+  :deep(.v-toolbar__title) {
+    color: tokens.$color-text-primary !important;
+  }
+  
+  // Menu buttons - black text
+  .tenant-switcher,
+  .role-switcher {
+    color: tokens.$color-text-primary !important;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04) !important;
+    }
+  }
+  
+  // Menu buttons text
+  .tenant-label,
+  .role-label {
+    color: tokens.$color-text-primary !important;
+  }
+  
+  // Menu icons - black
+  :deep(.v-btn .v-icon) {
+    color: tokens.$color-text-primary !important;
+  }
+  
+  // Menu dropdown active states
+  :deep(.v-menu__content .v-list-item--active) {
+    background-color: tokens.$color-green-50 !important;
+    color: tokens.$color-green-500 !important;
+  }
+  
+  :deep(.v-menu__content .v-list-item:hover) {
+    background-color: tokens.$color-green-50 !important;
+  }
+  
+  :deep(.v-menu__content .v-icon) {
+    color: tokens.$color-green-500 !important;
+  }
 }
 
 .app-logo {
@@ -149,6 +226,90 @@ html, body, #app { height: 100%; }
   position: fixed !important;
   left: 0 !important;
   background-color: white !important;
+  
+  // Default navigation items - black text and icons
+  :deep(.v-list-item) {
+    color: tokens.$color-text-primary !important;
+    
+    .v-list-item__title {
+      color: tokens.$color-text-primary !important;
+    }
+  }
+  
+  // Icons in navigation - black by default
+  :deep(.v-list-item__action .v-icon) {
+    color: tokens.$color-text-secondary !important;
+  }
+  
+  // Active navigation items - green
+  :deep(.v-list-item--active) {
+    background-color: tokens.$color-green-50 !important;
+    color: tokens.$color-green-500 !important;
+    
+    .v-list-item__title {
+      color: tokens.$color-green-500 !important;
+      font-weight: 500 !important;
+    }
+    
+    .v-icon {
+      color: tokens.$color-green-500 !important;
+    }
+    
+    .v-list-item__action .v-icon {
+      color: tokens.$color-green-500 !important;
+    }
+  }
+  
+  // Hover states - subtle gray, not green
+  :deep(.v-list-item:hover:not(.v-list-item--active)) {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+  
+  // List group header - black by default
+  :deep(.v-list-group__header) {
+    color: tokens.$color-text-primary !important;
+    
+    .v-list-item__title {
+      color: tokens.$color-text-primary !important;
+    }
+    
+    // Prepend icon (left icon) - black by default
+    .v-list-item__icon .v-icon {
+      color: tokens.$color-text-secondary !important;
+    }
+  }
+  
+  // List group icons - black by default (including prepend-icon)
+  :deep(.v-list-group__header .v-icon) {
+    color: tokens.$color-text-secondary !important;
+  }
+  
+  // List group prepend icon specifically
+  :deep(.v-list-group[prepend-icon] .v-list-group__header .v-list-item__icon .v-icon) {
+    color: tokens.$color-text-secondary !important;
+  }
+  
+  // List group active state - green
+  :deep(.v-list-group--active > .v-list-group__header) {
+    background-color: tokens.$color-green-50 !important;
+    color: tokens.$color-green-500 !important;
+    
+    .v-list-item__title {
+      color: tokens.$color-green-500 !important;
+      font-weight: 500 !important;
+    }
+    
+    .v-icon {
+      color: tokens.$color-green-500 !important;
+    }
+    
+    .v-list-item__icon .v-icon {
+      color: tokens.$color-green-500 !important;
+    }
+  }
+  
+  // Border on the right side of drawer
+  border-right: 1px solid tokens.$color-border-subtle !important;
 }
 
 .app-main {
@@ -161,7 +322,7 @@ html, body, #app { height: 100%; }
 }
 
 .tenant-switcher {
-  color: white !important;
+  color: tokens.$color-text-primary !important;
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
@@ -174,10 +335,11 @@ html, body, #app { height: 100%; }
 
 .tenant-label {
   font-size: 14px;
+  color: tokens.$color-text-primary !important;
 }
 
 .role-switcher {
-  color: white !important;
+  color: tokens.$color-text-primary !important;
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
@@ -185,6 +347,71 @@ html, body, #app { height: 100%; }
 
 .role-label {
   font-size: 14px;
+  color: tokens.$color-text-primary !important;
+}
+
+// Global interactive elements - use green colors
+:deep(.v-input--checkbox .v-input--selection-controls__input .v-input--selection-controls__ripple) {
+  color: tokens.$color-green-500 !important;
+}
+
+:deep(.v-input--checkbox .v-input--selection-controls__input input:checked + .v-input--selection-controls__ripple) {
+  color: tokens.$color-green-500 !important;
+}
+
+:deep(.v-input--switch .v-input--selection-controls__input .v-input--switch__track) {
+  background-color: rgba(0, 0, 0, 0.38) !important;
+}
+
+:deep(.v-input--switch .v-input--is-label-active .v-input--switch__track) {
+  background-color: tokens.$color-green-500 !important;
+}
+
+:deep(.v-input--switch .v-input--selection-controls__input .v-input--switch__thumb) {
+  color: white !important;
+}
+
+// Radio buttons
+:deep(.v-input--radio-group .v-input--selection-controls__input .v-input--selection-controls__ripple) {
+  color: tokens.$color-green-500 !important;
+}
+
+:deep(.v-input--radio-group .v-input--selection-controls__input input:checked + .v-input--selection-controls__ripple) {
+  color: tokens.$color-green-500 !important;
+}
+
+// Chips and tags
+:deep(.v-chip--active) {
+  background-color: tokens.$color-green-500 !important;
+  color: white !important;
+}
+
+// Links - exclude navigation drawer links
+a:not(.app-drawer a) {
+  color: tokens.$color-green-500 !important;
+  
+  &:hover {
+    color: tokens.$color-green-600 !important;
+  }
+}
+
+// Override link color in drawer to use black
+.app-drawer a {
+  color: tokens.$color-text-primary !important;
+  
+  &:hover {
+    color: tokens.$color-text-primary !important;
+  }
+}
+
+// Focus states
+:deep(.v-input--is-focused .v-input__slot fieldset) {
+  border-color: tokens.$color-green-500 !important;
+}
+
+:deep(.v-text-field--outlined.v-input--is-focused .v-input__slot fieldset) {
+  border-color: tokens.$color-green-500 !important;
+  border-width: 2px !important;
 }
 </style>
 

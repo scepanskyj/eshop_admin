@@ -11,7 +11,8 @@ export const COUNTRY_CURRENCIES = {
   DE: 'EUR',
   GB: 'GBP',
   HU: 'HUF',
-  US: 'USD'
+  US: 'USD',
+  RS: 'RSD'
 };
 
 /**

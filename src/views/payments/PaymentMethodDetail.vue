@@ -37,6 +37,7 @@
               <IconUpload
                 v-model="form.icon"
                 :disabled="saving"
+                @filename-changed="handleMainIconFilenameChange"
               />
             </div>
 
@@ -45,8 +46,17 @@
               <IconUpload
                 v-model="form.disabledIcon"
                 :disabled="saving"
+                :preview-url="generatedDisabledIconPreview"
+                :show-generated-preview="!disabledIconManuallySet && !form.disabledIcon && form.icon"
+                :generated-file-name="generatedDisabledIconFilename"
               />
-              <div class="field-hint">Icon to display when this payment method is disabled</div>
+              <div class="field-hint">
+                {{ disabledIconManuallySet 
+                  ? 'Icon to display when this payment method is disabled' 
+                  : form.disabledIcon || form.icon
+                    ? 'Auto-generated from main icon (colors converted to gray). Upload to override.'
+                    : 'Will be auto-generated from main icon when uploaded.' }}
+              </div>
             </div>
 
             <div class="field-block">
@@ -75,6 +85,15 @@
               />
             </div>
 
+            <div v-if="canAccessGatewayConfig" class="field-block">
+              <v-checkbox
+                v-model="form.needsGatewayConfig"
+                label="Gateway configuration is needed"
+                hide-details
+              />
+              <div class="field-hint">Enable this if this payment method requires gateway configuration (e.g., Stripe, Klarna)</div>
+            </div>
+
             <template v-if="form.needsGatewayConfig && shouldShowStripeTitle">
               <div class="field-block">
                 <div class="control-label">Stripe title</div>
@@ -88,6 +107,23 @@
                 <div class="field-hint">Text shown in Stripe gateway as title</div>
               </div>
             </template>
+          </ModalCard>
+
+          <!-- Gateway Configuration (Developer/Admin only) -->
+          <ModalCard v-if="form.needsGatewayConfig && canAccessGatewayConfig" title="Gateway Configuration">
+            <div class="field-block">
+              <div class="control-label">Configuration (JSON) *</div>
+              <v-textarea
+                class="form-field json-editor"
+                v-model="form.gatewayConfig"
+                outlined
+                rows="20"
+                hide-details="auto"
+                placeholder='{"key": "value"}'
+                :rules="[jsonRule]"
+              />
+              <div class="field-hint">Enter gateway configuration as JSON.</div>
+            </div>
           </ModalCard>
 
           <!-- Payment Fee Settings -->
@@ -185,34 +221,6 @@
               </div>
             </template>
           </ModalCard>
-
-          <!-- Gateway Configuration (Developer/Admin only) -->
-          <ModalCard v-if="canAccessGatewayConfig" title="Gateway Configuration">
-            <div class="field-block">
-              <v-checkbox
-                v-model="form.needsGatewayConfig"
-                label="Gateway configuration is needed"
-                hide-details
-              />
-              <div class="field-hint">Enable this if this payment method requires gateway configuration (e.g., Stripe, Klarna)</div>
-            </div>
-
-            <template v-if="form.needsGatewayConfig">
-              <div class="field-block">
-                <div class="control-label">Configuration (JSON) *</div>
-                <v-textarea
-                  class="form-field json-editor"
-                  v-model="form.gatewayConfig"
-                  outlined
-                  rows="20"
-                  hide-details="auto"
-                  placeholder='{"key": "value"}'
-                  :rules="[jsonRule]"
-                />
-                <div class="field-hint">Enter gateway configuration as JSON.</div>
-              </div>
-            </template>
-          </ModalCard>
         </v-col>
       </v-row>
     </div>
@@ -278,6 +286,7 @@ import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
 import { getCurrencyForCountry } from '@/utils/currencies';
+import { convertSvgToGray, convertSvgToGraySync, generateDisabledIconFilename } from '@/utils/svgUtils';
 
 let previousTenant = tenantStore.state.current;
 
@@ -349,7 +358,11 @@ export default {
       showDeleteConfirmation: false,
       snackbar: { show: false, text: '' },
       suspendDirty: true,
-      previousTenant: tenantStore.state.current
+      previousTenant: tenantStore.state.current,
+      disabledIconManuallySet: false, // Track if user manually set disabled icon
+      generatedDisabledIconPreview: '', // Cache for generated preview
+      generatedDisabledIconFilename: '', // Cache for generated filename
+      mainIconFilename: '' // Track main icon filename for generating disabled icon filename
     };
   },
   computed: {
@@ -436,6 +449,85 @@ export default {
       },
       deep: true
     },
+    'form.icon': {
+      async handler(newIcon, oldIcon) {
+        // Guard: ensure form exists
+        if (!this.form) return;
+        
+        // Generate disabled icon preview when main icon changes
+        if (newIcon && !this.disabledIconManuallySet) {
+          try {
+            // Generate filename from original icon (use tracked filename if available)
+            this.generatedDisabledIconFilename = generateDisabledIconFilename(newIcon, '-autogenerated', this.mainIconFilename);
+            
+            // Use async version for file paths, sync for data URLs
+            if (newIcon.startsWith('data:image/svg+xml')) {
+              this.generatedDisabledIconPreview = convertSvgToGraySync(newIcon);
+            } else {
+              this.generatedDisabledIconPreview = await convertSvgToGray(newIcon);
+            }
+            // Auto-set disabledIcon if it's not manually set and icon changed
+            if (!this.form.disabledIcon || (oldIcon && newIcon !== oldIcon)) {
+              this.form.disabledIcon = this.generatedDisabledIconPreview;
+            }
+          } catch (error) {
+            console.warn('Failed to generate disabled icon:', error);
+            this.generatedDisabledIconPreview = '';
+            this.generatedDisabledIconFilename = '';
+          }
+        } else if (!newIcon) {
+          this.generatedDisabledIconPreview = '';
+          this.generatedDisabledIconFilename = '';
+          this.mainIconFilename = '';
+          if (!this.disabledIconManuallySet && this.form) {
+            this.form.disabledIcon = '';
+          }
+        }
+      },
+      immediate: false
+    },
+    'form.disabledIcon': {
+      async handler(newDisabledIcon, oldDisabledIcon) {
+        // Track if user manually changed disabled icon
+        if (newDisabledIcon && this.form && this.form.icon) {
+          try {
+            // Use sync version for data URLs, async for file paths
+            const autoGenerated = this.form.icon.startsWith('data:image/svg+xml')
+              ? convertSvgToGraySync(this.form.icon)
+              : await convertSvgToGray(this.form.icon);
+            // If disabled icon is different from auto-generated, mark as manually set
+            if (newDisabledIcon !== autoGenerated && newDisabledIcon !== oldDisabledIcon) {
+              this.disabledIconManuallySet = true;
+            } else if (newDisabledIcon === autoGenerated && oldDisabledIcon !== newDisabledIcon) {
+              // If it matches auto-generated, it might have been regenerated
+              this.disabledIconManuallySet = false;
+            }
+          } catch (error) {
+            // If we can't compare, assume it was manually set if it exists
+            if (newDisabledIcon && newDisabledIcon !== oldDisabledIcon) {
+              this.disabledIconManuallySet = true;
+            }
+          }
+        } else if (!newDisabledIcon && this.form && this.form.icon) {
+          // If disabled icon is cleared, regenerate from main icon
+          this.disabledIconManuallySet = false;
+          try {
+            this.generatedDisabledIconFilename = generateDisabledIconFilename(this.form.icon, '-autogenerated', this.mainIconFilename);
+            const regenerated = this.form.icon.startsWith('data:image/svg+xml')
+              ? convertSvgToGraySync(this.form.icon)
+              : await convertSvgToGray(this.form.icon);
+            this.$nextTick(() => {
+              this.form.disabledIcon = regenerated;
+              this.generatedDisabledIconPreview = regenerated;
+            });
+          } catch (error) {
+            console.warn('Failed to regenerate disabled icon:', error);
+            this.generatedDisabledIconFilename = '';
+          }
+        }
+      },
+      immediate: false
+    },
     currentTenant: {
       handler(newTenant, oldTenant) {
         // Redirect to overview when tenant changes while editing
@@ -450,18 +542,27 @@ export default {
       }
     }
   },
-  created() {
-    this.initializeForm();
-    this.$nextTick(() => {
-      this.suspendDirty = false;
-    });
+  async created() {
+    try {
+      await this.initializeForm();
+      this.$nextTick(() => {
+        this.suspendDirty = false;
+      });
+    } catch (error) {
+      console.error('Failed to initialize form:', error);
+      this.$router.push({ name: 'PaymentMethodsOverview' });
+    }
   },
   methods: {
-    initializeForm() {
+    async initializeForm() {
       if (this.isCreate) {
         const countryCode = tenantStore.state.current;
         this.form = buildPaymentMethodTemplate(countryCode);
         this.original = JSON.parse(JSON.stringify(this.form));
+        this.disabledIconManuallySet = false;
+        this.generatedDisabledIconPreview = '';
+        this.generatedDisabledIconFilename = '';
+        this.mainIconFilename = '';
       } else {
         const gateway = store.state.gateways.find(g => g.code === this.code);
         if (!gateway) {
@@ -469,7 +570,55 @@ export default {
           return;
         }
         this.form = this.ensureDefaults(JSON.parse(JSON.stringify(gateway)));
+        
+        // Check if disabledIcon was manually set and generate preview
+        if (this.form.icon) {
+          try {
+            // Extract filename from icon path if it's a file path
+            if (this.form.icon.startsWith('/')) {
+              const parts = this.form.icon.split('/');
+              this.mainIconFilename = parts[parts.length - 1] || '';
+            }
+            
+            // Generate filename from original icon
+            this.generatedDisabledIconFilename = generateDisabledIconFilename(this.form.icon, '-autogenerated', this.mainIconFilename);
+            
+            // Use sync version for data URLs, async for file paths
+            const autoGenerated = this.form.icon.startsWith('data:image/svg+xml')
+              ? convertSvgToGraySync(this.form.icon)
+              : await convertSvgToGray(this.form.icon);
+            this.generatedDisabledIconPreview = autoGenerated;
+            
+            if (this.form.disabledIcon) {
+              // Compare to see if it was manually set
+              this.disabledIconManuallySet = (this.form.disabledIcon !== autoGenerated);
+            } else {
+              // Generate disabled icon if it doesn't exist
+              this.form.disabledIcon = autoGenerated;
+              this.disabledIconManuallySet = false;
+            }
+          } catch (error) {
+            console.warn('Failed to generate disabled icon on init:', error);
+            this.generatedDisabledIconPreview = '';
+            this.generatedDisabledIconFilename = '';
+            this.disabledIconManuallySet = !!this.form.disabledIcon;
+          }
+        } else {
+          this.disabledIconManuallySet = !!this.form.disabledIcon;
+          this.generatedDisabledIconPreview = '';
+          this.generatedDisabledIconFilename = '';
+          this.mainIconFilename = '';
+        }
+        
         this.original = JSON.parse(JSON.stringify(this.form));
+      }
+    },
+    handleMainIconFilenameChange(filename) {
+      // Track the main icon filename for generating disabled icon filename
+      this.mainIconFilename = filename;
+      // Regenerate disabled icon filename if icon exists
+      if (this.form && this.form.icon && !this.disabledIconManuallySet) {
+        this.generatedDisabledIconFilename = generateDisabledIconFilename(this.form.icon, '-autogenerated', filename);
       }
     },
     ensureDefaults(gateway) {

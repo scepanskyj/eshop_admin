@@ -1,10 +1,11 @@
 import Vue from 'vue';
 import seed, { gatewaysOnly } from '@/mock/payments.mock';
 import { paymentMethods } from '@/mock/paymentMethods.seed';
+import { migrateRules } from '@/utils/ruleMigration';
 
 const STORAGE_KEY = 'esa.payments';
 const GATEWAYS_STORAGE_KEY = 'esa.gateways';
-const SEED_VERSION = '2.5'; // Increment this to force reload from seed data (2.5 = merged gateways)
+const SEED_VERSION = '2.6'; // Increment this to force reload from seed data (2.6 = added Serbia payment methods)
 const VERSION_KEY = 'esa.payments.version';
 const GATEWAYS_VERSION_KEY = 'esa.gateways.version';
 
@@ -98,7 +99,8 @@ function hydrate() {
     }
     
     state.gateways = methods;
-    state.rules = deepClone(seed.rules);
+    const seedRules = deepClone(seed.rules);
+    state.rules = migrateRules(seedRules);
     state.fee = deepClone(seed.fee);
     localStorage.setItem(VERSION_KEY, SEED_VERSION);
     
@@ -111,7 +113,9 @@ function hydrate() {
     try {
       const parsed = JSON.parse(raw);
       state.gateways = parsed.gateways || [];
-      state.rules = parsed.rules || [];
+      const loadedRules = parsed.rules || [];
+      // Migrate rules if they're in old format
+      state.rules = migrateRules(loadedRules);
       state.fee = parsed.fee || null;
       
       // Migrate old gateway data if it exists and hasn't been merged yet
@@ -146,7 +150,8 @@ function hydrate() {
         methods = mergeStripeGatewayIntoCardMethods(methods, stripeGateway);
       }
       state.gateways = methods;
-      state.rules = deepClone(seed.rules);
+      const seedRules = deepClone(seed.rules);
+      state.rules = migrateRules(seedRules);
       state.fee = deepClone(seed.fee);
       localStorage.setItem(VERSION_KEY, SEED_VERSION);
     }
