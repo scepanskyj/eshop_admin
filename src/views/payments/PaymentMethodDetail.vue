@@ -16,11 +16,13 @@
 
     <div v-if="form" class="payment-method-content">
       <v-row>
-        <v-col cols="12" md="8" offset-md="0">
+        <v-col cols="12" md="8" offset-md="0" class="content-col">
+          <ModalCard title="Status">
+            <StatusCard v-model="form.enabled" hide-label enabled-label="Enabled" disabled-label="Disabled" />
+          </ModalCard>
+
           <!-- Basic Information -->
           <ModalCard title="Payment Method">
-            <StatusCard v-model="form.enabled" />
-
             <div class="field-block">
               <div class="control-label">Title *</div>
               <v-text-field
@@ -749,7 +751,6 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .payment-method-detail-wrapper {
-  background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
   padding: tokens.$space-md;
 }
@@ -851,6 +852,7 @@ export default {
   white-space: nowrap;
   display: inline-block;
 }
+
 
 // Ensure h1 title truncates properly
 .payment-method-detail-wrapper :deep(h1) {

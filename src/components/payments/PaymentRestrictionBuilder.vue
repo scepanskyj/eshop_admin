@@ -1,12 +1,5 @@
 <template>
-  <div class="payment-restriction-builder">
-    <div class="builder-header">
-      <p class="helper-text">
-        <v-icon small class="mr-1">mdi-information</v-icon>
-        If any group is true, this rule applies. Conditions within a group are combined with AND.
-      </p>
-    </div>
-
+  <div>
     <div class="groups-container">
       <template v-for="(group, groupIndex) in groups">
         <div
@@ -179,6 +172,15 @@ export default {
   background-color: tokens.$color-surface-muted;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.2s ease;
+
+  // Ensure all inputs have white background (Vuetify and native)
+  :deep(.v-input__slot) {
+    background-color: white !important;
+  }
+  :deep(input.native-input),
+  :deep(select.native-select) {
+    background-color: white !important;
+  }
 }
 
 .condition-group:hover {

@@ -31,10 +31,11 @@
       </template>
     </PageHeader>
 
+    <div class="table-card">
     <v-data-table
       :headers="tableHeaders"
       :items="sortedRules"
-      class="elevation-1 rules-table"
+      class="rules-table"
       :sort-by.sync="sortBy"
       :sort-desc.sync="sortDesc"
       @click:row="onRowClick"
@@ -62,6 +63,7 @@
         </v-btn>
       </template>
     </v-data-table>
+    </div>
 
     <!-- Delete Confirmation Dialog -->
     <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
@@ -391,6 +393,17 @@ export default {
 
 .page-wrapper {
   padding: tokens.$space-md;
+}
+
+.table-card {
+  background: tokens.$color-surface-default;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  :deep(.v-data-table) {
+    box-shadow: none !important;
+  }
 }
 
 .filters-section {

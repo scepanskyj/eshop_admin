@@ -3,7 +3,7 @@
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
         <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
-        <v-btn v-if="!isCreate" text color="red" @click="showDeleteConfirm = true" class="ml-2">
+        <v-btn v-if="!isCreate" text color="red" @click="deleteDialog = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
@@ -16,11 +16,18 @@
 
     <div v-if="ruleForm" class="payment-restriction-content">
       <v-row>
-        <v-col cols="12" md="8" offset-md="0">
+        <v-col cols="12" md="8" offset-md="0" class="content-col">
           <v-form ref="ruleFormRef" v-model="formValid">
-            <section class="section-block">
-              <h2 class="h2 section-title">Rule overview</h2>
-              
+            <ModalCard title="Status">
+              <StatusCard
+                v-model="ruleForm.active"
+                hide-label
+                enabled-label="ACTIVE"
+                disabled-label="INACTIVE"
+              />
+            </ModalCard>
+
+            <ModalCard title="Rule overview">
               <div class="field-block">
                 <div class="control-label">Name *</div>
                 <v-text-field
@@ -32,13 +39,6 @@
                   hide-details="auto"
                 />
               </div>
-
-              <StatusCard
-                v-model="ruleForm.active"
-                label="Status"
-                enabled-label="ACTIVE"
-                disabled-label="INACTIVE"
-              />
 
               <div class="field-block">
                 <div class="control-label">Payment method</div>
@@ -73,24 +73,23 @@
               </div>
 
               <div class="field-block">
-                <v-checkbox 
-                  v-model="ruleForm.showWhenApplied" 
-                  label="Display reason to customer" 
+                <v-checkbox
+                  v-model="ruleForm.showWhenApplied"
+                  label="Display reason to customer"
                   color="primary"
-                  hide-details 
+                  hide-details
                 />
               </div>
-            </section>
+            </ModalCard>
 
-            <section class="section-block">
-              <h2 class="h2 section-title">Condition Builder</h2>
+            <ModalCard title="Condition Builder">
               <PaymentRestrictionBuilder v-model="ruleForm.groups" />
               <PaymentRestrictionPreview
-                class="mt-4"
+                class="condition-preview"
                 :payment-methods="ruleForm.paymentMethods"
                 :groups="ruleForm.groups"
               />
-            </section>
+            </ModalCard>
           </v-form>
         </v-col>
       </v-row>
@@ -151,6 +150,7 @@
 import RichTextStub from '@/components/common/RichTextStub.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
+import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionBuilder.vue';
 import PaymentRestrictionPreview from '@/components/payments/PaymentRestrictionPreview.vue';
@@ -162,7 +162,7 @@ import { createConditionGroup, createCondition } from '@/utils/paymentRestrictio
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton },
+  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton },
   props: {
     id: {
       type: String,
@@ -311,9 +311,11 @@ export default {
       }
       // Validate that at least one group has at least one condition
       const hasValidConditions = this.ruleForm.groups && this.ruleForm.groups.some(group =>
-        group.conditions && group.conditions.some(cond =>
-          cond.type && cond.operator && cond.value !== null && cond.value !== undefined && cond.value !== ''
-        )
+        group.conditions && group.conditions.some(cond => {
+          if (!cond.type || !cond.operator) return false;
+          if (cond.operator === 'equals_zero') return true; // value is implicitly 0
+          return cond.value !== null && cond.value !== undefined && cond.value !== '';
+        })
       );
       if (!hasValidConditions) {
         this.snackbar = { show: true, text: 'At least one condition is required' };
@@ -370,21 +372,6 @@ export default {
   margin-top: tokens.$space-lg;
 }
 
-.section-block {
-  margin-bottom: tokens.$space-4xl;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.section-title {
-  margin-bottom: tokens.$space-xl;
-  margin-top: 0;
-  padding-bottom: tokens.$space-md;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-}
-
 .field-block {
   margin-bottom: tokens.$space-xl !important;
   
@@ -407,5 +394,10 @@ export default {
     min-height: 120px !important;
   }
 }
+
+.condition-preview {
+  margin-top: tokens.$space-xl;
+}
+
 
 </style>

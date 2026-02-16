@@ -1,5 +1,5 @@
 <template>
-  <div class="page-wrapper">
+  <div class="page-wrapper content-container">
     <PageHeader :breadcrumbs="breadcrumbs" />
 
     <StickyActionsBar>
@@ -7,7 +7,7 @@
       <v-btn color="primary" @click="onSave">Save</v-btn>
     </StickyActionsBar>
 
-    <v-card outlined class="mb-6">
+    <v-card outlined class="mb-6 page-card">
       <v-card-title class="section-heading">General Settings</v-card-title>
       <v-divider />
       <v-card-text>
@@ -68,7 +68,7 @@
 
     <v-expand-transition>
       <div>
-        <v-card outlined class="mb-6" :class="{ 'card-disabled': !form.enabled }">
+        <v-card outlined class="mb-6 page-card" :class="{ 'card-disabled': !form.enabled }">
           <v-card-title class="section-heading">Payment Fee Settings</v-card-title>
           <v-divider />
           <v-card-text>
@@ -202,7 +202,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card outlined :class="{ 'card-disabled': !form.enabled }">
+        <v-card outlined class="page-card" :class="{ 'card-disabled': !form.enabled }">
           <v-card-title class="section-heading">Tax Settings</v-card-title>
           <v-divider />
           <v-card-text>
@@ -325,6 +325,15 @@ export default {
 
 .page-wrapper {
   padding: tokens.$space-md;
+}
+
+.content-container {
+  max-width: tokens.$content-max-width;
+}
+
+.page-card {
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 .section-heading {

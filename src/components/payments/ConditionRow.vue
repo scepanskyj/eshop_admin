@@ -147,8 +147,8 @@ export default {
         updated.operator = '';
         updated.value = null;
       } else if (field === 'operator') {
-        // Reset value when operator changes (especially for between operator)
-        updated.value = null;
+        // Reset value when operator changes; equals_zero requires value 0 for save validation
+        updated.value = value === 'equals_zero' ? 0 : null;
       }
       
       this.$emit('update', updated);

@@ -15,7 +15,7 @@
     </PageHeader>
 
     <v-row>
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="8" class="content-col">
         <ModalCard title="General settings">
           <div class="field-block">
             <div class="control-label">Title *</div>

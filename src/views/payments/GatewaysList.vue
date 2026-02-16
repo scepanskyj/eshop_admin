@@ -156,7 +156,6 @@ export default {
 @use '@/styles/tokens.scss' as tokens;
 
 .gateways-page-wrapper {
-  background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
   padding: tokens.$space-md;
 }

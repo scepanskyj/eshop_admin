@@ -315,6 +315,7 @@ h1, .text-h1 {
 .app-main {
   padding-top: 64px !important;
   margin-left: 256px !important; /* Standard Vuetify drawer width */
+  background-color: tokens.$color-surface-muted !important;
 }
 
 .nested-link {
