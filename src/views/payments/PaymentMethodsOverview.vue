@@ -48,21 +48,32 @@
       <OverviewTableHeader
         :filter-active="showEnabledOnly"
         :active-count="enabledFilterCount"
+        filter-label="Enabled"
         @update:filterActive="setShowEnabledOnly"
       />
-      <div class="gateways-list">
-      <GatewayCard
-        v-for="gateway in sortedGateways"
-        :key="gateway.code"
-        :gateway="gateway"
-        :icon="getGatewayIcon(gateway.code)"
-        :updated-label="formatUpdated(gateway.updatedAt)"
-        :on-configure="openConfigure"
-        :show-country-badge="showCountryBadge"
-        :country-flag="getCountryFlag(gateway.countryCode)"
-        :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
-      />
+      <div class="gateways-hint-wrap">
+        <p1>This is how payment methods appear at checkout. Drag items to change the order.</p1>
       </div>
+      <draggable
+        v-model="orderedGateways"
+        handle=".card-drag-area"
+        ghost-class="gateway-card--ghost"
+        drag-class="gateway-card--drag"
+        class="gateways-list"
+      >
+        <GatewayCard
+          v-for="(gateway, index) in orderedGateways"
+          :key="gateway.code"
+          :gateway="gateway"
+          :position="index + 1"
+          :icon="getGatewayIcon(gateway.code)"
+          :updated-label="formatUpdated(gateway.updatedAt)"
+          :on-configure="openConfigure"
+          :show-country-badge="showCountryBadge"
+          :country-flag="getCountryFlag(gateway.countryCode)"
+          :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
+        />
+      </draggable>
     </div>
 
     <Modal v-model="configDialog" :title="dialogTitle" max-width="720" @close="handleDialogClose">
@@ -84,10 +95,10 @@
             <ModalCard
               title="Payment Method"
             >
-              <StatusCard v-model="editedGateway.enabled" />
+              <StatusCard v-model="editedGateway.enabled" enabled-label="Enabled" disabled-label="Disabled" />
 
               <div class="field-block">
-                <div class="control-label">Title <span class="required-asterisk">*</span></div>
+                <Label>Title <span class="required-asterisk">*</span></Label>
                 <v-text-field
                   class="form-field"
                   v-model="editedGateway.title"
@@ -98,7 +109,7 @@
                 />
               </div>
               <div class="field-block">
-                <div class="control-label">Icon</div>
+                <Label>Icon</Label>
                 <v-select
                   class="form-field"
                   v-model="editedGateway.icon"
@@ -128,7 +139,7 @@
                 </v-select>
               </div>
               <div class="field-block">
-                <div class="control-label">Description (optional)</div>
+                <Label>Description (shown to customer)</Label>
                 <v-textarea
                   class="form-field"
                   v-model="editedGateway.description"
@@ -154,7 +165,7 @@
                 <v-expansion-panel-content>
                   <div class="modal-card__body">
                     <div class="field-block">
-                      <div class="control-label">Price Type</div>
+                      <Label>Price Type</Label>
                       <v-select
                         class="form-field"
                         outlined
@@ -167,7 +178,7 @@
                     </div>
                     <div class="field-flex">
                       <div class="field-block">
-                        <div class="control-label">Minimum Order Amount</div>
+                        <Label>Minimum Order Amount</Label>
                         <v-text-field
                           class="form-field"
                           outlined
@@ -179,7 +190,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Maximum Order Amount</div>
+                        <Label>Maximum Order Amount</Label>
                         <v-text-field
                           class="form-field"
                           outlined
@@ -192,7 +203,7 @@
                       </div>
                     </div>
                     <div class="field-block">
-                      <div class="control-label">Fee Amount</div>
+                      <Label>Fee Amount</Label>
                       <v-text-field
                         class="form-field"
                         outlined
@@ -226,7 +237,7 @@
                 <v-expansion-panel-content>
                   <div class="modal-card__body">
                     <div class="field-block">
-                      <div class="control-label">Sort order</div>
+                      <Label>Sort order</Label>
                       <v-text-field
                         class="form-field"
                         v-model.number="editedGateway.sortOrder"
@@ -237,7 +248,7 @@
                       />
                     </div>
                     <div class="field-block">
-                      <div class="control-label">Gateway language</div>
+                      <Label>Gateway language</Label>
                       <v-select
                         class="form-field"
                         v-model="editedGateway.language"
@@ -251,7 +262,7 @@
                       title="Details"
                     >
                       <div class="field-block">
-                        <div class="control-label">Merchant ID (MID)</div>
+                        <Label>Merchant ID (MID)</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.mid"
@@ -261,7 +272,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Gateway URL</div>
+                        <Label>Gateway URL</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.url"
@@ -279,7 +290,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Gateway Keys Path</div>
+                        <Label>Gateway Keys Path</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.keysPath"
@@ -289,7 +300,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Private key filename</div>
+                        <Label>Private key filename</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.privateKey"
@@ -299,7 +310,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Public (gateway) key filename</div>
+                        <Label>Public (gateway) key filename</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.publicKey"
@@ -309,7 +320,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment Fail Page</div>
+                        <Label>Payment Fail Page</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.failUrl"
@@ -319,7 +330,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Terminal Page Domain</div>
+                        <Label>Terminal Page Domain</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.terminalDomain"
@@ -329,7 +340,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment Success Page</div>
+                        <Label>Payment Success Page</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.successUrl"
@@ -353,7 +364,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment Action</div>
+                        <Label>Payment Action</Label>
                         <v-select
                           class="form-field"
                           v-model="editedGateway.paymentAction"
@@ -364,7 +375,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment From Applicable Countries</div>
+                        <Label>Payment From Applicable Countries</Label>
                         <v-autocomplete
                           class="form-field"
                           v-model="editedGateway.countries"
@@ -379,7 +390,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">External GUID</div>
+                        <Label>External GUID</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.externalGuid"
@@ -405,7 +416,7 @@
                         <v-expansion-panel-header>API Configuration</v-expansion-panel-header>
                         <v-expansion-panel-content>
                           <div class="field-block">
-                            <div class="control-label">Endpoint</div>
+                            <Label>Endpoint</Label>
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiEndpoint"
@@ -416,7 +427,7 @@
                             />
                           </div>
                           <div class="field-block">
-                            <div class="control-label">Klarna API username</div>
+                            <Label>Klarna API username</Label>
                             <v-text-field
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiUsername"
@@ -426,7 +437,7 @@
                             />
                           </div>
                           <div class="field-block">
-                            <div class="control-label">Klarna API password</div>
+                            <Label>Klarna API password</Label>
                             <v-text-field
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiPassword"
@@ -437,7 +448,7 @@
                             />
                           </div>
                           <div class="field-block">
-                            <div class="control-label">Mode</div>
+                            <Label>Mode</Label>
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaMode"
@@ -448,7 +459,7 @@
                             />
                           </div>
                           <div class="field-block">
-                            <div class="control-label">Logging</div>
+                            <Label>Logging</Label>
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaLogging"
@@ -472,7 +483,7 @@
                             />
                           </div>
                           <div class="field-block">
-                            <div class="control-label">Allowed countries</div>
+                            <Label>Allowed countries</Label>
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaPaymentsAllowedCountries"
@@ -517,7 +528,7 @@
                             />
                           </div>
                           <div class="field-block">
-                            <div class="control-label">Placement</div>
+                            <Label>Placement</Label>
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaMessagingPlacement"
@@ -539,7 +550,7 @@
                 subtitle="Bank account parameters required by Sporopay gateway."
               >
                       <div class="field-block">
-                        <div class="control-label">Bank account prefix</div>
+                        <Label>Bank account prefix</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankAccountPrefix"
@@ -549,7 +560,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Bank account number</div>
+                        <Label>Bank account number</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankAccountNumber"
@@ -559,7 +570,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Bank code</div>
+                        <Label>Bank code</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankCode"
@@ -569,7 +580,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Constant symbol</div>
+                        <Label>Constant symbol</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.constantSymbol"
@@ -579,7 +590,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Safe key</div>
+                        <Label>Safe key</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.safeKey"
@@ -589,7 +600,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Currency</div>
+                        <Label>Currency</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.currency"
@@ -599,7 +610,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment target url</div>
+                        <Label>Payment target url</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.paymentTargetUrl"
@@ -609,7 +620,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment return url</div>
+                        <Label>Payment return url</Label>
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.paymentReturnUrl"
@@ -626,7 +637,7 @@
                         />
                       </div>
                       <div class="field-block">
-                        <div class="control-label">Payment from applicable countries</div>
+                        <Label>Payment from applicable countries</Label>
                         <v-select
                           class="form-field"
                           v-model="editedGateway.details.allowedCountries"
@@ -686,6 +697,7 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 import EmptyState from '@/components/common/EmptyState.vue';
 import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import GatewayCard from '@/components/payments/GatewayCard.vue';
@@ -694,6 +706,8 @@ import Modal from '@/components/common/Modal.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import Label from '@/components/common/Label.vue';
+import HintText from '@/components/common/HintText.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -769,7 +783,7 @@ function buildGatewayTemplate(code = '') {
 
 export default {
   name: 'PaymentMethodsOverview',
-  components: { EmptyState, GatewayCard, OverviewTableHeader, PageHeader, Modal, ModalCard, StatusCard, TertiaryButton },
+  components: { draggable, EmptyState, GatewayCard, OverviewTableHeader, PageHeader, Modal, ModalCard, StatusCard, TertiaryButton, Label, HintText },
   data() {
     return {
       search: '',
@@ -893,9 +907,20 @@ export default {
       });
     },
     sortedGateways() {
-      return [...this.filteredGateways].sort((a, b) =>
-        (a.title || '').localeCompare(b.title || '')
-      );
+      return [...this.filteredGateways].sort((a, b) => {
+        const orderA = a.sortOrder != null ? a.sortOrder : 999;
+        const orderB = b.sortOrder != null ? b.sortOrder : 999;
+        if (orderA !== orderB) return orderA - orderB;
+        return (a.title || '').localeCompare(b.title || '');
+      });
+    },
+    orderedGateways: {
+      get() {
+        return this.sortedGateways;
+      },
+      set(newOrder) {
+        store.actions.reorderPaymentMethods(newOrder);
+      }
     },
     enabledCount() {
       return this.sortedGateways.filter(g => g.enabled).length;
@@ -913,7 +938,7 @@ export default {
     urlRule() {
       return v => {
         if (!this.editedGateway?.enabled) return true;
-        if (!v) return 'URL is required when gateway is enabled';
+        if (!v) return 'URL is required when payment method is enabled';
         return /^https?:\/\//i.test(v) || 'Must be a valid URL';
       };
     }
@@ -1250,10 +1275,8 @@ export default {
   margin-bottom: tokens.$space-lg;
 }
 
-.control-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.65);
+.gateways-hint-wrap {
+  padding: tokens.$space-md tokens.$space-lg 0;
 }
 
 .switch-control {
@@ -1289,14 +1312,6 @@ export default {
   margin: 0;
 }
 
-.chip-enabled {
-  background-color: tokens.$color-green !important;
-}
-
-.chip-disabled {
-  background-color: #757575 !important;
-}
-
 .table-card {
   background: tokens.$color-surface-default;
   border-radius: 12px;
@@ -1309,6 +1324,14 @@ export default {
   flex-direction: column;
   gap: tokens.$space-md;
   padding: tokens.$space-lg;
+}
+
+:deep(.gateway-card--ghost) {
+  opacity: 0.5;
+}
+
+:deep(.gateway-card--drag) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 :deep(.v-expansion-panels) {

@@ -2,9 +2,11 @@
   <v-sheet class="status-card" :class="{ 'status-card--enabled': enabled }" outlined>
     <div v-if="!hideLabel" class="status-card__header">
       <span>{{ label || 'Status' }}</span>
-      <v-chip small :class="enabled ? 'chip-enabled' : 'chip-disabled'" text-color="white">
-        {{ enabled ? enabledLabel || 'Enabled' : disabledLabel || 'Disabled' }}
-      </v-chip>
+      <StatusChip
+        :active="enabled"
+        :active-label="enabledLabel || 'Enabled'"
+        :inactive-label="disabledLabel || 'Disabled'"
+      />
     </div>
     <div class="status-card__body" :class="{ 'status-card__body--no-header': hideLabel }">
       <div class="switch-control">
@@ -23,8 +25,11 @@
 </template>
 
 <script>
+import StatusChip from '@/components/common/StatusChip.vue';
+
 export default {
   name: 'StatusCard',
+  components: { StatusChip },
   props: {
     value: {
       type: Boolean,
@@ -124,12 +129,5 @@ export default {
   }
 }
 
-.chip-enabled {
-  background-color: tokens.$color-green-500 !important;
-}
-
-.chip-disabled {
-  background-color: #757575 !important;
-}
 </style>
 

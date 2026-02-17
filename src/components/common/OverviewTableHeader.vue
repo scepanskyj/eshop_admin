@@ -15,7 +15,7 @@
         :class="{ 'tab-btn--active': filterActive }"
         @click="$emit('update:filterActive', true)"
       >
-        Active
+        {{ filterLabel }}
         <span v-if="activeCount !== undefined" class="tab-badge">{{ activeCount }}</span>
       </button>
     </div>
@@ -33,6 +33,10 @@ export default {
     activeCount: {
       type: Number,
       default: undefined
+    },
+    filterLabel: {
+      type: String,
+      default: 'Active'
     }
   }
 };

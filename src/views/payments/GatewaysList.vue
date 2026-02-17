@@ -48,6 +48,7 @@
       <OverviewTableHeader
         :filter-active="showEnabledOnly"
         :active-count="enabledFilterCount"
+        filter-label="Enabled"
         @update:filterActive="setShowEnabledOnly"
       />
       <div class="gateways-list">

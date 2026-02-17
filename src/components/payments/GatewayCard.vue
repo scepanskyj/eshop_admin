@@ -2,19 +2,28 @@
   <v-card outlined class="gateway-card">
     <div class="gateway-content">
       <div class="gateway-header">
-        <v-avatar size="48" class="gateway-avatar">
-          <v-img :src="icon" :alt="`${gateway.title} icon`" contain />
-        </v-avatar>
-        <div class="gateway-header__meta">
-          <div class="d-flex align-center mb-1">
-            <div class="gateway-title" role="heading" aria-level="3">{{ gateway.title }}</div>
-            <v-chip small :class="[gateway.enabled ? 'chip-enabled' : 'chip-disabled', 'ml-2']" text-color="white">
-              {{ gateway.enabled ? 'Enabled' : 'Disabled' }}
-            </v-chip>
+        <div
+          v-if="position !== undefined"
+          class="card-drag-area"
+        >
+          <div class="gateway-order-cell">
+            <div class="drag-handle">
+              <v-icon>mdi-drag</v-icon>
+            </div>
+            <span class="position-badge">{{ position }}</span>
           </div>
-          <div class="gateway-updated">
-            <span class="sr-only">Last updated</span>
-            <span aria-hidden="true">Updated {{ updatedLabel }}</span>
+          <v-avatar size="48" class="gateway-avatar">
+            <v-img :src="icon" :alt="`${gateway.title} icon`" contain />
+          </v-avatar>
+          <div class="gateway-header__meta">
+            <div class="d-flex align-center mb-1">
+              <div class="gateway-title" role="heading" aria-level="3">{{ gateway.title }}</div>
+              <StatusChip :active="gateway.enabled" active-label="Enabled" inactive-label="Disabled" class="ml-2" />
+            </div>
+            <div class="gateway-updated">
+              <span class="sr-only">Last updated</span>
+              <span aria-hidden="true">Updated {{ updatedLabel }}</span>
+            </div>
           </div>
         </div>
         <v-btn outlined color="primary" @click.stop="onConfigure(gateway)" :aria-label="`Configure ${gateway.title}`" class="ml-auto">
@@ -27,13 +36,17 @@
 </template>
 
 <script>
+import StatusChip from '@/components/common/StatusChip.vue';
+
 export default {
   name: 'GatewayCard',
+  components: { StatusChip },
   props: {
     gateway: { type: Object, required: true },
     icon: { type: String, required: true },
     updatedLabel: { type: String, required: true },
-    onConfigure: { type: Function, required: true }
+    onConfigure: { type: Function, required: true },
+    position: { type: Number, default: undefined }
   },
   methods: {}
 };
@@ -59,6 +72,42 @@ export default {
   width: 100%;
 }
 
+.card-drag-area {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.gateway-order-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: tokens.$space-sm;
+  margin-right: tokens.$space-md;
+  flex-shrink: 0;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: tokens.$color-text-secondary;
+  padding: 6px;
+}
+
+.position-badge {
+  font-size: 15px;
+  font-weight: 500;
+  color: tokens.$color-text-secondary;
+  min-width: 20px;
+}
+
 .gateway-avatar {
   border-radius: 12px;
   background-color: rgba(71, 133, 10, 0.12);
@@ -81,14 +130,6 @@ export default {
 .gateway-updated {
   font: tokens.$text-p2;
   color: tokens.$color-text-secondary;
-}
-
-.chip-enabled {
-  background-color: tokens.$color-green !important;
-}
-
-.chip-disabled {
-  background-color: #757575 !important;
 }
 
 .sr-only {

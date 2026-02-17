@@ -12,7 +12,7 @@
       <v-divider />
       <v-card-text>
         <div class="field-block">
-          <div class="control-label">Payment Fee Status</div>
+          <Label>Payment Fee Status</Label>
           <div class="switch-control">
             <span class="switch-state" :class="{ 'switch-state--on': form.enabled }">
               {{ form.enabled ? 'Enabled' : 'Disabled' }}
@@ -30,15 +30,14 @@
         </div>
 
         <div class="field-block">
-          <div class="control-label">Title</div>
+          <Label>Title</Label>
+          <HintText>Displayed label shown to shoppers</HintText>
           <v-text-field
             class="form-field"
             outlined
             dense
             v-model="form.title"
             placeholder="Payment Fee"
-            hint="Displayed label shown to shoppers"
-            persistent-hint
             hide-details="auto"
           />
         </div>
@@ -52,7 +51,8 @@
         </div>
 
         <div class="field-block">
-          <div class="control-label">Totals Sort Order</div>
+          <Label>Totals Sort Order</Label>
+          <HintText>Position within order totals summary</HintText>
           <v-text-field
             class="form-field"
             outlined
@@ -60,8 +60,6 @@
             v-model.number="form.totalsSortOrder"
             type="number"
             placeholder="35"
-            hint="Position within order totals summary"
-            persistent-hint
             hide-details="auto"
           />
         </div>
@@ -75,7 +73,8 @@
           <v-divider />
           <v-card-text>
             <div class="field-block">
-              <div class="control-label">Price Type</div>
+              <Label>Price Type</Label>
+              <HintText>Choose how the fee amount is calculated</HintText>
               <v-select
                 class="form-field"
                 outlined
@@ -83,15 +82,14 @@
                 v-model="form.priceType"
                 :items="['Fixed price', 'Percent']"
                 placeholder="Select price type"
-                hint="Choose how the fee amount is calculated"
-                persistent-hint
                 hide-details="auto"
               />
             </div>
 
             <div class="field-flex">
               <div class="field-block">
-                <div class="control-label">Minimum Order Amount</div>
+                <Label>Minimum Order Amount</Label>
+                <HintText>Minimum order amount to apply Payment Fee</HintText>
                 <v-text-field
                   class="form-field"
                   outlined
@@ -99,13 +97,12 @@
                   v-model.number="form.minAmount"
                   type="number"
                   placeholder="0"
-                  hint="Minimum order amount to apply Payment Fee"
-                  persistent-hint
                   hide-details="auto"
                 />
               </div>
               <div class="field-block">
-                <div class="control-label">Maximum Order Amount</div>
+                <Label>Maximum Order Amount</Label>
+                <HintText>Maximum order amount to apply Payment Fee</HintText>
                 <v-text-field
                   class="form-field"
                   outlined
@@ -113,8 +110,6 @@
                   v-model.number="form.maxAmount"
                   type="number"
                   placeholder="9999"
-                  hint="Maximum order amount to apply Payment Fee"
-                  persistent-hint
                   hide-details="auto"
                 />
               </div>
@@ -129,7 +124,8 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Payment Method Fee</div>
+              <Label>Payment Method Fee</Label>
+              <HintText>Amount added when the selected payment method is used</HintText>
               <v-simple-table class="fee-table">
                 <thead>
                   <tr>
@@ -161,8 +157,6 @@
                         v-model.number="row.amount"
                         type="number"
                         placeholder="0.00"
-                        hint="Amount added when this method is selected"
-                        persistent-hint
                         dense
                         hide-details="auto"
                       />
@@ -187,7 +181,8 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Apply Payment Fee for Specific Customers</div>
+              <Label>Apply Payment Fee for Specific Customers</Label>
+              <HintText>Assign fee to selected customer groups</HintText>
               <v-select
                 class="form-field"
                 outlined
@@ -200,8 +195,6 @@
                 item-text="label"
                 item-value="value"
                 placeholder="Select customer groups"
-                hint="Assign fee to selected customer groups"
-                persistent-hint
                 hide-details="auto"
               />
             </div>
@@ -242,11 +235,13 @@
 import StickyActionsBar from '@/components/common/StickyActionsBar.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import Label from '@/components/common/Label.vue';
+import HintText from '@/components/common/HintText.vue';
 import store from '@/store/paymentsStore';
 
 export default {
   name: 'PaymentFee',
-  components: { StickyActionsBar, PageHeader, TertiaryButton },
+  components: { StickyActionsBar, PageHeader, TertiaryButton, Label, HintText },
   data() {
     return {
       form: JSON.parse(JSON.stringify(store.state.fee)),

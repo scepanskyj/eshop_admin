@@ -11,12 +11,13 @@
             <span class="group-label">Group {{ groupIndex + 1 }}</span>
             <v-btn
               v-if="groups.length > 1"
-              icon
-              small
+              text
+              color="red"
               @click="removeGroup(groupIndex)"
-              class="remove-group-btn"
+              class="delete-group-btn"
             >
-              <v-icon small color="red">mdi-close</v-icon>
+              <v-icon left small>mdi-trash-can-outline</v-icon>
+              Delete group
             </v-btn>
           </div>
 
@@ -37,12 +38,11 @@
             </div>
 
             <v-btn
-              small
               outlined
               @click="addCondition(groupIndex)"
               class="add-condition-btn"
             >
-              <v-icon left small>mdi-plus</v-icon>
+              <v-icon left>mdi-plus</v-icon>
               Add condition
             </v-btn>
           </div>
@@ -163,7 +163,7 @@ export default {
 .groups-container {
   display: flex;
   flex-direction: column;
-  gap: tokens.$space-lg;
+  gap: tokens.$space-md;
 }
 
 .group-wrapper {
@@ -209,14 +209,10 @@ export default {
   letter-spacing: 0.5px;
 }
 
-.remove-group-btn {
+.delete-group-btn {
   margin: 0;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.remove-group-btn:hover {
-  opacity: 1;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .conditions-list {
@@ -225,7 +221,7 @@ export default {
 }
 
 .condition-item {
-  margin-bottom: tokens.$space-md;
+  margin-bottom: tokens.$space-sm;
 }
 
 .condition-item:last-of-type {
@@ -261,8 +257,8 @@ export default {
 .or-divider {
   display: flex;
   align-items: center;
-  gap: tokens.$space-md;
-  margin: tokens.$space-lg 0;
+  gap: tokens.$space-sm;
+  margin: tokens.$space-md 0;
   position: relative;
 }
 
@@ -287,6 +283,6 @@ export default {
 
 .add-group-btn {
   align-self: flex-start;
-  margin-top: tokens.$space-sm;
+  margin-top: tokens.$space-md;
 }
 </style>

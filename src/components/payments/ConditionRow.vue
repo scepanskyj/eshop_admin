@@ -1,47 +1,37 @@
 <template>
   <div class="condition-row">
     <div class="condition-field">
-      <div class="control-label">Condition Type</div>
-      <select
+      <Label>Condition Type</Label>
+      <v-autocomplete
         :value="condition.type"
-        @change="updateCondition('type', $event.target.value)"
-        class="native-select"
-      >
-        <option value="">Select condition type</option>
-        <optgroup
-          v-for="group in conditionTypeGroups"
-          :key="group.id"
-          :label="group.label"
-        >
-          <option
-            v-for="type in group.types"
-            :key="type.value"
-            :value="type.value"
-          >
-            {{ type.label }}
-          </option>
-        </optgroup>
-      </select>
+        @input="updateCondition('type', $event)"
+        :items="conditionTypeItems"
+        item-value="value"
+        item-text="label"
+        dense
+        outlined
+        hide-details="auto"
+        placeholder="Select condition type"
+        clearable
+      />
     </div>
     <div class="condition-field" v-if="condition.type">
-      <div class="control-label">Operator</div>
-      <select
+      <Label>Operator</Label>
+      <v-autocomplete
         :value="condition.operator"
-        @change="updateCondition('operator', $event.target.value)"
-        class="native-select"
-      >
-        <option value="">Select operator</option>
-        <option
-          v-for="op in availableOperators"
-          :key="op.value"
-          :value="op.value"
-        >
-          {{ op.label }}
-        </option>
-      </select>
+        @input="updateCondition('operator', $event)"
+        :items="availableOperators"
+        item-value="value"
+        item-text="label"
+        dense
+        outlined
+        hide-details="auto"
+        placeholder="Select operator"
+        clearable
+      />
     </div>
     <div class="condition-field condition-value" v-if="condition.type && condition.operator">
-      <div class="control-label">Value</div>
+      <Label>Value</Label>
       <component
         :is="valueInputComponent"
         :value="condition.value"
@@ -55,13 +45,13 @@
       @click="$emit('remove')"
       class="remove-btn"
     >
-      <v-icon color="red">mdi-close</v-icon>
+      <v-icon color="red">mdi-trash-can-outline</v-icon>
     </v-btn>
   </div>
 </template>
 
 <script>
-import { getConditionTypesByCategory, getOperatorsForType, getValueInputForType } from '@/utils/conditionConfig';
+import { getConditionTypesForAutocomplete, getOperatorsForType, getValueInputForType } from '@/utils/conditionConfig';
 import ShippingMethodInput from './conditionInputs/ShippingMethodInput.vue';
 import GiftCardInput from './conditionInputs/GiftCardInput.vue';
 import PaymentAmountInput from './conditionInputs/PaymentAmountInput.vue';
@@ -74,6 +64,7 @@ import ProductFlagsInput from './conditionInputs/ProductFlagsInput.vue';
 import OptionSelectInput from './conditionInputs/OptionSelectInput.vue';
 import TextInput from './conditionInputs/TextInput.vue';
 import PaymentMethodSelectInput from './conditionInputs/PaymentMethodSelectInput.vue';
+import Label from '@/components/common/Label.vue';
 
 const COMPONENT_MAP = {
   ShippingMethodInput,
@@ -93,6 +84,7 @@ const COMPONENT_MAP = {
 export default {
   name: 'ConditionRow',
   components: {
+    Label,
     ShippingMethodInput,
     GiftCardInput,
     PaymentAmountInput,
@@ -113,8 +105,8 @@ export default {
     }
   },
   computed: {
-    conditionTypeGroups() {
-      return getConditionTypesByCategory();
+    conditionTypeItems() {
+      return getConditionTypesForAutocomplete();
     },
     availableOperators() {
       if (!this.condition.type) return [];
@@ -164,51 +156,19 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: tokens.$space-sm;
 }
 
 .condition-field {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .condition-value {
   flex: 1.5;
-}
-
-.control-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.65);
-  margin-bottom: 6px;
-}
-
-.native-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.38);
-  border-radius: 4px;
-  font-size: 13px;
-  background-color: white;
-  color: rgba(0, 0, 0, 0.87);
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-
-.native-select:hover {
-  border-color: rgba(0, 0, 0, 0.6);
-}
-
-.native-select:focus {
-  outline: none;
-  border-color: tokens.$color-green;
-  border-width: 2px;
-  padding: 7px 11px;
-}
-
-.native-select option {
-  padding: 6px;
-  font-size: 13px;
 }
 
 .remove-btn {

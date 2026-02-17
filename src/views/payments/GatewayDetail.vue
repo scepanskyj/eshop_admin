@@ -18,21 +18,22 @@
       <v-col cols="12" md="8" class="content-col">
         <ModalCard title="General settings">
           <div class="field-block">
-            <div class="control-label">Title <span class="required-asterisk">*</span></div>
+            <Label>Title <span class="required-asterisk">*</span></Label>
             <v-text-field class="form-field" v-model="form.title" :rules="[v=>!!v||'Required']" dense outlined hide-details="auto" />
           </div>
 
-          <StatusCard v-model="form.enabled" />
+          <StatusCard v-model="form.enabled" enabled-label="Enabled" disabled-label="Disabled" />
 
           <div class="field-block">
-            <div class="control-label">ID gateway <span class="required-asterisk">*</span></div>
+            <Label>ID gateway <span class="required-asterisk">*</span></Label>
             <v-text-field class="form-field" v-model="form.code" :rules="[v=>!!v||'Required']" dense outlined hide-details="auto" :disabled="!isCreate" />
           </div>
         </ModalCard>
 
         <ModalCard :title="gatewaySettingsTitle">
           <div class="field-block">
-            <div class="control-label">Configuration (JSON) <span class="required-asterisk">*</span></div>
+            <Label>Configuration (JSON) <span class="required-asterisk">*</span></Label>
+            <HintText>Enter gateway configuration as JSON</HintText>
             <v-textarea
               class="form-field json-editor"
               v-model="jsonConfig"
@@ -42,7 +43,6 @@
               hide-details="auto"
               placeholder='{"key": "value"}'
             />
-            <div class="field-hint">Enter gateway configuration as JSON</div>
           </div>
         </ModalCard>
       </v-col>
@@ -64,7 +64,7 @@
             Type the code to delete: <strong>{{ code }}</strong>
           </div>
           <div class="field-block">
-            <div class="control-label">Confirm by typing code</div>
+            <Label>Confirm by typing code</Label>
             <v-text-field class="form-field" v-model="deleteConfirmText" dense outlined hide-details="auto" />
           </div>
         </v-card-text>
@@ -92,12 +92,14 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import Label from '@/components/common/Label.vue';
+import HintText from '@/components/common/HintText.vue';
 import store from '@/store/paymentsStore';
 import roleStore from '@/store/roleStore';
 
 export default {
   name: 'GatewayDetail',
-  components: { PageHeader, ModalCard, StatusCard, TertiaryButton },
+  components: { PageHeader, ModalCard, StatusCard, TertiaryButton, Label, HintText },
   props: { code: String },
   data() {
     return {
@@ -256,12 +258,6 @@ export default {
 .json-editor :deep(textarea) {
   font-family: 'Courier New', monospace;
   font-size: 13px;
-}
-
-.field-hint {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-  margin-top: 4px;
 }
 
 // Truncate breadcrumb title if too long

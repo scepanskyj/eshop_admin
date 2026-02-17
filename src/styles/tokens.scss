@@ -1,6 +1,26 @@
 $color-text-primary: #1B1B1B;
 $color-text-secondary: #474747;
 $color-text-tertiary: #757575;
+
+// Grayscale palette (for chips, disabled states, etc.)
+$color-gray-0: #FFFFFF;
+$color-gray-12-5: #FBFBFB;
+$color-gray-25: #F8F8F8;
+$color-gray-50: #F1F1F1;
+$color-gray-75: #E9E9E9;
+$color-gray-100: #E2E2E2;
+$color-gray-150: #D4D4D4;
+$color-gray-200: #C6C6C6;
+$color-gray-300: #ABABAB;
+$color-gray-400: #919191;
+$color-gray-500: #757575;
+$color-gray-600: #5E5E5E;
+$color-gray-700: #474747;
+$color-gray-800: #303030;
+$color-gray-850: #262626;
+$color-gray-900: #1B1B1B;
+$color-gray-950: #111111;
+$color-gray-1000: #000000;
 $color-surface-muted: #fafafa;
 $color-surface-default: #ffffff;
 $color-border-subtle: rgba(0, 0, 0, 0.08);
@@ -17,6 +37,9 @@ $color-green-600: #356B09;
 $color-green-700: #235106;
 $color-green-800: #143804;
 $color-green-900: #082102;
+
+
+
 
 // Legacy support - keep for backward compatibility
 $color-green: $color-green-500;

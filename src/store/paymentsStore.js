@@ -261,6 +261,14 @@ const actions = {
   deleteGateway(code) {
     return this.deletePaymentMethod(code);
   },
+  reorderPaymentMethods(orderedList) {
+    orderedList.forEach((item, index) => {
+      const newOrder = index + 1;
+      if ((item.sortOrder || 0) !== newOrder) {
+        this.updatePaymentMethod(item.code, { ...item, sortOrder: newOrder });
+      }
+    });
+  },
   createRule(rule) {
     const r = { ...deepClone(rule), id: rule.id || `r-${Date.now()}`, updatedAt: new Date().toISOString() };
     state.rules.push(r);
