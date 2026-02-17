@@ -17,9 +17,6 @@
         style="display: none"
         @change="handleFileSelect"
       />
-      <div class="icon-upload__hint">
-        SVG format, 1:1 ratio recommended
-      </div>
     </div>
     <div v-else class="icon-upload__preview">
       <div class="icon-preview-container">
@@ -212,11 +209,6 @@ export default {
   flex-direction: column;
   align-items: flex-start;
   gap: tokens.$space-xs;
-}
-
-.icon-upload__hint {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.6);
 }
 
 .icon-preview-container {

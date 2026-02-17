@@ -1,10 +1,10 @@
 <template>
   <div class="payment-restriction-preview">
     <p class="preview-sentence">
-      <span class="preview-text">Restrict</span>
+      <span class="preview-text preview-text--first">Restrict</span>
       <span class="preview-methods">{{ formattedMethods }}</span>
       <span class="preview-text">when</span>
-      <span class="preview-conditions">{{ conditionSummary }}</span>
+      <span class="preview-conditions" v-html="conditionSummaryHtml"></span>
     </p>
   </div>
 </template>
@@ -52,6 +52,13 @@ export default {
       });
 
       return groupSummaries.join(' OR ') || '—';
+    },
+    conditionSummaryHtml() {
+      const raw = this.conditionSummary;
+      if (!raw || raw === '—') return raw;
+      return raw
+        .replace(/ AND /g, ' <strong class="preview-operator">AND</strong> ')
+        .replace(/ OR /g, ' <strong class="preview-operator">OR</strong> ');
     }
   },
   methods: {
@@ -94,7 +101,7 @@ export default {
 @use '@/styles/tokens.scss' as tokens;
 
 .payment-restriction-preview {
-  padding: tokens.$space-md tokens.$space-lg;
+  padding: tokens.$space-md;
   background-color: tokens.$color-surface-muted;
   border-radius: 8px;
   border: 1px solid tokens.$color-border-subtle;
@@ -110,6 +117,10 @@ export default {
 .preview-text {
   color: tokens.$color-text-secondary;
   margin: 0 4px;
+
+  &--first {
+    margin-left: 0;
+  }
 }
 
 .preview-methods {
@@ -121,5 +132,10 @@ export default {
 .preview-conditions {
   color: tokens.$color-text-primary;
   margin-left: 4px;
+
+  :deep(.preview-operator) {
+    font-weight: 700;
+    color: tokens.$color-text-primary;
+  }
 }
 </style>

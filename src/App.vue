@@ -445,7 +445,7 @@ h1, .text-h1 {
 
 // Chips and tags
 :deep(.v-chip--active) {
-  background-color: tokens.$color-green-500 !important;
+  background-color: tokens.$color-green-50 !important;
   color: white !important;
 }
 

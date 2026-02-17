@@ -22,14 +22,14 @@
               <StatusCard
                 v-model="ruleForm.active"
                 hide-label
-                enabled-label="ACTIVE"
-                disabled-label="INACTIVE"
+                enabled-label="Active"
+                disabled-label="Inactive"
               />
             </ModalCard>
 
             <ModalCard title="Rule overview">
               <div class="field-block">
-                <div class="control-label">Name <span class="required-asterisk">*</span></div>
+                <Label>Name <span class="required-asterisk">*</span></Label>
                 <v-text-field
                   class="form-field"
                   v-model="ruleForm.name"
@@ -41,7 +41,7 @@
               </div>
 
               <div class="field-block">
-                <div class="control-label">Payment method <span class="required-asterisk">*</span></div>
+                <Label>Payment method <span class="required-asterisk">*</span></Label>
                 <v-autocomplete
                   class="form-field"
                   v-model="ruleForm.paymentMethods"
@@ -57,8 +57,8 @@
               </div>
 
               <div class="field-block">
-                <div class="control-label">Description</div>
-                <div class="control-label-secondary">This is only internal and will serve for your purposes</div>
+                <Label>Description</Label>
+                <HintText>This is only internal and will serve for your purposes</HintText>
                 <v-textarea
                   class="form-field description-textarea"
                   v-model="ruleForm.description"
@@ -69,7 +69,7 @@
               </div>
 
               <div class="field-block reason-field-block">
-                <div class="control-label">Reason (shown to customer when payment method is disabled)</div>
+                <Label>Reason (shown to customer when payment method is disabled)</Label>
                 <RichTextStub v-model="ruleForm.reason" />
                 <v-checkbox
                   v-model="ruleForm.showInTooltip"
@@ -90,8 +90,10 @@
 
             <ModalCard title="Condition Builder">
               <PaymentRestrictionBuilder v-model="ruleForm.groups" />
+            </ModalCard>
+
+            <ModalCard title="Preview" class="preview-section">
               <PaymentRestrictionPreview
-                class="condition-preview"
                 :payment-methods="ruleForm.paymentMethods"
                 :groups="ruleForm.groups"
               />
@@ -162,13 +164,15 @@ import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionB
 import PaymentRestrictionPreview from '@/components/payments/PaymentRestrictionPreview.vue';
 import PrimaryButton from '@/components/common/PrimaryButton.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import Label from '@/components/common/Label.vue';
+import HintText from '@/components/common/HintText.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton },
+  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton, Label, HintText },
   props: {
     id: {
       type: String,
@@ -398,13 +402,8 @@ export default {
 }
 
 .content-col {
-  min-width: 800px;
-}
-
-@media (max-width: 960px) {
-  .content-col {
-    min-width: auto;
-  }
+  /* Allow column to shrink with grid; avoid overflow when md="8" is narrower than 800px (e.g. 960–1200px viewport) */
+  min-width: min(800px, 100%);
 }
 
 .field-block {
@@ -415,13 +414,6 @@ export default {
   }
 }
 
-.control-label-secondary {
-  font-size: 12px;
-  color: tokens.$color-text-tertiary;
-  margin-bottom: tokens.$space-sm;
-  margin-top: -4px;
-}
-
 .description-textarea {
   min-height: 120px;
   
@@ -430,8 +422,8 @@ export default {
   }
 }
 
-.condition-preview {
-  margin-top: tokens.$space-xl;
+.preview-section {
+  margin-top: tokens.$space-lg;
 }
 
 

@@ -255,3 +255,25 @@ export function getConditionTypesByCategory() {
     types: CONDITION_TYPES.filter(t => t.category === cat.id)
   })).filter(g => g.types.length > 0);
 }
+
+/**
+ * Get all condition types as flat list for autocomplete
+ */
+export function getConditionTypesFlat() {
+  return CONDITION_TYPES.map(t => ({ value: t.value, label: t.label }));
+}
+
+/**
+ * Get condition types for autocomplete with category headers (Product, Order, etc.)
+ * Returns flat list with header items for Vuetify v-select/v-autocomplete optgroup-style display
+ */
+export function getConditionTypesForAutocomplete() {
+  const result = [];
+  for (const cat of CONDITION_TYPE_CATEGORIES) {
+    const types = CONDITION_TYPES.filter(t => t.category === cat.id);
+    if (types.length === 0) continue;
+    result.push({ header: cat.label, label: cat.label }); // label helps filter keep header when search matches category
+    result.push(...types.map(t => ({ value: t.value, label: t.label })));
+  }
+  return result;
+}

@@ -24,7 +24,7 @@
           <!-- Basic Information -->
           <ModalCard title="Payment Method">
             <div class="field-block">
-              <div class="control-label">Title <span class="required-asterisk">*</span></div>
+              <Label>Title <span class="required-asterisk">*</span></Label>
               <v-text-field
                 class="form-field"
                 v-model="form.title"
@@ -36,7 +36,8 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Icon</div>
+              <Label>Icon</Label>
+              <HintText>SVG format, 1:1 ratio recommended</HintText>
               <IconUpload
                 v-model="form.icon"
                 :disabled="saving"
@@ -45,7 +46,14 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Disabled Icon</div>
+              <Label>Disabled Icon</Label>
+              <HintText>{{
+                disabledIconManuallySet
+                  ? 'Icon to display when this payment method is disabled'
+                  : form.disabledIcon || form.icon
+                    ? 'Auto-generated from main icon (colors converted to gray). Upload to override.'
+                    : 'Will be auto-generated from main icon when uploaded.'
+              }}</HintText>
               <IconUpload
                 v-model="form.disabledIcon"
                 :disabled="saving"
@@ -53,17 +61,11 @@
                 :show-generated-preview="!disabledIconManuallySet && !form.disabledIcon && form.icon"
                 :generated-file-name="generatedDisabledIconFilename"
               />
-              <div class="field-hint">
-                {{ disabledIconManuallySet 
-                  ? 'Icon to display when this payment method is disabled' 
-                  : form.disabledIcon || form.icon
-                    ? 'Auto-generated from main icon (colors converted to gray). Upload to override.'
-                    : 'Will be auto-generated from main icon when uploaded.' }}
-              </div>
             </div>
 
             <div class="field-block">
-              <div class="control-label">Description</div>
+              <Label>Description</Label>
+              <HintText>This will be shown to the customer in the checkout</HintText>
               <v-textarea
                 class="form-field"
                 v-model="form.description"
@@ -76,7 +78,7 @@
             </div>
 
             <div class="field-block">
-              <div class="control-label">Position in checkout list</div>
+              <Label>Position in checkout list</Label>
               <v-text-field
                 class="form-field"
                 v-model.number="form.sortOrder"
@@ -85,8 +87,6 @@
                 type="number"
                 hide-details="auto"
                 :rules="[sortOrderRule]"
-                hint="Lower numbers appear first (min: 1, max: current maximum)"
-                persistent-hint
               />
             </div>
 
@@ -96,12 +96,13 @@
                 label="Gateway configuration is needed"
                 hide-details
               />
-              <div class="field-hint">Enable this if this payment method requires gateway configuration (e.g., Stripe, Klarna)</div>
+              <HintText>Enable this if this payment method requires gateway configuration (e.g., Stripe, Klarna)</HintText>
             </div>
 
             <template v-if="form.needsGatewayConfig && shouldShowStripeTitle">
               <div class="field-block">
-                <div class="control-label">Stripe title</div>
+                <Label>Stripe title</Label>
+                <HintText>Text shown in Stripe gateway as title</HintText>
                 <v-text-field
                   class="form-field"
                   v-model="form.stripeTitle"
@@ -110,7 +111,6 @@
                   hide-details="auto"
                   placeholder="Text shown in Stripe gateway as title"
                 />
-                <div class="field-hint">Text shown in Stripe gateway as title</div>
               </div>
             </template>
           </ModalCard>
@@ -118,7 +118,8 @@
           <!-- Gateway Configuration (Developer/Admin only) -->
           <ModalCard v-if="form.needsGatewayConfig && canAccessGatewayConfig" title="Gateway Configuration">
             <div class="field-block">
-              <div class="control-label">Configuration (JSON) <span class="required-asterisk">*</span></div>
+              <Label>Configuration (JSON) <span class="required-asterisk">*</span></Label>
+              <HintText>Enter gateway configuration as JSON.</HintText>
               <v-textarea
                 class="form-field json-editor"
                 v-model="form.gatewayConfig"
@@ -129,7 +130,6 @@
                 placeholder='{"key": "value"}'
                 :rules="[jsonRule]"
               />
-              <div class="field-hint">Enter gateway configuration as JSON.</div>
             </div>
           </ModalCard>
 
@@ -145,7 +145,7 @@
 
             <template v-if="form.feeEnabled">
               <div class="field-block fee-amount-field">
-                <div class="control-label">Fee Amount <span class="required-asterisk">*</span></div>
+                <Label>Fee Amount <span class="required-asterisk">*</span></Label>
                 <v-text-field
                   class="form-field"
                   v-model.number="form.feeSettings.amount"
@@ -161,7 +161,8 @@
 
               <div class="field-flex">
                 <div class="field-block">
-                  <div class="control-label">Min Order Amount</div>
+                  <Label>Min Order Amount</Label>
+                  <HintText>Minimum order amount to apply payment fee</HintText>
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.minOrderAmount"
@@ -171,13 +172,12 @@
                     step="0.01"
                     hide-details="auto"
                     :suffix="form.currency"
-                    hint="Minimum order amount to apply payment fee"
-                    persistent-hint
                   />
                 </div>
 
                 <div class="field-block">
-                  <div class="control-label">Max Order Amount</div>
+                  <Label>Max Order Amount</Label>
+                  <HintText>Maximum order amount to apply payment fee</HintText>
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.maxOrderAmount"
@@ -187,8 +187,6 @@
                     step="0.01"
                     hide-details="auto"
                     :suffix="form.currency"
-                    hint="Maximum order amount to apply payment fee"
-                    persistent-hint
                   />
                 </div>
               </div>
@@ -202,7 +200,7 @@
               </div>
 
               <div class="field-block">
-                <div class="control-label">Apply Payment Fee For Specific Customers</div>
+                <Label>Apply Payment Fee For Specific Customers</Label>
                 <v-select
                   class="form-field"
                   v-model="form.feeSettings.customerTypes"
@@ -217,7 +215,7 @@
               </div>
 
               <div class="field-block">
-                <div class="control-label">Tax Settings</div>
+                <Label>Tax Settings</Label>
                 <v-checkbox
                   v-model="form.feeSettings.taxSettings.calculateTax"
                   label="Calculate tax"
@@ -294,6 +292,8 @@ import StatusCard from '@/components/common/StatusCard.vue';
 import IconUpload from '@/components/common/IconUpload.vue';
 import Modal from '@/components/common/Modal.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import Label from '@/components/common/Label.vue';
+import HintText from '@/components/common/HintText.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -354,7 +354,7 @@ function buildPaymentMethodTemplate(countryCode) {
 
 export default {
   name: 'PaymentMethodDetail',
-  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal, TertiaryButton },
+  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal, TertiaryButton, Label, HintText },
   props: {
     code: {
       type: String,
@@ -772,13 +772,6 @@ export default {
   margin-bottom: tokens.$space-md;
 }
 
-.control-label {
-  font-weight: 500;
-  margin-bottom: tokens.$space-xs;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.65);
-}
-
 .form-field {
   width: 100%;
 }
@@ -826,12 +819,6 @@ export default {
 }
 
 
-.field-hint {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-  margin-top: 4px;
-}
-
 .field-flex {
   display: flex;
   flex-wrap: wrap;
@@ -850,7 +837,7 @@ export default {
 
 .json-editor {
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 // Truncate breadcrumb title if too long

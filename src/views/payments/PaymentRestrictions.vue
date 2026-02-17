@@ -46,9 +46,11 @@
         {{ formatUpdated(item.updatedAt) }}
       </template>
       <template v-slot:item.active="{ item }">
-        <v-chip small :class="item.active ? 'chip-enabled' : 'chip-disabled'" text-color="white">
-          {{ item.active ? 'ACTIVE' : 'INACTIVE' }}
-        </v-chip>
+        <StatusChip
+          :active="item.active"
+          active-label="Active"
+          inactive-label="Inactive"
+        />
       </template>
       <template v-slot:item.shopType="{ item }">
         {{ item.shopType || '1P' }}
@@ -187,6 +189,7 @@
 import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
+import StatusChip from '@/components/common/StatusChip.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import SecondaryButton from '@/components/common/SecondaryButton.vue';
 import store from '@/store/paymentsStore';
@@ -197,7 +200,7 @@ const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { OverviewTableHeader, PageHeader, Modal, TertiaryButton, SecondaryButton },
+  components: { OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton },
   data() {
     return {
       search: '',
@@ -439,14 +442,6 @@ export default {
 .modal-footer {
   padding: 16px 24px;
   min-height: 64px;
-}
-
-.chip-enabled {
-  background-color: tokens.$color-green !important;
-}
-
-.chip-disabled {
-  background-color: #757575 !important;
 }
 
 .search-field :deep(.v-input__slot) {

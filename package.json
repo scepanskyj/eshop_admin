@@ -13,6 +13,7 @@
     "core-js": "^3.38.1",
     "vue": "^2.7.16",
     "vue-router": "^3.6.5",
+    "vuedraggable": "^2.24.3",
     "vuetify": "^2.7.2"
   },
   "devDependencies": {
