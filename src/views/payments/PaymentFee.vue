@@ -34,6 +34,7 @@
           <v-text-field
             class="form-field"
             outlined
+            dense
             v-model="form.title"
             placeholder="Payment Fee"
             hint="Displayed label shown to shoppers"
@@ -55,6 +56,7 @@
           <v-text-field
             class="form-field"
             outlined
+            dense
             v-model.number="form.totalsSortOrder"
             type="number"
             placeholder="35"
@@ -77,6 +79,7 @@
               <v-select
                 class="form-field"
                 outlined
+                dense
                 v-model="form.priceType"
                 :items="['Fixed price', 'Percent']"
                 placeholder="Select price type"
@@ -92,6 +95,7 @@
                 <v-text-field
                   class="form-field"
                   outlined
+                  dense
                   v-model.number="form.minAmount"
                   type="number"
                   placeholder="0"
@@ -105,6 +109,7 @@
                 <v-text-field
                   class="form-field"
                   outlined
+                  dense
                   v-model.number="form.maxAmount"
                   type="number"
                   placeholder="9999"
@@ -186,6 +191,7 @@
               <v-select
                 class="form-field"
                 outlined
+                dense
                 v-model="form.segments"
                 :items="segmentsOptions"
                 multiple
@@ -324,7 +330,7 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .page-wrapper {
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .content-container {

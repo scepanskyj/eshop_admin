@@ -18,24 +18,25 @@
       <v-col cols="12" md="8" class="content-col">
         <ModalCard title="General settings">
           <div class="field-block">
-            <div class="control-label">Title *</div>
-            <v-text-field class="form-field" v-model="form.title" :rules="[v=>!!v||'Required']" outlined hide-details="auto" />
+            <div class="control-label">Title <span class="required-asterisk">*</span></div>
+            <v-text-field class="form-field" v-model="form.title" :rules="[v=>!!v||'Required']" dense outlined hide-details="auto" />
           </div>
 
           <StatusCard v-model="form.enabled" />
 
           <div class="field-block">
-            <div class="control-label">ID gateway *</div>
-            <v-text-field class="form-field" v-model="form.code" :rules="[v=>!!v||'Required']" outlined hide-details="auto" :disabled="!isCreate" />
+            <div class="control-label">ID gateway <span class="required-asterisk">*</span></div>
+            <v-text-field class="form-field" v-model="form.code" :rules="[v=>!!v||'Required']" dense outlined hide-details="auto" :disabled="!isCreate" />
           </div>
         </ModalCard>
 
         <ModalCard :title="gatewaySettingsTitle">
           <div class="field-block">
-            <div class="control-label">Configuration (JSON) *</div>
+            <div class="control-label">Configuration (JSON) <span class="required-asterisk">*</span></div>
             <v-textarea
               class="form-field json-editor"
               v-model="jsonConfig"
+              dense
               outlined
               rows="20"
               hide-details="auto"
@@ -64,7 +65,7 @@
           </div>
           <div class="field-block">
             <div class="control-label">Confirm by typing code</div>
-            <v-text-field class="form-field" v-model="deleteConfirmText" outlined hide-details="auto" />
+            <v-text-field class="form-field" v-model="deleteConfirmText" dense outlined hide-details="auto" />
           </div>
         </v-card-text>
         
@@ -230,7 +231,7 @@ export default {
 .gateway-detail-wrapper {
   background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .modal-content {

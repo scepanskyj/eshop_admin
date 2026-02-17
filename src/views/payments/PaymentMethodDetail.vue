@@ -24,10 +24,11 @@
           <!-- Basic Information -->
           <ModalCard title="Payment Method">
             <div class="field-block">
-              <div class="control-label">Title *</div>
+              <div class="control-label">Title <span class="required-asterisk">*</span></div>
               <v-text-field
                 class="form-field"
                 v-model="form.title"
+                dense
                 outlined
                 hide-details="auto"
                 :rules="[requiredRule]"
@@ -66,6 +67,7 @@
               <v-textarea
                 class="form-field"
                 v-model="form.description"
+                dense
                 outlined
                 rows="3"
                 hide-details="auto"
@@ -78,6 +80,7 @@
               <v-text-field
                 class="form-field"
                 v-model.number="form.sortOrder"
+                dense
                 outlined
                 type="number"
                 hide-details="auto"
@@ -102,6 +105,7 @@
                 <v-text-field
                   class="form-field"
                   v-model="form.stripeTitle"
+                  dense
                   outlined
                   hide-details="auto"
                   placeholder="Text shown in Stripe gateway as title"
@@ -114,10 +118,11 @@
           <!-- Gateway Configuration (Developer/Admin only) -->
           <ModalCard v-if="form.needsGatewayConfig && canAccessGatewayConfig" title="Gateway Configuration">
             <div class="field-block">
-              <div class="control-label">Configuration (JSON) *</div>
+              <div class="control-label">Configuration (JSON) <span class="required-asterisk">*</span></div>
               <v-textarea
                 class="form-field json-editor"
                 v-model="form.gatewayConfig"
+                dense
                 outlined
                 rows="20"
                 hide-details="auto"
@@ -140,10 +145,11 @@
 
             <template v-if="form.feeEnabled">
               <div class="field-block fee-amount-field">
-                <div class="control-label">Fee Amount *</div>
+                <div class="control-label">Fee Amount <span class="required-asterisk">*</span></div>
                 <v-text-field
                   class="form-field"
                   v-model.number="form.feeSettings.amount"
+                  dense
                   outlined
                   type="number"
                   step="0.01"
@@ -159,6 +165,7 @@
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.minOrderAmount"
+                    dense
                     outlined
                     type="number"
                     step="0.01"
@@ -174,6 +181,7 @@
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.maxOrderAmount"
+                    dense
                     outlined
                     type="number"
                     step="0.01"
@@ -202,6 +210,7 @@
                   multiple
                   chips
                   small-chips
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -752,7 +761,7 @@ export default {
 
 .payment-method-detail-wrapper {
   min-height: calc(100vh - 64px);
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .payment-method-content {

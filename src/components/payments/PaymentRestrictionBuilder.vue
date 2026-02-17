@@ -1,11 +1,12 @@
 <template>
   <div>
     <div class="groups-container">
-      <template v-for="(group, groupIndex) in groups">
-        <div
-          :key="group.id"
-          class="condition-group"
-        >
+      <div
+        v-for="(group, groupIndex) in groups"
+        :key="group.id"
+        class="group-wrapper"
+      >
+        <div class="condition-group">
           <div class="group-header">
             <span class="group-label">Group {{ groupIndex + 1 }}</span>
             <v-btn
@@ -48,12 +49,12 @@
         </div>
 
         <!-- OR divider between groups (not after the last one) -->
-        <div v-if="groupIndex < groups.length - 1" :key="`or-${groupIndex}`" class="or-divider">
+        <div v-if="groupIndex < groups.length - 1" class="or-divider">
           <div class="or-line"></div>
           <span class="or-label">OR</span>
           <div class="or-line"></div>
         </div>
-      </template>
+      </div>
 
       <v-btn
         outlined
@@ -163,6 +164,10 @@ export default {
   display: flex;
   flex-direction: column;
   gap: tokens.$space-lg;
+}
+
+.group-wrapper {
+  display: contents;
 }
 
 .condition-group {

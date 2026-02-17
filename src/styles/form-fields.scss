@@ -19,6 +19,10 @@
   color: rgba(0, 0, 0, 0.65);
 }
 
+.required-asterisk {
+  color: #d32f2f;
+}
+
 // Standardize all Vuetify inputs - white fill + outlined border
 :deep(.form-field .v-input__slot) {
   background-color: white !important;

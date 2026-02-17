@@ -12,18 +12,12 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
+                dense
                 outlined
                 prepend-inner-icon="mdi-magnify"
                 label="Search in all columns"
                 hide-details
                 class="search-field"
-              />
-            </v-col>
-            <v-col cols="12" md="auto" lg="auto">
-              <QuickFilter
-                v-model="showActiveOnly"
-                :label="`Show active only (${activeFilterCount})`"
-                @change="onFilterChange"
               />
             </v-col>
           </v-row>
@@ -32,6 +26,11 @@
     </PageHeader>
 
     <div class="table-card">
+      <OverviewTableHeader
+        :filter-active="showActiveOnly"
+        :active-count="activeFilterCount"
+        @update:filterActive="setShowActiveOnly"
+      />
     <v-data-table
       :headers="tableHeaders"
       :items="sortedRules"
@@ -185,7 +184,7 @@
 </template>
 
 <script>
-import QuickFilter from '@/components/common/QuickFilter.vue';
+import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
@@ -198,7 +197,7 @@ const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { QuickFilter, PageHeader, Modal, TertiaryButton, SecondaryButton },
+  components: { OverviewTableHeader, PageHeader, Modal, TertiaryButton, SecondaryButton },
   data() {
     return {
       search: '',
@@ -211,8 +210,7 @@ export default {
       showDeleteConfirm: false,
       toDelete: null,
       snackbar: { show: false, text: '' },
-      rulesMetadata: [],
-      filtering: false
+      rulesMetadata: []
     };
   },
     async created() {
@@ -321,11 +319,8 @@ export default {
       const date = new Date(value);
       return isNaN(date.getTime()) ? 'unknown' : date.toLocaleString();
     },
-    onFilterChange() {
-      this.filtering = true;
-      setTimeout(() => {
-        this.filtering = false;
-      }, 800);
+    setShowActiveOnly(val) {
+      this.showActiveOnly = val;
     },
     confirmDelete(item) {
       this.toDelete = item;
@@ -392,7 +387,7 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .page-wrapper {
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .table-card {

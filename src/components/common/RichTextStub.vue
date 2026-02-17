@@ -1,26 +1,42 @@
 <template>
-  <div class="rte-stub">
-    <div class="toolbar mb-2">
-      <v-btn small text @click="toggleCmd('bold')"><v-icon left>mdi-format-bold</v-icon>Bold</v-btn>
-      <v-btn small text @click="toggleCmd('italic')"><v-icon left>mdi-format-italic</v-icon>Italic</v-btn>
-      <v-btn small text @click="toggleList"><v-icon left>mdi-format-list-bulleted</v-icon>Bullets</v-btn>
+  <div class="reason-editor">
+    <div class="toolbar">
+      <v-btn
+        small
+        text
+        :class="{ 'primary--text': isBold }"
+        @click="execBold"
+      >
+        <v-icon small>mdi-format-bold</v-icon>
+      </v-btn>
+      <v-btn
+        small
+        text
+        :class="{ 'primary--text': hasLink }"
+        @click="toggleLink"
+      >
+        <v-icon small>mdi-link</v-icon>
+      </v-btn>
     </div>
     <div
       ref="editor"
       class="editor body-2"
       contenteditable
-      :class="{ bold: isBold, italic: isItalic, bullets: isBullets }"
+      data-placeholder="Enter reason shown to customer when payment method is disabled..."
       @input="emitValue"
-    ></div>
+      @focus="updateToolbarState"
+      @keyup="updateToolbarState"
+      @mouseup="updateToolbarState"
+    />
   </div>
- </template>
+</template>
 
 <script>
 export default {
   name: 'RichTextStub',
   props: { value: String },
   data() {
-    return { isBold: false, isItalic: false, isBullets: false };
+    return { isBold: false, hasLink: false };
   },
   mounted() {
     if (this.value) this.$refs.editor.innerHTML = this.value;
@@ -35,19 +51,53 @@ export default {
     }
   },
   methods: {
-    toggleCmd(type) {
-      if (type === 'bold') this.isBold = !this.isBold;
-      if (type === 'italic') this.isItalic = !this.isItalic;
+    execBold() {
+      this.$refs.editor.focus();
+      document.execCommand('bold', false, null);
+      this.updateToolbarState();
       this.emitValue();
     },
-    toggleList() {
-      this.isBullets = !this.isBullets;
-      if (this.isBullets) {
-        const text = this.$refs.editor.innerText || '';
-        const items = text.split(/\n+/).filter(Boolean).map(t => `<li>${t}</li>`).join('');
-        this.$refs.editor.innerHTML = `<ul>${items}</ul>`;
+    toggleLink() {
+      this.$refs.editor.focus();
+      const selection = window.getSelection();
+      const hasSelection = selection && selection.toString().trim().length > 0;
+
+      if (this.hasLink) {
+        document.execCommand('unlink', false, null);
+      } else if (hasSelection) {
+        const url = window.prompt('Enter URL:', 'https://');
+        if (url) {
+          document.execCommand('createLink', false, url);
+        }
+      } else {
+        const text = window.prompt('Link text:', '');
+        const url = text ? window.prompt('Enter URL:', 'https://') : null;
+        if (text && url) {
+          document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" rel="noopener">${text}</a>`);
+        }
       }
+      this.updateToolbarState();
       this.emitValue();
+    },
+    updateToolbarState() {
+      this.$nextTick(() => {
+        if (!this.$refs.editor) return;
+        const sel = window.getSelection();
+        if (sel && sel.anchorNode && this.$refs.editor.contains(sel.anchorNode)) {
+          this.isBold = document.queryCommandState('bold');
+          this.hasLink = !!document.queryCommandState('createLink') || this.findLinkInSelection();
+        }
+      });
+    },
+    findLinkInSelection() {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return false;
+      let node = sel.anchorNode;
+      while (node && node !== this.$refs.editor) {
+        if (node.nodeName === 'A') return true;
+        node = node.parentNode;
+      }
+      return false;
     },
     emitValue() {
       this.$emit('input', this.$refs.editor.innerHTML);
@@ -56,17 +106,39 @@ export default {
 };
 </script>
 
-<style scoped>
-.editor {
-  min-height: 120px;
-  border: 1px solid #e0e0e0;
-  padding: 8px;
+<style lang="scss" scoped>
+.reason-editor {
+  border: 1px solid rgba(0, 0, 0, 0.38);
   border-radius: 4px;
   background-color: white;
+  overflow: hidden;
 }
-.editor.bold { font-weight: bold; }
-.editor.italic { font-style: italic; }
-.toolbar { display: flex; gap: 8px; }
+
+.toolbar {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.editor {
+  min-height: 100px;
+  padding: 12px 16px;
+  outline: none;
+}
+
+.editor:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.editor :deep(a) {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+.editor :deep(a:hover) {
+  text-decoration: none;
+}
 </style>
-
-

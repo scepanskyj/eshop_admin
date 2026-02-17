@@ -29,7 +29,7 @@
 
             <ModalCard title="Rule overview">
               <div class="field-block">
-                <div class="control-label">Name *</div>
+                <div class="control-label">Name <span class="required-asterisk">*</span></div>
                 <v-text-field
                   class="form-field"
                   v-model="ruleForm.name"
@@ -41,11 +41,12 @@
               </div>
 
               <div class="field-block">
-                <div class="control-label">Payment method</div>
+                <div class="control-label">Payment method <span class="required-asterisk">*</span></div>
                 <v-autocomplete
                   class="form-field"
                   v-model="ruleForm.paymentMethods"
                   :items="availablePaymentMethods"
+                  :rules="[v => (Array.isArray(v) && v.length > 0) || 'At least one payment method is required']"
                   multiple
                   chips
                   small-chips
@@ -67,18 +68,23 @@
                 />
               </div>
 
-              <div class="field-block">
+              <div class="field-block reason-field-block">
                 <div class="control-label">Reason (shown to customer when payment method is disabled)</div>
                 <RichTextStub v-model="ruleForm.reason" />
-              </div>
-
-              <div class="field-block">
+                <v-checkbox
+                  v-model="ruleForm.showInTooltip"
+                  label="Show reason in tooltip"
+                  color="primary"
+                  hide-details
+                />
                 <v-checkbox
                   v-model="ruleForm.showWhenApplied"
                   label="Display reason to customer"
                   color="primary"
                   hide-details
+                  class="mt-2"
                 />
+                
               </div>
             </ModalCard>
 
@@ -254,6 +260,14 @@ export default {
       if (!this.ruleForm.groups || !Array.isArray(this.ruleForm.groups) || this.ruleForm.groups.length === 0) {
         this.ruleForm.groups = [createConditionGroup()];
       }
+      // Migrate reasonDisplayMode to showWhenApplied + showInTooltip
+      if (this.ruleForm.reasonDisplayMode !== undefined) {
+        this.ruleForm.showWhenApplied = this.ruleForm.reasonDisplayMode !== 'none';
+        this.ruleForm.showInTooltip = this.ruleForm.reasonDisplayMode === 'tooltip';
+      }
+      if (this.ruleForm.showInTooltip === undefined) {
+        this.ruleForm.showInTooltip = false;
+      }
       this.$nextTick(() => { this.suspendDirty = false; });
     },
     resetRuleForm() {
@@ -266,6 +280,7 @@ export default {
         paymentMethods: [],
         description: '',
         showWhenApplied: false,
+        showInTooltip: false,
         reason: '',
         updatedBy: 'you',
         groups: [createConditionGroup()]
@@ -284,6 +299,7 @@ export default {
           this.ruleForm.groups = preset.groups && preset.groups.length
             ? JSON.parse(JSON.stringify(preset.groups))
             : this.ruleForm.groups;
+          if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
           this.snackbar = { show: true, text: `Loaded example: ${preset.name}` };
         }
         this.$router.replace({ path: this.$route.path, query: {} });
@@ -309,6 +325,12 @@ export default {
         this.snackbar = { show: true, text: 'Name is required' };
         return;
       }
+      if (!this.ruleForm.paymentMethods || this.ruleForm.paymentMethods.length === 0) {
+        this.snackbar = { show: true, text: 'At least one payment method is required' };
+        return;
+      }
+      // Keep reasonDisplayMode in sync for backward compatibility
+      this.ruleForm.reasonDisplayMode = !this.ruleForm.showWhenApplied ? 'none' : (this.ruleForm.showInTooltip ? 'tooltip' : 'direct');
       // Validate that at least one group has at least one condition
       const hasValidConditions = this.ruleForm.groups && this.ruleForm.groups.some(group =>
         group.conditions && group.conditions.some(cond => {
@@ -365,11 +387,21 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .payment-restriction-detail-wrapper {
-  padding: tokens.$space-lg;
+  padding: tokens.$page-padding;
 }
 
 .payment-restriction-content {
   margin-top: tokens.$space-lg;
+}
+
+.content-col {
+  min-width: 800px;
+}
+
+@media (max-width: 960px) {
+  .content-col {
+    min-width: auto;
+  }
 }
 
 .field-block {
