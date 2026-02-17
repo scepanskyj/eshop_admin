@@ -1,18 +1,12 @@
 <template>
-  <div class="payment-restriction-builder">
-    <div class="builder-header">
-      <p class="helper-text">
-        <v-icon small class="mr-1">mdi-information</v-icon>
-        If any group is true, this rule applies. Conditions within a group are combined with AND.
-      </p>
-    </div>
-
+  <div>
     <div class="groups-container">
-      <template v-for="(group, groupIndex) in groups">
-        <div
-          :key="group.id"
-          class="condition-group"
-        >
+      <div
+        v-for="(group, groupIndex) in groups"
+        :key="group.id"
+        class="group-wrapper"
+      >
+        <div class="condition-group">
           <div class="group-header">
             <span class="group-label">Group {{ groupIndex + 1 }}</span>
             <v-btn
@@ -55,12 +49,12 @@
         </div>
 
         <!-- OR divider between groups (not after the last one) -->
-        <div v-if="groupIndex < groups.length - 1" :key="`or-${groupIndex}`" class="or-divider">
+        <div v-if="groupIndex < groups.length - 1" class="or-divider">
           <div class="or-line"></div>
           <span class="or-label">OR</span>
           <div class="or-line"></div>
         </div>
-      </template>
+      </div>
 
       <v-btn
         outlined
@@ -172,6 +166,10 @@ export default {
   gap: tokens.$space-lg;
 }
 
+.group-wrapper {
+  display: contents;
+}
+
 .condition-group {
   border: 1px solid tokens.$color-border-subtle;
   border-radius: 12px;
@@ -179,6 +177,15 @@ export default {
   background-color: tokens.$color-surface-muted;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.2s ease;
+
+  // Ensure all inputs have white background (Vuetify and native)
+  :deep(.v-input__slot) {
+    background-color: white !important;
+  }
+  :deep(input.native-input),
+  :deep(select.native-select) {
+    background-color: white !important;
+  }
 }
 
 .condition-group:hover {

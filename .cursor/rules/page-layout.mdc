@@ -1,0 +1,27 @@
+---
+description: Page layout and padding standards for views
+globs: src/views/**/*.vue
+alwaysApply: false
+---
+
+# Page Layout Standards
+
+## Page Padding
+
+All page/detail wrapper elements must use `tokens.$page-padding` (24px) for their padding.
+
+```scss
+@use '@/styles/tokens.scss' as tokens;
+
+.page-wrapper {
+  padding: tokens.$page-padding;
+}
+```
+
+The token is defined in `src/styles/tokens.scss` as `$page-padding: 24px`.
+
+## When Creating New Pages
+
+1. Add a wrapper div with a descriptive class (e.g. `my-feature-page-wrapper`)
+2. Apply `padding: tokens.$page-padding` to that wrapper
+3. Do not use `tokens.$space-md` (16px) for page-level padding

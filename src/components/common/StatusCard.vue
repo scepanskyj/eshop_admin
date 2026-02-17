@@ -1,12 +1,12 @@
 <template>
   <v-sheet class="status-card" :class="{ 'status-card--enabled': enabled }" outlined>
-    <div class="status-card__header">
+    <div v-if="!hideLabel" class="status-card__header">
       <span>{{ label || 'Status' }}</span>
       <v-chip small :class="enabled ? 'chip-enabled' : 'chip-disabled'" text-color="white">
         {{ enabled ? enabledLabel || 'Enabled' : disabledLabel || 'Disabled' }}
       </v-chip>
     </div>
-    <div class="status-card__body">
+    <div class="status-card__body" :class="{ 'status-card__body--no-header': hideLabel }">
       <div class="switch-control">
         <span class="switch-state" :class="{ 'switch-state--on': enabled }">
           {{ enabled ? enabledLabel || 'Enabled' : disabledLabel || 'Disabled' }}
@@ -41,6 +41,10 @@ export default {
     disabledLabel: {
       type: String,
       default: 'Disabled'
+    },
+    hideLabel: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -84,6 +88,10 @@ export default {
 .status-card__body {
   display: flex;
   align-items: center;
+}
+
+.status-card__body--no-header {
+  margin-top: 0;
 }
 
 .switch-control {

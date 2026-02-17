@@ -2,7 +2,7 @@
   <div class="gateway-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn text @click="onCancel">Cancel</v-btn>
+        <TertiaryButton text @click="onCancel">Cancel</TertiaryButton>
         <v-btn v-if="!isCreate && canDelete" text color="red" @click="confirmDelete = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
@@ -15,27 +15,28 @@
     </PageHeader>
 
     <v-row>
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="8" class="content-col">
         <ModalCard title="General settings">
           <div class="field-block">
-            <div class="control-label">Title *</div>
-            <v-text-field class="form-field" v-model="form.title" :rules="[v=>!!v||'Required']" outlined hide-details="auto" />
+            <div class="control-label">Title <span class="required-asterisk">*</span></div>
+            <v-text-field class="form-field" v-model="form.title" :rules="[v=>!!v||'Required']" dense outlined hide-details="auto" />
           </div>
 
           <StatusCard v-model="form.enabled" />
 
           <div class="field-block">
-            <div class="control-label">ID gateway *</div>
-            <v-text-field class="form-field" v-model="form.code" :rules="[v=>!!v||'Required']" outlined hide-details="auto" :disabled="!isCreate" />
+            <div class="control-label">ID gateway <span class="required-asterisk">*</span></div>
+            <v-text-field class="form-field" v-model="form.code" :rules="[v=>!!v||'Required']" dense outlined hide-details="auto" :disabled="!isCreate" />
           </div>
         </ModalCard>
 
         <ModalCard :title="gatewaySettingsTitle">
           <div class="field-block">
-            <div class="control-label">Configuration (JSON) *</div>
+            <div class="control-label">Configuration (JSON) <span class="required-asterisk">*</span></div>
             <v-textarea
               class="form-field json-editor"
               v-model="jsonConfig"
+              dense
               outlined
               rows="20"
               hide-details="auto"
@@ -64,7 +65,7 @@
           </div>
           <div class="field-block">
             <div class="control-label">Confirm by typing code</div>
-            <v-text-field class="form-field" v-model="deleteConfirmText" outlined hide-details="auto" />
+            <v-text-field class="form-field" v-model="deleteConfirmText" dense outlined hide-details="auto" />
           </div>
         </v-card-text>
         
@@ -72,7 +73,7 @@
           <v-divider />
           <v-card-actions class="modal-footer">
             <v-spacer />
-            <v-btn text @click="confirmDelete = false">Cancel</v-btn>
+            <TertiaryButton text @click="confirmDelete = false">Cancel</TertiaryButton>
             <v-btn :disabled="deleteConfirmText !== code" color="red" dark @click="onDelete">
               <v-icon left>mdi-delete</v-icon>
               Delete
@@ -82,7 +83,7 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show">{{ snackbar.text }}<v-btn text @click="snackbar.show=false">Close</v-btn></v-snackbar>
+    <v-snackbar v-model="snackbar.show">{{ snackbar.text }}<TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton></v-snackbar>
   </div>
 </template>
 
@@ -90,12 +91,13 @@
 import PageHeader from '@/components/common/PageHeader.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import roleStore from '@/store/roleStore';
 
 export default {
   name: 'GatewayDetail',
-  components: { PageHeader, ModalCard, StatusCard },
+  components: { PageHeader, ModalCard, StatusCard, TertiaryButton },
   props: { code: String },
   data() {
     return {
@@ -229,7 +231,7 @@ export default {
 .gateway-detail-wrapper {
   background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .modal-content {

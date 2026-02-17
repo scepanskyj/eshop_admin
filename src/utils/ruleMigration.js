@@ -111,15 +111,18 @@ export function migrateRule(rule) {
 }
 
 /**
- * Map old field names to new condition types
+ * Map old field names to new condition types.
+ * paymentMethod must map to SELECTED_PAYMENT_METHOD; falling back to PAYMENT_AMOUNT
+ * would silently change rule meaning and apply/skip restrictions incorrectly.
  */
 function mapOldFieldToNewType(oldField) {
   const mapping = {
     'country': 'MARKET',
     'cartTotal': 'PAYMENT_AMOUNT',
-    'customerSegment': 'CUSTOMER_TYPE'
+    'customerSegment': 'CUSTOMER_TYPE',
+    'paymentMethod': 'SELECTED_PAYMENT_METHOD'
   };
-  return mapping[oldField] || 'PAYMENT_AMOUNT'; // Default fallback
+  return mapping[oldField] || 'PAYMENT_AMOUNT';
 }
 
 /**

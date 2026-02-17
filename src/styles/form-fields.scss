@@ -1,5 +1,10 @@
 @use '@/styles/tokens.scss' as tokens;
 
+// Content container max-width
+.content-col {
+  max-width: tokens.$content-max-width !important;
+}
+
 // Standard form field wrapper
 .field-block {
   display: flex;
@@ -12,6 +17,10 @@
   font-size: 13px;
   font-weight: 500;
   color: rgba(0, 0, 0, 0.65);
+}
+
+.required-asterisk {
+  color: #d32f2f;
 }
 
 // Standardize all Vuetify inputs - white fill + outlined border

@@ -1,13 +1,13 @@
 <template>
-  <div class="page-wrapper">
+  <div class="page-wrapper content-container">
     <PageHeader :breadcrumbs="breadcrumbs" />
 
     <StickyActionsBar>
-      <v-btn text @click="onReset">Reset</v-btn>
+      <TertiaryButton text @click="onReset">Reset</TertiaryButton>
       <v-btn color="primary" @click="onSave">Save</v-btn>
     </StickyActionsBar>
 
-    <v-card outlined class="mb-6">
+    <v-card outlined class="mb-6 page-card">
       <v-card-title class="section-heading">General Settings</v-card-title>
       <v-divider />
       <v-card-text>
@@ -34,6 +34,7 @@
           <v-text-field
             class="form-field"
             outlined
+            dense
             v-model="form.title"
             placeholder="Payment Fee"
             hint="Displayed label shown to shoppers"
@@ -55,6 +56,7 @@
           <v-text-field
             class="form-field"
             outlined
+            dense
             v-model.number="form.totalsSortOrder"
             type="number"
             placeholder="35"
@@ -68,7 +70,7 @@
 
     <v-expand-transition>
       <div>
-        <v-card outlined class="mb-6" :class="{ 'card-disabled': !form.enabled }">
+        <v-card outlined class="mb-6 page-card" :class="{ 'card-disabled': !form.enabled }">
           <v-card-title class="section-heading">Payment Fee Settings</v-card-title>
           <v-divider />
           <v-card-text>
@@ -77,6 +79,7 @@
               <v-select
                 class="form-field"
                 outlined
+                dense
                 v-model="form.priceType"
                 :items="['Fixed price', 'Percent']"
                 placeholder="Select price type"
@@ -92,6 +95,7 @@
                 <v-text-field
                   class="form-field"
                   outlined
+                  dense
                   v-model.number="form.minAmount"
                   type="number"
                   placeholder="0"
@@ -105,6 +109,7 @@
                 <v-text-field
                   class="form-field"
                   outlined
+                  dense
                   v-model.number="form.maxAmount"
                   type="number"
                   placeholder="9999"
@@ -186,6 +191,7 @@
               <v-select
                 class="form-field"
                 outlined
+                dense
                 v-model="form.segments"
                 :items="segmentsOptions"
                 multiple
@@ -202,7 +208,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card outlined :class="{ 'card-disabled': !form.enabled }">
+        <v-card outlined class="page-card" :class="{ 'card-disabled': !form.enabled }">
           <v-card-title class="section-heading">Tax Settings</v-card-title>
           <v-divider />
           <v-card-text>
@@ -227,7 +233,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
  </template>
@@ -235,11 +241,12 @@
 <script>
 import StickyActionsBar from '@/components/common/StickyActionsBar.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 
 export default {
   name: 'PaymentFee',
-  components: { StickyActionsBar, PageHeader },
+  components: { StickyActionsBar, PageHeader, TertiaryButton },
   data() {
     return {
       form: JSON.parse(JSON.stringify(store.state.fee)),
@@ -323,7 +330,16 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .page-wrapper {
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
+}
+
+.content-container {
+  max-width: tokens.$content-max-width;
+}
+
+.page-card {
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 .section-heading {

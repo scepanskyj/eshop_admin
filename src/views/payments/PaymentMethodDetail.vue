@@ -2,7 +2,7 @@
   <div class="payment-method-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn text @click="handleCancel">Cancel</v-btn>
+        <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
         <v-btn v-if="!isCreate && canDelete" text color="red" @click="showDeleteConfirm = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
@@ -16,16 +16,19 @@
 
     <div v-if="form" class="payment-method-content">
       <v-row>
-        <v-col cols="12" md="8" offset-md="0">
+        <v-col cols="12" md="8" offset-md="0" class="content-col">
+          <ModalCard title="Status">
+            <StatusCard v-model="form.enabled" hide-label enabled-label="Enabled" disabled-label="Disabled" />
+          </ModalCard>
+
           <!-- Basic Information -->
           <ModalCard title="Payment Method">
-            <StatusCard v-model="form.enabled" />
-
             <div class="field-block">
-              <div class="control-label">Title *</div>
+              <div class="control-label">Title <span class="required-asterisk">*</span></div>
               <v-text-field
                 class="form-field"
                 v-model="form.title"
+                dense
                 outlined
                 hide-details="auto"
                 :rules="[requiredRule]"
@@ -64,6 +67,7 @@
               <v-textarea
                 class="form-field"
                 v-model="form.description"
+                dense
                 outlined
                 rows="3"
                 hide-details="auto"
@@ -76,6 +80,7 @@
               <v-text-field
                 class="form-field"
                 v-model.number="form.sortOrder"
+                dense
                 outlined
                 type="number"
                 hide-details="auto"
@@ -100,6 +105,7 @@
                 <v-text-field
                   class="form-field"
                   v-model="form.stripeTitle"
+                  dense
                   outlined
                   hide-details="auto"
                   placeholder="Text shown in Stripe gateway as title"
@@ -112,10 +118,11 @@
           <!-- Gateway Configuration (Developer/Admin only) -->
           <ModalCard v-if="form.needsGatewayConfig && canAccessGatewayConfig" title="Gateway Configuration">
             <div class="field-block">
-              <div class="control-label">Configuration (JSON) *</div>
+              <div class="control-label">Configuration (JSON) <span class="required-asterisk">*</span></div>
               <v-textarea
                 class="form-field json-editor"
                 v-model="form.gatewayConfig"
+                dense
                 outlined
                 rows="20"
                 hide-details="auto"
@@ -138,10 +145,11 @@
 
             <template v-if="form.feeEnabled">
               <div class="field-block fee-amount-field">
-                <div class="control-label">Fee Amount *</div>
+                <div class="control-label">Fee Amount <span class="required-asterisk">*</span></div>
                 <v-text-field
                   class="form-field"
                   v-model.number="form.feeSettings.amount"
+                  dense
                   outlined
                   type="number"
                   step="0.01"
@@ -157,6 +165,7 @@
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.minOrderAmount"
+                    dense
                     outlined
                     type="number"
                     step="0.01"
@@ -172,6 +181,7 @@
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.maxOrderAmount"
+                    dense
                     outlined
                     type="number"
                     step="0.01"
@@ -200,6 +210,7 @@
                   multiple
                   chips
                   small-chips
+                  dense
                   outlined
                   hide-details="auto"
                 />
@@ -247,7 +258,7 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <v-btn text @click="showDeleteConfirm = false; showDeleteConfirmation = false">Cancel</v-btn>
+        <TertiaryButton text @click="showDeleteConfirm = false; showDeleteConfirmation = false">Cancel</TertiaryButton>
         <v-btn
           v-if="!showDeleteConfirmation"
           outlined
@@ -271,7 +282,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -282,6 +293,7 @@ import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import IconUpload from '@/components/common/IconUpload.vue';
 import Modal from '@/components/common/Modal.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -342,7 +354,7 @@ function buildPaymentMethodTemplate(countryCode) {
 
 export default {
   name: 'PaymentMethodDetail',
-  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal },
+  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal, TertiaryButton },
   props: {
     code: {
       type: String,
@@ -748,9 +760,8 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .payment-method-detail-wrapper {
-  background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .payment-method-content {
@@ -850,6 +861,7 @@ export default {
   white-space: nowrap;
   display: inline-block;
 }
+
 
 // Ensure h1 title truncates properly
 .payment-method-detail-wrapper :deep(h1) {

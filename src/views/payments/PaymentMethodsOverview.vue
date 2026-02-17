@@ -18,23 +18,13 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
+                dense
                 outlined
                 prepend-inner-icon="mdi-magnify"
                 label="Search title or code"
                 hide-details
                 class="search-field"
               />
-            </v-col>
-            <v-col cols="12" md="auto" lg="auto">
-              <v-sheet outlined class="filter-wrapper">
-                <v-checkbox
-                  v-model="showEnabledOnly"
-                  :label="`Show enabled only (${enabledFilterCount})`"
-                  hide-details
-                  class="ma-0"
-                  @change="onFilterChange"
-                />
-              </v-sheet>
             </v-col>
           </v-row>
         </section>
@@ -46,7 +36,7 @@
     </v-overlay>
 
     <EmptyState
-      v-if="!filtering && !sortedGateways.length"
+      v-if="!sortedGateways.length"
       icon="mdi-credit-card-outline"
       title="No payment methods match"
       :subtitle="canCreate ? 'Adjust filters or create a new payment method to get started.' : 'Adjust filters to see payment methods.'"
@@ -54,11 +44,13 @@
       @cta="canCreate && createGateway"
     />
 
-    <div v-if="filtering" class="loading-container">
-      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-    </div>
-
-    <div v-else-if="sortedGateways.length" class="gateways-list">
+    <div v-if="sortedGateways.length" class="table-card">
+      <OverviewTableHeader
+        :filter-active="showEnabledOnly"
+        :active-count="enabledFilterCount"
+        @update:filterActive="setShowEnabledOnly"
+      />
+      <div class="gateways-list">
       <GatewayCard
         v-for="gateway in sortedGateways"
         :key="gateway.code"
@@ -70,6 +62,7 @@
         :country-flag="getCountryFlag(gateway.countryCode)"
         :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
       />
+      </div>
     </div>
 
     <Modal v-model="configDialog" :title="dialogTitle" max-width="720" @close="handleDialogClose">
@@ -94,10 +87,11 @@
               <StatusCard v-model="editedGateway.enabled" />
 
               <div class="field-block">
-                <div class="control-label">Title *</div>
+                <div class="control-label">Title <span class="required-asterisk">*</span></div>
                 <v-text-field
                   class="form-field"
                   v-model="editedGateway.title"
+                  dense
                   outlined
                   hide-details="auto"
                   :rules="[requiredRule]"
@@ -108,6 +102,7 @@
                 <v-select
                   class="form-field"
                   v-model="editedGateway.icon"
+                  dense
                   outlined
                   :items="iconOptions"
                   item-text="text"
@@ -137,6 +132,7 @@
                 <v-textarea
                   class="form-field"
                   v-model="editedGateway.description"
+                  dense
                   outlined
                   rows="3"
                   hide-details="auto"
@@ -162,6 +158,7 @@
                       <v-select
                         class="form-field"
                         outlined
+                        dense
                         v-model="editedGateway.feeSettings.priceType"
                         :items="['Fixed price', 'Percent']"
                         placeholder="Select price type"
@@ -174,6 +171,7 @@
                         <v-text-field
                           class="form-field"
                           outlined
+                          dense
                           v-model.number="editedGateway.feeSettings.minAmount"
                           type="number"
                           placeholder="0"
@@ -185,6 +183,7 @@
                         <v-text-field
                           class="form-field"
                           outlined
+                          dense
                           v-model.number="editedGateway.feeSettings.maxAmount"
                           type="number"
                           placeholder="9999"
@@ -197,6 +196,7 @@
                       <v-text-field
                         class="form-field"
                         outlined
+                        dense
                         v-model.number="editedGateway.feeSettings.amount"
                         type="number"
                         placeholder="0.00"
@@ -230,6 +230,7 @@
                       <v-text-field
                         class="form-field"
                         v-model.number="editedGateway.sortOrder"
+                        dense
                         outlined
                         type="number"
                         hide-details="auto"
@@ -240,6 +241,7 @@
                       <v-select
                         class="form-field"
                         v-model="editedGateway.language"
+                        dense
                         outlined
                         :items="languages"
                         hide-details="auto"
@@ -253,6 +255,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.mid"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -262,6 +265,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.url"
+                          dense
                           outlined
                           hide-details="auto"
                           :rules="[urlRule]"
@@ -279,6 +283,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.keysPath"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -288,6 +293,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.privateKey"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -297,6 +303,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.publicKey"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -306,6 +313,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.failUrl"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -315,6 +323,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.terminalDomain"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -324,6 +333,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.successUrl"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -347,6 +357,7 @@
                         <v-select
                           class="form-field"
                           v-model="editedGateway.paymentAction"
+                          dense
                           outlined
                           :items="actions"
                           hide-details="auto"
@@ -357,6 +368,7 @@
                         <v-autocomplete
                           class="form-field"
                           v-model="editedGateway.countries"
+                          dense
                           outlined
                           :items="allCountryOptions"
                           multiple
@@ -371,6 +383,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.externalGuid"
+                          dense
                           outlined
                           hide-details="auto"
                           :readonly="!!editedGateway.details.externalGuid"
@@ -396,6 +409,7 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiEndpoint"
+                              dense
                               outlined
                               :items="['Klarna Payments (Europe)', 'Klarna Payments (US)']"
                               hide-details="auto"
@@ -406,6 +420,7 @@
                             <v-text-field
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiUsername"
+                              dense
                               outlined
                               hide-details="auto"
                             />
@@ -415,6 +430,7 @@
                             <v-text-field
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiPassword"
+                              dense
                               outlined
                               type="password"
                               hide-details="auto"
@@ -425,6 +441,7 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaMode"
+                              dense
                               outlined
                               :items="['Playground', 'Production']"
                               hide-details="auto"
@@ -435,6 +452,7 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaLogging"
+                              dense
                               outlined
                               :items="['Enable', 'Disable']"
                               hide-details="auto"
@@ -458,6 +476,7 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaPaymentsAllowedCountries"
+                              dense
                               outlined
                               :items="['All Allowed Countries', 'Specific Countries']"
                               hide-details="auto"
@@ -502,6 +521,7 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaMessagingPlacement"
+                              dense
                               outlined
                               :items="['cart', 'product', 'sidebar']"
                               hide-details="auto"
@@ -523,6 +543,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankAccountPrefix"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -532,6 +553,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankAccountNumber"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -541,6 +563,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankCode"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -550,6 +573,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.constantSymbol"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -559,6 +583,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.safeKey"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -568,6 +593,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.currency"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -577,6 +603,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.paymentTargetUrl"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -586,6 +613,7 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.paymentReturnUrl"
+                          dense
                           outlined
                           hide-details="auto"
                         />
@@ -602,6 +630,7 @@
                         <v-select
                           class="form-field"
                           v-model="editedGateway.details.allowedCountries"
+                          dense
                           outlined
                           :items="['All Allowed Countries', 'Specific Countries']"
                           hide-details="auto"
@@ -629,7 +658,7 @@
                     Delete gateway
                   </v-btn>
                   <div v-else class="d-flex align-center" style="gap: 8px;">
-                    <v-btn text @click="showDeleteConfirmation = false">Cancel</v-btn>
+                    <TertiaryButton text @click="showDeleteConfirmation = false">Cancel</TertiaryButton>
                     <v-btn color="red" dark @click="confirmDelete">
                       <v-icon left>mdi-delete</v-icon>
                       Confirm delete
@@ -644,25 +673,27 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <v-btn text @click="handleDialogClose">Cancel</v-btn>
+        <TertiaryButton text @click="handleDialogClose">Cancel</TertiaryButton>
         <v-btn color="primary" @click="saveGateway">Save</v-btn>
       </template>
     </Modal>
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
 
 <script>
 import EmptyState from '@/components/common/EmptyState.vue';
+import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import GatewayCard from '@/components/payments/GatewayCard.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -738,7 +769,7 @@ function buildGatewayTemplate(code = '') {
 
 export default {
   name: 'PaymentMethodsOverview',
-  components: { EmptyState, GatewayCard, PageHeader, Modal, ModalCard, StatusCard },
+  components: { EmptyState, GatewayCard, OverviewTableHeader, PageHeader, Modal, ModalCard, StatusCard, TertiaryButton },
   data() {
     return {
       search: '',
@@ -752,8 +783,7 @@ export default {
       suspendDialogDirty: false,
       showDeleteConfirmation: false,
       snackbar: { show: false, text: '' },
-      loading: false,
-      filtering: false
+      loading: false
     };
   },
   async created() {
@@ -898,11 +928,8 @@ export default {
     }
   },
   methods: {
-    onFilterChange() {
-      this.filtering = true;
-      setTimeout(() => {
-        this.filtering = false;
-      }, 800);
+    setShowEnabledOnly(val) {
+      this.showEnabledOnly = val;
     },
     countryFilter(item, queryText) {
       const text = item.text || '';
@@ -1068,9 +1095,8 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .gateways-page-wrapper {
-  background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .filters-section {
@@ -1271,18 +1297,18 @@ export default {
   background-color: #757575 !important;
 }
 
+.table-card {
+  background: tokens.$color-surface-default;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
 .gateways-list {
   display: flex;
   flex-direction: column;
   gap: tokens.$space-md;
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: tokens.$space-xl;
-  min-height: 200px;
+  padding: tokens.$space-lg;
 }
 
 :deep(.v-expansion-panels) {

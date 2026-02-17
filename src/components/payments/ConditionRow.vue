@@ -8,13 +8,19 @@
         class="native-select"
       >
         <option value="">Select condition type</option>
-        <option
-          v-for="type in conditionTypes"
-          :key="type.value"
-          :value="type.value"
+        <optgroup
+          v-for="group in conditionTypeGroups"
+          :key="group.id"
+          :label="group.label"
         >
-          {{ type.label }}
-        </option>
+          <option
+            v-for="type in group.types"
+            :key="type.value"
+            :value="type.value"
+          >
+            {{ type.label }}
+          </option>
+        </optgroup>
       </select>
     </div>
     <div class="condition-field" v-if="condition.type">
@@ -40,6 +46,7 @@
         :is="valueInputComponent"
         :value="condition.value"
         :operator="condition.operator"
+        v-bind="valueInputProps"
         @input="updateCondition('value', $event)"
       />
     </div>
@@ -54,7 +61,7 @@
 </template>
 
 <script>
-import { CONDITION_TYPES, getOperatorsForType, getValueInputForType } from '@/utils/conditionConfig';
+import { getConditionTypesByCategory, getOperatorsForType, getValueInputForType } from '@/utils/conditionConfig';
 import ShippingMethodInput from './conditionInputs/ShippingMethodInput.vue';
 import GiftCardInput from './conditionInputs/GiftCardInput.vue';
 import PaymentAmountInput from './conditionInputs/PaymentAmountInput.vue';
@@ -64,6 +71,9 @@ import CustomerTypeInput from './conditionInputs/CustomerTypeInput.vue';
 import MarketInput from './conditionInputs/MarketInput.vue';
 import PromotionInput from './conditionInputs/PromotionInput.vue';
 import ProductFlagsInput from './conditionInputs/ProductFlagsInput.vue';
+import OptionSelectInput from './conditionInputs/OptionSelectInput.vue';
+import TextInput from './conditionInputs/TextInput.vue';
+import PaymentMethodSelectInput from './conditionInputs/PaymentMethodSelectInput.vue';
 
 const COMPONENT_MAP = {
   ShippingMethodInput,
@@ -74,7 +84,10 @@ const COMPONENT_MAP = {
   CustomerTypeInput,
   MarketInput,
   PromotionInput,
-  ProductFlagsInput
+  ProductFlagsInput,
+  OptionSelectInput,
+  TextInput,
+  PaymentMethodSelectInput
 };
 
 export default {
@@ -88,7 +101,10 @@ export default {
     CustomerTypeInput,
     MarketInput,
     PromotionInput,
-    ProductFlagsInput
+    ProductFlagsInput,
+    OptionSelectInput,
+    TextInput,
+    PaymentMethodSelectInput
   },
   props: {
     condition: {
@@ -97,8 +113,8 @@ export default {
     }
   },
   computed: {
-    conditionTypes() {
-      return CONDITION_TYPES;
+    conditionTypeGroups() {
+      return getConditionTypesByCategory();
     },
     availableOperators() {
       if (!this.condition.type) return [];
@@ -108,6 +124,17 @@ export default {
       if (!this.condition.type) return null;
       const componentName = getValueInputForType(this.condition.type);
       return componentName ? COMPONENT_MAP[componentName] : null;
+    },
+    valueInputProps() {
+      const props = { placeholder: 'Select option' };
+      if (this.condition.type === 'PRODUCT_SKU') {
+        props.placeholder = 'Enter SKU';
+      }
+      const needsOptionKey = ['ORDER_FLOW', 'CUSTOMER_BLACKLIST', 'FEATURE_FLAG', 'PRODUCT_TYPE', 'PRODUCT_CATEGORY'];
+      if (needsOptionKey.includes(this.condition.type)) {
+        props.optionKey = this.condition.type;
+      }
+      return props;
     }
   },
   methods: {
@@ -120,8 +147,8 @@ export default {
         updated.operator = '';
         updated.value = null;
       } else if (field === 'operator') {
-        // Reset value when operator changes (especially for between operator)
-        updated.value = null;
+        // Reset value when operator changes; equals_zero requires value 0 for save validation
+        updated.value = value === 'equals_zero' ? 0 : null;
       }
       
       this.$emit('update', updated);

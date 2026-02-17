@@ -4,52 +4,64 @@
       <img src="/logo/drmaxlogo-border.svg" alt="DRMax Logo" class="app-logo" />
       <v-toolbar-title>Eshop Admin</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-menu offset-y>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn text class="tenant-switcher" v-bind="attrs" v-on="on">
-            <span class="tenant-flag">{{ currentTenant.flag }}</span>
-            <span class="tenant-label">{{ currentTenant.label }}</span>
-            <v-icon right>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-list-item
-            v-for="option in tenantOptions"
-            :key="option.code"
-            @click="selectTenant(option.code)"
-          >
-            <v-list-item-title>
-              <span class="tenant-flag">{{ option.flag }}</span>
-              <span class="tenant-label">{{ option.label }}</span>
-            </v-list-item-title>
-            <v-spacer />
-            <v-icon v-if="option.code === currentTenant.code">mdi-check</v-icon>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-      <v-menu offset-y>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn text class="role-switcher" v-bind="attrs" v-on="on">
-            <v-icon left>{{ currentRole.icon }}</v-icon>
-            <span class="role-label">{{ currentRole.label }}</span>
-            <v-icon right small>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-list-item
-            v-for="option in roleOptions"
-            :key="option.code"
-            @click="selectRole(option.code)"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ option.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>{{ option.label }}</v-list-item-title>
-            <v-spacer />
-            <v-icon v-if="option.code === currentRole.code" small>mdi-check</v-icon>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+
+      <div class="header-right-items">
+        <span class="version-text">klient v{{ clientVersion }}, server v{{ serverVersion }}</span>
+        <v-divider vertical class="header-divider" />
+        <v-btn icon text class="header-icon-btn" aria-label="Info">
+          <v-icon small>mdi-information-outline</v-icon>
+        </v-btn>
+        <v-btn icon text class="header-icon-btn" aria-label="Package">
+          <v-icon small>mdi-cube-outline</v-icon>
+        </v-btn>
+        <v-btn icon text class="header-icon-btn" aria-label="Documentation">
+          <v-icon small>mdi-book-open-outline</v-icon>
+        </v-btn>
+        <v-divider vertical class="header-divider" />
+        <v-menu offset-y>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn text class="tenant-switcher" v-bind="attrs" v-on="on">
+              {{ currentTenant.code }}
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item
+              v-for="option in tenantOptions"
+              :key="option.code"
+              @click="selectTenant(option.code)"
+            >
+              <v-list-item-title>
+                <span class="tenant-flag">{{ option.flag }}</span>
+                <span class="tenant-label">{{ option.label }}</span>
+              </v-list-item-title>
+              <v-spacer />
+              <v-icon v-if="option.code === currentTenant.code">mdi-check</v-icon>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-divider vertical class="header-divider" />
+        <v-menu offset-y>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon text class="header-icon-btn" aria-label="User profile" v-bind="attrs" v-on="on">
+              <v-icon small>mdi-account-outline</v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item
+              v-for="option in roleOptions"
+              :key="option.code"
+              @click="selectRole(option.code)"
+            >
+              <v-list-item-icon>
+                <v-icon>{{ option.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>{{ option.label }}</v-list-item-title>
+              <v-spacer />
+              <v-icon v-if="option.code === currentRole.code" small>mdi-check</v-icon>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
     </v-app-bar>
 
     <v-navigation-drawer permanent class="app-drawer">
@@ -92,6 +104,12 @@ import roleStore from '@/store/roleStore';
 
 export default {
   name: 'App',
+  data() {
+    return {
+      clientVersion: (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.1.0'),
+      serverVersion: '0.1.0'
+    };
+  },
   computed: {
     tenantOptions() {
       return tenantStore.state.options;
@@ -191,8 +209,8 @@ h1, .text-h1 {
     color: tokens.$color-text-primary !important;
   }
   
-  // Menu icons - black
-  :deep(.v-btn .v-icon) {
+  // Menu icons - black (except header icon buttons which use secondary)
+  :deep(.v-btn:not(.header-icon-btn) .v-icon) {
     color: tokens.$color-text-primary !important;
   }
   
@@ -315,10 +333,52 @@ h1, .text-h1 {
 .app-main {
   padding-top: 64px !important;
   margin-left: 256px !important; /* Standard Vuetify drawer width */
+  background-color: tokens.$color-surface-muted !important;
 }
 
 .nested-link {
   padding-left: 32px;
+}
+
+.header-right-items {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.version-text {
+  font-size: 11px;
+  color: tokens.$color-text-secondary;
+  white-space: nowrap;
+  padding: 0 2px;
+}
+
+.header-divider {
+  margin: 0 2px;
+  height: 16px !important;
+  align-self: center;
+}
+
+.header-icon-btn {
+  color: tokens.$color-text-secondary !important;
+  min-width: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  
+  :deep(.v-icon) {
+    color: tokens.$color-text-secondary !important;
+    font-size: 18px !important;
+  }
+  
+  &:hover {
+    color: tokens.$color-text-primary !important;
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    
+    :deep(.v-icon) {
+      color: tokens.$color-text-primary !important;
+    }
+  }
 }
 
 .tenant-switcher {
@@ -326,6 +386,9 @@ h1, .text-h1 {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 500;
+  font-size: 13px;
+  min-width: auto;
+  padding: 0 4px;
 }
 
 .tenant-flag {

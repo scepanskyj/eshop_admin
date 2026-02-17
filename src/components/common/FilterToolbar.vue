@@ -5,6 +5,7 @@
         v-model="localSearch"
         :label="searchLabel || 'Search'"
         prepend-inner-icon="mdi-magnify"
+        dense
         clearable
         hide-details
         @input="emitSearch"
@@ -17,6 +18,7 @@
             v-model="localQuick[q.key]"
             :items="q.items"
             :label="q.label"
+            dense
             clearable
             hide-details
             class="mr-4"
@@ -69,6 +71,7 @@
                     :multiple="f.multiple || false"
                     :chips="f.multiple || false"
                     :type="f.type === 'text' ? 'text' : undefined"
+                    dense
                     clearable
                     hide-details
                   />

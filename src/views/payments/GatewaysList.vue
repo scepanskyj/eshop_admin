@@ -18,23 +18,13 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
+                dense
                 outlined
                 prepend-inner-icon="mdi-magnify"
                 label="Search title or code"
                 hide-details
                 class="search-field"
               />
-            </v-col>
-            <v-col cols="12" md="auto" lg="auto">
-              <v-sheet outlined class="filter-wrapper">
-                <v-checkbox
-                  v-model="showEnabledOnly"
-                  :label="`Show enabled only (${enabledFilterCount})`"
-                  hide-details
-                  class="ma-0"
-                  @change="onFilterChange"
-                />
-              </v-sheet>
             </v-col>
           </v-row>
         </section>
@@ -46,7 +36,7 @@
     </v-overlay>
 
     <EmptyState
-      v-if="!filtering && !sortedGateways.length"
+      v-if="!sortedGateways.length"
       icon="mdi-server"
       title="No gateways match"
       :subtitle="canCreate ? 'Adjust filters or create a new gateway to get started.' : 'Adjust filters to see gateways.'"
@@ -54,11 +44,13 @@
       @cta="canCreate && createGateway"
     />
 
-    <div v-if="filtering" class="loading-container">
-      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-    </div>
-
-    <div v-else-if="sortedGateways.length" class="gateways-list">
+    <div v-if="sortedGateways.length" class="table-card">
+      <OverviewTableHeader
+        :filter-active="showEnabledOnly"
+        :active-count="enabledFilterCount"
+        @update:filterActive="setShowEnabledOnly"
+      />
+      <div class="gateways-list">
       <GatewayCard
         v-for="gateway in sortedGateways"
         :key="gateway.code"
@@ -68,12 +60,14 @@
         :on-configure="openConfigure"
         :show-country-badge="false"
       />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import EmptyState from '@/components/common/EmptyState.vue';
+import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import GatewayCard from '@/components/payments/GatewayCard.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import store from '@/store/paymentsStore';
@@ -82,13 +76,12 @@ import { getAssetPath } from '@/utils/paths';
 
 export default {
   name: 'GatewaysList',
-  components: { EmptyState, GatewayCard, PageHeader },
+  components: { EmptyState, GatewayCard, OverviewTableHeader, PageHeader },
   data() {
     return {
       search: '',
       showEnabledOnly: false,
-      loading: false,
-      filtering: false
+      loading: false
     };
   },
   computed: {
@@ -124,11 +117,8 @@ export default {
     }
   },
   methods: {
-    onFilterChange() {
-      this.filtering = true;
-      setTimeout(() => {
-        this.filtering = false;
-      }, 800);
+    setShowEnabledOnly(val) {
+      this.showEnabledOnly = val;
     },
     getGatewayIcon(code) {
       const gateway = this.sortedGateways.find(g => g.code === code);
@@ -156,9 +146,8 @@ export default {
 @use '@/styles/tokens.scss' as tokens;
 
 .gateways-page-wrapper {
-  background-color: tokens.$color-surface-muted;
   min-height: calc(100vh - 64px);
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
 }
 
 .filters-section {
@@ -178,25 +167,18 @@ export default {
   background-color: white !important;
 }
 
-.filter-wrapper {
-  border-radius: 4px;
-  padding: 11px 16px 15px 16px;
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
+.table-card {
+  background: tokens.$color-surface-default;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 }
 
 .gateways-list {
   display: flex;
   flex-direction: column;
   gap: tokens.$space-md;
+  padding: tokens.$space-lg;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: tokens.$space-xl;
-  min-height: 200px;
-}
 </style>

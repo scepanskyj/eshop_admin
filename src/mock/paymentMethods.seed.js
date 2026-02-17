@@ -101,6 +101,13 @@ const italyMethods = [
     feeRefundable: false,
     gatewayEnabled: true,
     sortOrder: 5
+  }),
+  createPaymentMethod('it_pharmacy', 'Paga in farmacia', 'IT', {
+    icon: '/icons/cashondelivery.svg',
+    description: 'Pagamento in farmacia al ritiro',
+    feeEnabled: false,
+    gatewayEnabled: true,
+    sortOrder: 6
   })
 ];
 

@@ -2,7 +2,7 @@
   <div class="page-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <v-btn color="primary" @click="$router.push({ name: 'PaymentRestrictionCreate' })">
+        <v-btn color="primary" @click="newRuleDialog = true">
           <v-icon left>mdi-plus</v-icon>New rule
         </v-btn>
       </template>
@@ -12,6 +12,7 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
+                dense
                 outlined
                 prepend-inner-icon="mdi-magnify"
                 label="Search in all columns"
@@ -19,24 +20,24 @@
                 class="search-field"
               />
             </v-col>
-            <v-col cols="12" md="auto" lg="auto">
-              <QuickFilter
-                v-model="showActiveOnly"
-                :label="`Show active only (${activeFilterCount})`"
-                @change="onFilterChange"
-              />
-            </v-col>
           </v-row>
         </section>
       </template>
     </PageHeader>
 
+    <div class="table-card">
+      <OverviewTableHeader
+        :filter-active="showActiveOnly"
+        :active-count="activeFilterCount"
+        @update:filterActive="setShowActiveOnly"
+      />
     <v-data-table
       :headers="tableHeaders"
       :items="sortedRules"
-      class="elevation-1"
+      class="rules-table"
       :sort-by.sync="sortBy"
       :sort-desc.sync="sortDesc"
+      @click:row="onRowClick"
     >
       <template v-slot:item.paymentMethods="{ item }">
         {{ formatPaymentMethods(item.paymentMethods) }}
@@ -53,14 +54,15 @@
         {{ item.shopType || '1P' }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn icon @click="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
+        <v-btn icon @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
-        <v-btn icon @click="confirmDelete(item)">
+        <v-btn icon @click.stop="confirmDelete(item)">
           <v-icon color="red">mdi-trash-can-outline</v-icon>
         </v-btn>
       </template>
     </v-data-table>
+    </div>
 
     <!-- Delete Confirmation Dialog -->
     <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
@@ -84,7 +86,7 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <v-btn text @click="cancelDelete">Cancel</v-btn>
+        <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
         <v-btn
           v-if="!showDeleteConfirm"
           outlined
@@ -106,23 +108,96 @@
       </template>
     </Modal>
 
+    <!-- New Rule Choice Dialog -->
+    <Modal v-model="newRuleDialog" :title="newRuleDialogTitle" max-width="640" :has-footer="false" @close="closeNewRuleDialog">
+      <template v-slot:content>
+        <!-- Step 1: Choice -->
+        <template v-if="newRuleDialogStep === 'choice'">
+          <p class="new-rule-dialog-text">How would you like to start?</p>
+          <div class="new-rule-dialog-actions">
+            <v-btn
+              block
+              large
+              color="primary"
+              class="new-rule-option-btn"
+              @click="startNewRule(false)"
+            >
+              <v-icon left>mdi-file-document-outline</v-icon>
+              Start from fresh
+            </v-btn>
+            <SecondaryButton
+              block
+              large
+              outlined
+              class="new-rule-option-btn"
+              @click="newRuleDialogStep = 'preset'"
+            >
+              <v-icon left>mdi-file-document-multiple-outline</v-icon>
+              Load example rule
+            </SecondaryButton>
+          </div>
+        </template>
+
+        <!-- Step 2: Preset picker -->
+        <template v-else>
+          <div class="preset-picker-header">
+            <v-btn icon small @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
+              <v-icon>mdi-arrow-left</v-icon>
+            </v-btn>
+            <p class="preset-picker-text">Choose an example rule for {{ currentCountryLabel }}</p>
+          </div>
+          <div class="preset-table-wrapper">
+            <table class="preset-table" v-if="presetsForCountry.length">
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>Description</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(preset, idx) in presetsForCountry"
+                  :key="`${preset.name}-${idx}`"
+                  class="preset-row"
+                  @click="selectPreset(preset)"
+                >
+                  <td class="preset-name">{{ preset.name }}</td>
+                  <td class="preset-desc">{{ preset.description }}</td>
+                  <td class="preset-actions">
+                    <v-btn small color="primary" @click.stop="selectPreset(preset)">Use</v-btn>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p v-if="!presetsForCountry.length" class="preset-empty">No example rules for this country yet.</p>
+        </template>
+      </template>
+    </Modal>
+
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <v-btn text @click="snackbar.show=false">Close</v-btn>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
 
 <script>
-import QuickFilter from '@/components/common/QuickFilter.vue';
+import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import SecondaryButton from '@/components/common/SecondaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
+import { getPresetsForCountry } from '@/data/exampleRulePresets';
+
+const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { QuickFilter, PageHeader, Modal },
+  components: { OverviewTableHeader, PageHeader, Modal, TertiaryButton, SecondaryButton },
   data() {
     return {
       search: '',
@@ -130,11 +205,12 @@ export default {
       sortBy: 'updatedAt',
       sortDesc: true,
       deleteDialog: false,
+      newRuleDialog: false,
+      newRuleDialogStep: 'choice',
       showDeleteConfirm: false,
       toDelete: null,
       snackbar: { show: false, text: '' },
-      rulesMetadata: [],
-      filtering: false
+      rulesMetadata: []
     };
   },
     async created() {
@@ -218,6 +294,16 @@ export default {
     },
     sortedRules() {
       return store.getters.sortItems(this.filteredRules, this.sortBy, this.sortDesc);
+    },
+    newRuleDialogTitle() {
+      return this.newRuleDialogStep === 'preset' ? 'Load example rule' : 'New rule';
+    },
+    currentCountryLabel() {
+      const opt = tenantStore.state.options.find(o => o.code === tenantStore.state.current);
+      return opt ? opt.label : tenantStore.state.current;
+    },
+    presetsForCountry() {
+      return getPresetsForCountry(tenantStore.state.current);
     }
   },
   methods: {
@@ -233,11 +319,8 @@ export default {
       const date = new Date(value);
       return isNaN(date.getTime()) ? 'unknown' : date.toLocaleString();
     },
-    onFilterChange() {
-      this.filtering = true;
-      setTimeout(() => {
-        this.filtering = false;
-      }, 800);
+    setShowActiveOnly(val) {
+      this.showActiveOnly = val;
     },
     confirmDelete(item) {
       this.toDelete = item;
@@ -258,6 +341,42 @@ export default {
       this.deleteDialog = false;
       this.showDeleteConfirm = false;
       this.toDelete = null;
+    },
+    onRowClick(cellOrItem, slotOrItem) {
+      // Vuetify click:row passes (cellData, slot) where slot may be { item } or the item directly
+      const item = (slotOrItem && slotOrItem.item) || slotOrItem || cellOrItem;
+      if (item && item.id != null) {
+        this.$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } });
+      }
+    },
+    startNewRule(loadPreset) {
+      this.newRuleDialog = false;
+      this.newRuleDialogStep = 'choice';
+      const route = { name: 'PaymentRestrictionCreate' };
+      if (loadPreset) {
+        route.query = { loadPreset: '1' };
+      }
+      this.$router.push(route);
+    },
+    closeNewRuleDialog() {
+      this.newRuleDialog = false;
+      this.newRuleDialogStep = 'choice';
+    },
+    selectPreset(preset) {
+      try {
+        sessionStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify({
+          name: preset.name,
+          description: preset.description,
+          paymentMethods: preset.paymentMethods,
+          groups: preset.groups
+        }));
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Could not store preset', e);
+      }
+      this.newRuleDialog = false;
+      this.newRuleDialogStep = 'choice';
+      this.$router.push({ name: 'PaymentRestrictionCreate', query: { loadPreset: '1' } });
     }
   }
 };
@@ -268,7 +387,18 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .page-wrapper {
-  padding: tokens.$space-md;
+  padding: tokens.$page-padding;
+}
+
+.table-card {
+  background: tokens.$color-surface-default;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  :deep(.v-data-table) {
+    box-shadow: none !important;
+  }
 }
 
 .filters-section {
@@ -414,6 +544,110 @@ export default {
 .builder-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.rules-table :deep(tbody tr) {
+  cursor: pointer;
+}
+
+.rules-table :deep(tbody tr:hover) {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.new-rule-dialog-text {
+  font: tokens.$text-p1;
+  color: tokens.$color-text-secondary;
+  margin: 0 0 tokens.$space-lg 0;
+}
+
+.new-rule-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-md;
+}
+
+.new-rule-option-btn {
+  justify-content: flex-start;
+}
+
+.preset-picker-header {
+  display: flex;
+  align-items: center;
+  gap: tokens.$space-sm;
+  margin-bottom: tokens.$space-lg;
+}
+
+.preset-back-btn {
+  flex-shrink: 0;
+}
+
+.preset-picker-text {
+  font: tokens.$text-p1;
+  color: tokens.$color-text-secondary;
+  margin: 0;
+}
+
+.preset-table-wrapper {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: 8px;
+}
+
+.preset-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.preset-table th {
+  text-align: left;
+  padding: tokens.$space-sm tokens.$space-md;
+  font-weight: 600;
+  color: tokens.$color-text-secondary;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-muted;
+}
+
+.preset-table td {
+  padding: tokens.$space-md;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  vertical-align: middle;
+}
+
+.preset-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.preset-row:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.preset-row:last-child td {
+  border-bottom: none;
+}
+
+.preset-name {
+  font-weight: 500;
+  color: tokens.$color-text-primary;
+  min-width: 180px;
+}
+
+.preset-desc {
+  color: tokens.$color-text-secondary;
+  font-size: 13px;
+}
+
+.preset-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.preset-empty {
+  font: tokens.$text-p2;
+  color: tokens.$color-text-tertiary;
+  margin: tokens.$space-lg 0 0 0;
 }
 
 </style>

@@ -2,8 +2,8 @@
   <div class="payment-restriction-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <SecondaryButton text @click="handleCancel">Cancel</SecondaryButton>
-        <v-btn v-if="!isCreate" text color="red" @click="showDeleteConfirm = true" class="ml-2">
+        <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
+        <v-btn v-if="!isCreate" text color="red" @click="deleteDialog = true" class="ml-2">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
@@ -16,13 +16,20 @@
 
     <div v-if="ruleForm" class="payment-restriction-content">
       <v-row>
-        <v-col cols="12" md="8" offset-md="0">
+        <v-col cols="12" md="8" offset-md="0" class="content-col">
           <v-form ref="ruleFormRef" v-model="formValid">
-            <section class="section-block">
-              <h2 class="h2 section-title">Rule overview</h2>
-              
+            <ModalCard title="Status">
+              <StatusCard
+                v-model="ruleForm.active"
+                hide-label
+                enabled-label="ACTIVE"
+                disabled-label="INACTIVE"
+              />
+            </ModalCard>
+
+            <ModalCard title="Rule overview">
               <div class="field-block">
-                <div class="control-label">Name *</div>
+                <div class="control-label">Name <span class="required-asterisk">*</span></div>
                 <v-text-field
                   class="form-field"
                   v-model="ruleForm.name"
@@ -33,19 +40,13 @@
                 />
               </div>
 
-              <StatusCard
-                v-model="ruleForm.active"
-                label="Status"
-                enabled-label="ACTIVE"
-                disabled-label="INACTIVE"
-              />
-
               <div class="field-block">
-                <div class="control-label">Payment method</div>
+                <div class="control-label">Payment method <span class="required-asterisk">*</span></div>
                 <v-autocomplete
                   class="form-field"
                   v-model="ruleForm.paymentMethods"
                   :items="availablePaymentMethods"
+                  :rules="[v => (Array.isArray(v) && v.length > 0) || 'At least one payment method is required']"
                   multiple
                   chips
                   small-chips
@@ -67,35 +68,34 @@
                 />
               </div>
 
-              <div class="field-block">
+              <div class="field-block reason-field-block">
                 <div class="control-label">Reason (shown to customer when payment method is disabled)</div>
                 <RichTextStub v-model="ruleForm.reason" />
-              </div>
-
-              <div class="field-block">
-                <v-checkbox 
-                  v-model="ruleForm.showWhenApplied" 
-                  label="Display reason to customer" 
+                <v-checkbox
+                  v-model="ruleForm.showInTooltip"
+                  label="Show reason in tooltip"
                   color="primary"
-                  hide-details 
+                  hide-details
                 />
+                <v-checkbox
+                  v-model="ruleForm.showWhenApplied"
+                  label="Display reason to customer"
+                  color="primary"
+                  hide-details
+                  class="mt-2"
+                />
+                
               </div>
-            </section>
+            </ModalCard>
 
-            <section class="section-block">
-              <h2 class="h2 section-title">Condition Builder</h2>
-              
-              <div class="builder-actions mb-4">
-                <SecondaryButton small @click="loadSampleRules">
-                  <v-icon left small>mdi-file-document-outline</v-icon>
-                  Load sample rules
-                </SecondaryButton>
-              </div>
+            <ModalCard title="Condition Builder">
               <PaymentRestrictionBuilder v-model="ruleForm.groups" />
-              <v-alert class="mt-4" type="info" outlined>
-                <strong>Preview:</strong> {{ previewSummary }}
-              </v-alert>
-            </section>
+              <PaymentRestrictionPreview
+                class="condition-preview"
+                :payment-methods="ruleForm.paymentMethods"
+                :groups="ruleForm.groups"
+              />
+            </ModalCard>
           </v-form>
         </v-col>
       </v-row>
@@ -123,7 +123,7 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <SecondaryButton text @click="cancelDelete">Cancel</SecondaryButton>
+        <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
         <v-btn
           v-if="!showDeleteConfirm"
           outlined
@@ -147,7 +147,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <SecondaryButton text @click="snackbar.show=false">Close</SecondaryButton>
+      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -156,18 +156,19 @@
 import RichTextStub from '@/components/common/RichTextStub.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
+import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionBuilder.vue';
+import PaymentRestrictionPreview from '@/components/payments/PaymentRestrictionPreview.vue';
 import PrimaryButton from '@/components/common/PrimaryButton.vue';
-import SecondaryButton from '@/components/common/SecondaryButton.vue';
+import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
-import { getConditionTypeLabel, getOperatorLabel, getOptionsForType } from '@/utils/conditionConfig';
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, StatusCard, PaymentRestrictionBuilder, PrimaryButton, SecondaryButton },
+  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton },
   props: {
     id: {
       type: String,
@@ -213,30 +214,16 @@ export default {
         return gateway.countries.includes(currentTenant);
       });
     },
-    previewSummary() {
-      if (!this.ruleForm || !this.ruleForm.groups || !this.ruleForm.groups.length) return '—';
-      
-      const groups = this.ruleForm.groups.filter(g => g.conditions && g.conditions.length > 0);
-      if (groups.length === 0) return '—';
-      
-      const groupSummaries = groups.map(group => {
-        const conditionParts = group.conditions
-          .filter(c => c.type && c.operator && c.value !== null && c.value !== undefined && c.value !== '')
-          .map(cond => {
-            const typeLabel = getConditionTypeLabel(cond.type);
-            const operatorLabel = getOperatorLabel(cond.type, cond.operator);
-            let valueLabel = this.formatConditionValue(cond.type, cond.value);
-            
-            return `${typeLabel} ${operatorLabel} ${valueLabel}`;
-          });
-        
-        return conditionParts.join(' AND ');
-      });
-      
-      return groupSummaries.join(' OR ') || '—';
-    }
   },
   watch: {
+    id: {
+      handler() {
+        this.initializeForm();
+        if (this.isCreate && this.$route.query.loadPreset) {
+          this.$nextTick(() => this.loadPresetFromStorage());
+        }
+      }
+    },
     ruleForm: {
       deep: true,
       handler() {
@@ -247,13 +234,16 @@ export default {
   },
   created() {
     this.initializeForm();
+    if (this.isCreate && this.$route.query.loadPreset) {
+      this.$nextTick(() => this.loadPresetFromStorage());
+    }
   },
   methods: {
     initializeForm() {
       if (this.isCreate) {
         this.resetRuleForm();
       } else {
-        const rule = store.state.rules.find(r => r.id === this.id);
+        const rule = store.state.rules.find(r => String(r.id) === String(this.id));
         if (rule) {
           this.setRuleForm(rule);
         } else {
@@ -270,6 +260,17 @@ export default {
       if (!this.ruleForm.groups || !Array.isArray(this.ruleForm.groups) || this.ruleForm.groups.length === 0) {
         this.ruleForm.groups = [createConditionGroup()];
       }
+      // Migrate reasonDisplayMode to showWhenApplied + showInTooltip
+      if (this.ruleForm.reasonDisplayMode !== undefined) {
+        this.ruleForm.showWhenApplied = this.ruleForm.reasonDisplayMode !== 'none';
+        this.ruleForm.showInTooltip = this.ruleForm.reasonDisplayMode === 'tooltip';
+      }
+      if (this.ruleForm.showInTooltip === undefined) {
+        this.ruleForm.showInTooltip = false;
+      }
+      if (this.ruleForm.showWhenApplied === undefined) {
+        this.ruleForm.showWhenApplied = false;
+      }
       this.$nextTick(() => { this.suspendDirty = false; });
     },
     resetRuleForm() {
@@ -282,128 +283,32 @@ export default {
         paymentMethods: [],
         description: '',
         showWhenApplied: false,
+        showInTooltip: false,
         reason: '',
         updatedBy: 'you',
         groups: [createConditionGroup()]
       };
     },
-    formatConditionValue(conditionType, value) {
-      if (value === null || value === undefined || value === '') return '';
-      
-      // Handle between operator (object with min/max)
-      if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
-        if (value.min !== undefined && value.max !== undefined) {
-          return `${value.min} - ${value.max}`;
+    loadPresetFromStorage() {
+      const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
+      try {
+        const raw = sessionStorage.getItem(PRESET_STORAGE_KEY);
+        if (raw) {
+          const preset = JSON.parse(raw);
+          sessionStorage.removeItem(PRESET_STORAGE_KEY);
+          this.ruleForm.name = preset.name || '';
+          this.ruleForm.description = preset.description || '';
+          this.ruleForm.paymentMethods = Array.isArray(preset.paymentMethods) ? [...preset.paymentMethods] : [];
+          this.ruleForm.groups = preset.groups && preset.groups.length
+            ? JSON.parse(JSON.stringify(preset.groups))
+            : this.ruleForm.groups;
+          if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
+          this.snackbar = { show: true, text: `Loaded example: ${preset.name}` };
         }
-        return '';
-      }
-      
-      // Get options for this condition type to map values to labels
-      const options = getOptionsForType(conditionType);
-      const optionMap = {};
-      if (options && Array.isArray(options)) {
-        options.forEach(opt => {
-          optionMap[opt.value] = opt.label;
-        });
-      }
-      
-      // Handle arrays (multiselect values)
-      if (Array.isArray(value)) {
-        return value.map(v => {
-          // Handle boolean values
-          if (typeof v === 'boolean') {
-            return v ? 'Yes' : 'No';
-          }
-          return optionMap[v] || String(v);
-        }).join(', ');
-      }
-      
-      // Handle boolean values
-      if (typeof value === 'boolean') {
-        return value ? 'Yes' : 'No';
-      }
-      
-      // Handle single values
-      return optionMap[value] || String(value);
-    },
-    loadSampleRules() {
-      const samples = [
-        {
-          name: 'Disable Stripe for zero amount orders',
-          groups: [createConditionGroup()],
-          description: 'Disable Stripe when Amount = 0 AND Shipping method is Click & Collect AND Order type is MarketplaceMix'
-        },
-        {
-          name: 'COD only below 1200',
-          groups: [createConditionGroup()],
-          description: 'Restrict COD when Payment amount is above 1200'
-        },
-        {
-          name: 'Stripe disabled for 0 CZK orders',
-          groups: [createConditionGroup()],
-          description: 'Disable Stripe when Payment amount = 0'
-        },
-        {
-          name: 'COD only for logged-in users',
-          groups: [createConditionGroup()],
-          description: 'Disable COD when Customer type is Guest'
-        },
-        {
-          name: 'PayPal disabled when Gift Card is applied',
-          groups: [createConditionGroup()],
-          description: 'Disable PayPal when Gift Card applied is Yes'
-        }
-      ];
-
-      // Sample 1: Disable Stripe when Amount = 0 AND Shipping method is Click & Collect AND Order type is MarketplaceMix
-      samples[0].groups[0].conditions = [
-        { ...createCondition('PAYMENT_AMOUNT'), operator: 'equals_zero', value: 0 },
-        { ...createCondition('SHIPPING_METHOD'), operator: 'includes', value: ['click_collect'] },
-        { ...createCondition('ORDER_TYPE'), operator: 'is', value: 'marketplace_mix' }
-      ];
-
-      // Sample 2: COD only below 1200 (Payment amount above 1200)
-      samples[1].groups[0].conditions = [
-        { ...createCondition('PAYMENT_AMOUNT'), operator: 'above', value: 1200 }
-      ];
-
-      // Sample 3: Stripe disabled for 0 CZK orders
-      samples[2].groups[0].conditions = [
-        { ...createCondition('PAYMENT_AMOUNT'), operator: 'equals_zero', value: 0 }
-      ];
-
-      // Sample 4: COD only for logged-in users (disable when Guest)
-      samples[3].groups[0].conditions = [
-        { ...createCondition('CUSTOMER_TYPE'), operator: 'is', value: 'guest' }
-      ];
-
-      // Sample 5: PayPal disabled when Gift Card is applied
-      samples[4].groups[0].conditions = [
-        { ...createCondition('GIFT_CARD_APPLIED'), operator: 'is', value: true }
-      ];
-
-      // Show a menu to select which sample to load
-      const selected = window.prompt(
-        'Select a sample rule to load:\n\n' +
-        '1. Disable Stripe for zero amount orders\n' +
-        '2. COD only below 1200\n' +
-        '3. Stripe disabled for 0 CZK orders\n' +
-        '4. COD only for logged-in users\n' +
-        '5. PayPal disabled when Gift Card is applied\n\n' +
-        'Enter number (1-5):'
-      );
-
-      const index = parseInt(selected) - 1;
-      if (index >= 0 && index < samples.length) {
-        const sample = samples[index];
-        this.ruleForm.groups = JSON.parse(JSON.stringify(sample.groups));
-        if (!this.ruleForm.name) {
-          this.ruleForm.name = sample.name;
-        }
-        if (!this.ruleForm.description) {
-          this.ruleForm.description = sample.description;
-        }
-        this.snackbar = { show: true, text: `Loaded sample: ${sample.name}` };
+        this.$router.replace({ path: this.$route.path, query: {} });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Could not load preset', e);
       }
     },
     handleCancel() {
@@ -423,11 +328,19 @@ export default {
         this.snackbar = { show: true, text: 'Name is required' };
         return;
       }
+      if (!this.ruleForm.paymentMethods || this.ruleForm.paymentMethods.length === 0) {
+        this.snackbar = { show: true, text: 'At least one payment method is required' };
+        return;
+      }
+      // Keep reasonDisplayMode in sync for backward compatibility
+      this.ruleForm.reasonDisplayMode = !this.ruleForm.showWhenApplied ? 'none' : (this.ruleForm.showInTooltip ? 'tooltip' : 'direct');
       // Validate that at least one group has at least one condition
       const hasValidConditions = this.ruleForm.groups && this.ruleForm.groups.some(group =>
-        group.conditions && group.conditions.some(cond =>
-          cond.type && cond.operator && cond.value !== null && cond.value !== undefined && cond.value !== ''
-        )
+        group.conditions && group.conditions.some(cond => {
+          if (!cond.type || !cond.operator) return false;
+          if (cond.operator === 'equals_zero') return true; // value is implicitly 0
+          return cond.value !== null && cond.value !== undefined && cond.value !== '';
+        })
       );
       if (!hasValidConditions) {
         this.snackbar = { show: true, text: 'At least one condition is required' };
@@ -477,26 +390,21 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .payment-restriction-detail-wrapper {
-  padding: tokens.$space-lg;
+  padding: tokens.$page-padding;
 }
 
 .payment-restriction-content {
   margin-top: tokens.$space-lg;
 }
 
-.section-block {
-  margin-bottom: tokens.$space-4xl;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
+.content-col {
+  min-width: 800px;
 }
 
-.section-title {
-  margin-bottom: tokens.$space-xl;
-  margin-top: 0;
-  padding-bottom: tokens.$space-md;
-  border-bottom: 1px solid tokens.$color-border-subtle;
+@media (max-width: 960px) {
+  .content-col {
+    min-width: auto;
+  }
 }
 
 .field-block {
@@ -522,9 +430,9 @@ export default {
   }
 }
 
-.builder-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: tokens.$space-lg;
+.condition-preview {
+  margin-top: tokens.$space-xl;
 }
+
+
 </style>
