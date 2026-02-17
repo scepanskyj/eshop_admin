@@ -268,6 +268,9 @@ export default {
       if (this.ruleForm.showInTooltip === undefined) {
         this.ruleForm.showInTooltip = false;
       }
+      if (this.ruleForm.showWhenApplied === undefined) {
+        this.ruleForm.showWhenApplied = false;
+      }
       this.$nextTick(() => { this.suspendDirty = false; });
     },
     resetRuleForm() {

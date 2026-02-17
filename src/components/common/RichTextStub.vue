@@ -84,8 +84,8 @@ export default {
         if (!this.$refs.editor) return;
         const sel = window.getSelection();
         if (sel && sel.anchorNode && this.$refs.editor.contains(sel.anchorNode)) {
-          this.isBold = document.queryCommandState('bold');
-          this.hasLink = !!document.queryCommandState('createLink') || this.findLinkInSelection();
+          this.isBold = document.queryCommandState('bold') === true;
+          this.hasLink = document.queryCommandState('createLink') === true || this.findLinkInSelection();
         }
       });
     },
