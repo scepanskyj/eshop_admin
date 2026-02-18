@@ -186,7 +186,7 @@
                       />
                     </div>
                     <div class="field-flex">
-                      <div class="field-block">
+                      <div class="field-block fee-input-field">
                         <Label>Minimum Order Amount</Label>
                         <v-text-field
                           class="form-field"
@@ -198,7 +198,7 @@
                           hide-details="auto"
                         />
                       </div>
-                      <div class="field-block">
+                      <div class="field-block fee-input-field">
                         <Label>Maximum Order Amount</Label>
                         <v-text-field
                           class="form-field"
@@ -211,7 +211,7 @@
                         />
                       </div>
                     </div>
-                    <div class="field-block">
+                    <div class="field-block fee-input-field">
                       <Label>Fee Amount</Label>
                       <v-text-field
                         class="form-field"
@@ -1312,6 +1312,10 @@ export default {
   flex-direction: column;
   gap: 6px;
   margin-bottom: tokens.$space-lg;
+}
+
+.fee-input-field :deep(.v-input) {
+  max-width: 320px;
 }
 
 .gateways-hint-wrap {

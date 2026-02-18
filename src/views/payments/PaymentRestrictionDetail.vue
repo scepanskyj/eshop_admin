@@ -3,14 +3,37 @@
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
         <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
-        <v-btn v-if="!isCreate" text color="red" @click="deleteDialog = true" class="ml-2">
-          <v-icon left>mdi-delete-outline</v-icon>
-          Delete
-        </v-btn>
         <PrimaryButton @click="handleSave" :loading="saving" class="ml-2">
           <v-icon left>mdi-check</v-icon>
           Save
         </PrimaryButton>
+        <v-menu offset-y left>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon text class="ml-2" v-bind="attrs" v-on="on" aria-label="More actions">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-list-item @click="handleDuplicate">
+              <v-list-item-icon>
+                <v-icon small>mdi-content-copy</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Duplicate</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="handleSaveAsExample">
+              <v-list-item-icon>
+                <v-icon small>mdi-bookmark-plus-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Save as example</v-list-item-title>
+            </v-list-item>
+            <v-list-item v-if="!isCreate" @click="deleteDialog = true" class="red--text">
+              <v-list-item-icon>
+                <v-icon small color="red">mdi-delete-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Delete</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
     </PageHeader>
 
@@ -106,18 +129,6 @@
     <!-- Delete Confirmation Dialog -->
     <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
       <template v-slot:content>
-        <v-alert
-          v-if="showDeleteConfirm"
-          type="error"
-          outlined
-          dense
-          class="mb-4"
-          dismissible
-          @input="showDeleteConfirm = false"
-        >
-          <strong>Warning:</strong> Deleting this rule is irreversible. Click "Confirm delete" below to proceed.
-        </v-alert>
-        
         <div class="text-body-1 mb-2">
           Are you sure you want to delete <strong>{{ ruleForm && ruleForm.name }}</strong>?
         </div>
@@ -126,23 +137,9 @@
       <template v-slot:footer>
         <v-spacer />
         <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
-        <v-btn
-          v-if="!showDeleteConfirm"
-          outlined
-          color="red"
-          @click="showDeleteConfirm = true"
-        >
+        <v-btn color="red" dark @click="doDelete">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
-        </v-btn>
-        <v-btn
-          v-else
-          color="red"
-          dark
-          @click="doDelete"
-        >
-          <v-icon left>mdi-delete</v-icon>
-          Confirm delete
         </v-btn>
       </template>
     </Modal>
@@ -169,6 +166,7 @@ import HintText from '@/components/common/HintText.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
+import { addUserExample } from '@/data/userExampleRules';
 
 export default {
   name: 'PaymentRestrictionDetail',
@@ -186,8 +184,7 @@ export default {
       formValid: false,
       saving: false,
       snackbar: { show: false, text: '' },
-      deleteDialog: false,
-      showDeleteConfirm: false
+      deleteDialog: false
     };
   },
   computed: {
@@ -200,7 +197,7 @@ export default {
         { text: 'Payment restrictions', disabled: false, to: { name: 'PaymentRestrictions' } }
       ];
       if (this.isCreate) {
-        crumbs.push({ text: 'New rule', disabled: true });
+        crumbs.push({ text: this.ruleForm?.name || 'New rule', disabled: true });
       } else {
         crumbs.push({ text: this.ruleForm?.name || 'Edit rule', disabled: true });
       }
@@ -313,6 +310,7 @@ export default {
             : this.ruleForm.groups;
           if (preset.showWhenApplied !== undefined) this.ruleForm.showWhenApplied = preset.showWhenApplied;
           if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
+          if (preset.reason !== undefined) this.ruleForm.reason = preset.reason;
           if (!this.ruleForm.showWhenApplied) this.ruleForm.showInTooltip = false;
           this.snackbar = { show: true, text: `Loaded example: ${preset.name}` };
         }
@@ -329,6 +327,42 @@ export default {
       }
       store.dirty.clear('rulesForm');
       this.$router.push({ name: 'PaymentRestrictions' });
+    },
+    handleDuplicate() {
+      const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
+      try {
+        sessionStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify({
+          name: (this.ruleForm.name || '') + ' (duplicate)',
+          description: this.ruleForm.description,
+          paymentMethods: Array.isArray(this.ruleForm.paymentMethods) ? [...this.ruleForm.paymentMethods] : [],
+          groups: this.ruleForm.groups && this.ruleForm.groups.length
+            ? JSON.parse(JSON.stringify(this.ruleForm.groups))
+            : [],
+          showWhenApplied: this.ruleForm.showWhenApplied,
+          showInTooltip: this.ruleForm.showInTooltip,
+          reason: this.ruleForm.reason || ''
+        }));
+      } catch (e) {
+        this.snackbar = { show: true, text: 'Could not prepare duplicate' };
+        return;
+      }
+      store.dirty.clear('rulesForm');
+      this.$router.push({ name: 'PaymentRestrictionCreate', query: { loadPreset: '1' } });
+    },
+    handleSaveAsExample() {
+      const country = tenantStore.state.current;
+      addUserExample(country, {
+        name: this.ruleForm.name,
+        description: this.ruleForm.description,
+        paymentMethods: this.ruleForm.paymentMethods,
+        groups: this.ruleForm.groups,
+        showWhenApplied: this.ruleForm.showWhenApplied,
+        showInTooltip: this.ruleForm.showInTooltip,
+        reason: this.ruleForm.reason
+      });
+      const opt = tenantStore.state.options.find(o => o.code === country);
+      const countryLabel = opt ? opt.label : country;
+      this.snackbar = { show: true, text: `Rule saved as example for ${countryLabel}` };
     },
     handleSave() {
       if (!this.$refs.ruleFormRef || !this.$refs.ruleFormRef.validate()) {
@@ -378,7 +412,6 @@ export default {
     },
     cancelDelete() {
       this.deleteDialog = false;
-      this.showDeleteConfirm = false;
     },
     doDelete() {
       if (!this.ruleForm) return;

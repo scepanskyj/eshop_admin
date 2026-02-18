@@ -40,6 +40,12 @@ const getters = {
   canEdit() {
     // All roles can edit
     return true;
+  },
+  canDeleteExampleRule() {
+    return true;
+  },
+  canCreateExampleRule() {
+    return true;
   }
 };
 
