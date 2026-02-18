@@ -6,7 +6,7 @@
       <v-spacer></v-spacer>
 
       <div class="header-right-items">
-        <span class="version-text">klient v{{ clientVersion }}, server v{{ serverVersion }}</span>
+        <span class="version-text">client v{{ clientVersion }}, server v{{ serverVersion }}</span>
         <v-divider vertical class="header-divider" />
         <v-btn icon text class="header-icon-btn" aria-label="Info">
           <v-icon small>mdi-information-outline</v-icon>
