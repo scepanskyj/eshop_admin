@@ -87,7 +87,7 @@
             </div>
 
             <div class="field-flex">
-              <div class="field-block">
+              <div class="field-block fee-input-field">
                 <Label>Minimum Order Amount</Label>
                 <HintText>Minimum order amount to apply Payment Fee</HintText>
                 <v-text-field
@@ -100,7 +100,7 @@
                   hide-details="auto"
                 />
               </div>
-              <div class="field-block">
+              <div class="field-block fee-input-field">
                 <Label>Maximum Order Amount</Label>
                 <HintText>Maximum order amount to apply Payment Fee</HintText>
                 <v-text-field
@@ -150,7 +150,7 @@
                 clearable
               />
                     </td>
-                    <td class="text-right">
+                    <td class="text-right fee-input-cell">
                       <v-text-field
                         class="form-field"
                         outlined
@@ -180,7 +180,7 @@
               </v-btn>
             </div>
 
-            <div class="field-block">
+            <div class="field-block fee-input-field">
               <Label>Apply Payment Fee for Specific Customers</Label>
               <HintText>Assign fee to selected customer groups. If left blank, the fee will be applied for all.</HintText>
               <v-select
@@ -358,6 +358,11 @@ export default {
 .field-block :deep(.v-input),
 .field-flex :deep(.v-input) {
   max-width: 640px;
+}
+
+.fee-input-field :deep(.v-input),
+.fee-input-cell :deep(.v-input) {
+  max-width: 320px;
 }
 
 

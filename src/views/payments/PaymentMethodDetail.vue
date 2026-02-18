@@ -134,7 +134,7 @@
             </div>
 
             <template v-if="form.feeEnabled">
-              <div class="field-block fee-amount-field">
+              <div class="field-block fee-amount-field fee-input-field">
                 <Label>Fee Amount <span class="required-asterisk">*</span></Label>
                 <v-text-field
                   class="form-field"
@@ -150,7 +150,7 @@
               </div>
 
               <div class="field-flex">
-                <div class="field-block">
+                <div class="field-block fee-input-field">
                   <Label>Min Order Amount</Label>
                   <HintText>Minimum order amount to apply payment fee</HintText>
                   <v-text-field
@@ -165,7 +165,7 @@
                   />
                 </div>
 
-                <div class="field-block">
+                <div class="field-block fee-input-field">
                   <Label>Max Order Amount</Label>
                   <HintText>Maximum order amount to apply payment fee</HintText>
                   <v-text-field
@@ -189,7 +189,7 @@
                 />
               </div>
 
-              <div class="field-block">
+              <div class="field-block fee-input-field">
                 <Label>Apply Payment Fee For Specific Customers</Label>
                 <v-select
                   class="form-field"
@@ -685,8 +685,8 @@ export default {
   margin-bottom: 0;
 }
 
-.fee-amount-field :deep(.v-input) {
-  max-width: 50%;
+.fee-input-field :deep(.v-input) {
+  max-width: 320px;
 }
 
 .json-editor {
