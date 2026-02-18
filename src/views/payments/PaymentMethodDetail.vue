@@ -191,6 +191,7 @@
 
               <div class="field-block fee-input-field">
                 <Label>Apply Payment Fee For Specific Customers</Label>
+                <HintText>If left blank, the fee applies to all customers.</HintText>
                 <v-select
                   class="form-field"
                   v-model="form.feeSettings.customerTypes"
