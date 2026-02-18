@@ -69,18 +69,6 @@
     <!-- Delete Confirmation Dialog -->
     <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
       <template v-slot:content>
-        <v-alert
-          v-if="showDeleteConfirm"
-          type="error"
-          outlined
-          dense
-          class="mb-4"
-          dismissible
-          @input="showDeleteConfirm = false"
-        >
-          <strong>Warning:</strong> Deleting this rule is irreversible. Click "Confirm delete" below to proceed.
-        </v-alert>
-        
         <div class="text-body-1 mb-2">
           Are you sure you want to delete <strong>{{ toDelete && toDelete.name }}</strong>?
         </div>
@@ -89,29 +77,15 @@
       <template v-slot:footer>
         <v-spacer />
         <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
-        <v-btn
-          v-if="!showDeleteConfirm"
-          outlined
-          color="red"
-          @click="showDeleteConfirm = true"
-        >
+        <v-btn color="red" dark @click="doDelete">
           <v-icon left>mdi-delete-outline</v-icon>
           Delete
-        </v-btn>
-        <v-btn
-          v-else
-          color="red"
-          dark
-          @click="doDelete"
-        >
-          <v-icon left>mdi-delete</v-icon>
-          Confirm delete
         </v-btn>
       </template>
     </Modal>
 
     <!-- New Rule Choice Dialog -->
-    <Modal v-model="newRuleDialog" :title="newRuleDialogTitle" max-width="640" :has-footer="false" @close="closeNewRuleDialog">
+    <Modal v-model="newRuleDialog" :title="newRuleDialogTitle" max-width="960" :has-footer="false" @close="closeNewRuleDialog">
       <template v-slot:content>
         <!-- Step 1: Choice -->
         <template v-if="newRuleDialogStep === 'choice'">
@@ -125,7 +99,7 @@
               @click="startNewRule(false)"
             >
               <v-icon left>mdi-file-document-outline</v-icon>
-              Start from fresh
+              Create rule
             </v-btn>
             <SecondaryButton
               block
@@ -143,16 +117,16 @@
         <!-- Step 2: Preset picker -->
         <template v-else>
           <div class="preset-picker-header">
-            <v-btn icon small @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
+            <v-btn icon @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
               <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
-            <p class="preset-picker-text">Choose an example rule for {{ currentCountryLabel }}</p>
+            <p class="preset-picker-text">Choose an example rule</p>
           </div>
           <div class="preset-table-wrapper">
             <table class="preset-table" v-if="presetsForCountry.length">
               <thead>
                 <tr>
-                  <th>Rule</th>
+                  <th>Name</th>
                   <th>Description</th>
                   <th></th>
                 </tr>
@@ -160,14 +134,19 @@
               <tbody>
                 <tr
                   v-for="(preset, idx) in presetsForCountry"
-                  :key="`${preset.name}-${idx}`"
+                  :key="preset.id || preset.name || idx"
                   class="preset-row"
-                  @click="selectPreset(preset)"
                 >
                   <td class="preset-name">{{ preset.name }}</td>
                   <td class="preset-desc">{{ preset.description }}</td>
                   <td class="preset-actions">
-                    <v-btn small color="primary" @click.stop="selectPreset(preset)">Use</v-btn>
+                    <v-btn color="primary" @click="selectPreset(preset)">Use</v-btn>
+                    <v-btn
+                      icon
+                      @click="confirmDeleteExample(preset)"
+                    >
+                      <v-icon color="red">mdi-trash-can-outline</v-icon>
+                    </v-btn>
                   </td>
                 </tr>
               </tbody>
@@ -175,6 +154,23 @@
           </div>
           <p v-if="!presetsForCountry.length" class="preset-empty">No example rules for this country yet.</p>
         </template>
+      </template>
+    </Modal>
+
+    <!-- Delete Example Rule Confirmation -->
+    <Modal v-model="deleteExampleDialog" title="Remove example rule" max-width="520" @close="cancelDeleteExample">
+      <template v-slot:content>
+        <div class="text-body-1 mb-2">
+          Are you sure you want to remove <strong>{{ toDeleteExample && toDeleteExample.name }}</strong> from example rules?
+        </div>
+      </template>
+      <template v-slot:footer>
+        <v-spacer />
+        <TertiaryButton text @click="cancelDeleteExample">Cancel</TertiaryButton>
+        <v-btn color="red" dark @click="doDeleteExample">
+          <v-icon left>mdi-delete-outline</v-icon>
+          Remove
+        </v-btn>
       </template>
     </Modal>
 
@@ -195,6 +191,7 @@ import SecondaryButton from '@/components/common/SecondaryButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { getPresetsForCountry } from '@/data/exampleRulePresets';
+import { getUserExamples, removeUserExample, getHiddenStaticPresets, hideStaticPreset } from '@/data/userExampleRules';
 
 const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
@@ -210,10 +207,12 @@ export default {
       deleteDialog: false,
       newRuleDialog: false,
       newRuleDialogStep: 'choice',
-      showDeleteConfirm: false,
       toDelete: null,
+      deleteExampleDialog: false,
+      toDeleteExample: null,
       snackbar: { show: false, text: '' },
-      rulesMetadata: []
+      rulesMetadata: [],
+      userExamplesRefresh: 0
     };
   },
     async created() {
@@ -306,7 +305,12 @@ export default {
       return opt ? opt.label : tenantStore.state.current;
     },
     presetsForCountry() {
-      return getPresetsForCountry(tenantStore.state.current);
+      const current = tenantStore.state.current;
+      // userExamplesRefresh ensures list updates after delete
+      void this.userExamplesRefresh;
+      const hidden = getHiddenStaticPresets(current);
+      const staticPresets = (getPresetsForCountry(current) || []).filter(p => !hidden.includes(p.name));
+      return [...getUserExamples(current), ...staticPresets];
     }
   },
   methods: {
@@ -327,12 +331,10 @@ export default {
     },
     confirmDelete(item) {
       this.toDelete = item;
-      this.showDeleteConfirm = false;
       this.deleteDialog = true;
     },
     cancelDelete() {
       this.deleteDialog = false;
-      this.showDeleteConfirm = false;
       this.toDelete = null;
     },
     doDelete() {
@@ -342,7 +344,6 @@ export default {
         this.snackbar = { show: true, text: 'Rule deleted' };
       }
       this.deleteDialog = false;
-      this.showDeleteConfirm = false;
       this.toDelete = null;
     },
     onRowClick(cellOrItem, slotOrItem) {
@@ -367,12 +368,16 @@ export default {
     },
     selectPreset(preset) {
       try {
-        sessionStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify({
+        const payload = {
           name: preset.name,
           description: preset.description,
           paymentMethods: preset.paymentMethods,
           groups: preset.groups
-        }));
+        };
+        if (preset.showWhenApplied !== undefined) payload.showWhenApplied = preset.showWhenApplied;
+        if (preset.showInTooltip !== undefined) payload.showInTooltip = preset.showInTooltip;
+        if (preset.reason !== undefined) payload.reason = preset.reason;
+        sessionStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(payload));
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn('Could not store preset', e);
@@ -380,6 +385,29 @@ export default {
       this.newRuleDialog = false;
       this.newRuleDialogStep = 'choice';
       this.$router.push({ name: 'PaymentRestrictionCreate', query: { loadPreset: '1' } });
+    },
+    confirmDeleteExample(preset) {
+      this.toDeleteExample = preset;
+      this.deleteExampleDialog = true;
+    },
+    cancelDeleteExample() {
+      this.deleteExampleDialog = false;
+      this.toDeleteExample = null;
+    },
+    doDeleteExample() {
+      const preset = this.toDeleteExample;
+      if (preset) {
+        const country = tenantStore.state.current;
+        if (preset.id && preset.id.startsWith('user-')) {
+          removeUserExample(country, preset.id);
+        } else {
+          hideStaticPreset(country, preset.name);
+        }
+        this.userExamplesRefresh += 1;
+        this.snackbar = { show: true, text: 'Example rule removed' };
+      }
+      this.deleteExampleDialog = false;
+      this.toDeleteExample = null;
     }
   }
 };
@@ -563,6 +591,8 @@ export default {
 
 .new-rule-option-btn {
   justify-content: flex-start;
+  min-height: 52px !important;
+  font-size: 16px !important;
 }
 
 .preset-picker-header {
@@ -574,6 +604,8 @@ export default {
 
 .preset-back-btn {
   flex-shrink: 0;
+  min-width: 44px !important;
+  min-height: 44px !important;
 }
 
 .preset-picker-text {
@@ -611,12 +643,7 @@ export default {
 }
 
 .preset-row {
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.preset-row:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  cursor: default;
 }
 
 .preset-row:last-child td {
@@ -637,6 +664,18 @@ export default {
 .preset-actions {
   text-align: right;
   white-space: nowrap;
+
+  :deep(.v-btn) {
+    min-height: 40px;
+    min-width: 40px;
+    padding: 0 20px;
+  }
+
+  :deep(.v-btn:not(.v-btn--icon)) {
+    min-height: 40px;
+    padding: 0 24px;
+    font-size: 15px;
+  }
 }
 
 .preset-empty {

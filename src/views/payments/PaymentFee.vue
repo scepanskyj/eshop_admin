@@ -182,7 +182,7 @@
 
             <div class="field-block">
               <Label>Apply Payment Fee for Specific Customers</Label>
-              <HintText>Assign fee to selected customer groups</HintText>
+              <HintText>Assign fee to selected customer groups. If left blank, the fee will be applied for all.</HintText>
               <v-select
                 class="form-field"
                 outlined

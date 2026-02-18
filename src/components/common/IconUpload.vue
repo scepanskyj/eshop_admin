@@ -1,6 +1,6 @@
 <template>
   <div class="icon-upload">
-    <div v-if="!hasPreview" class="icon-upload__placeholder">
+    <div v-if="!value" class="icon-upload__placeholder">
       <v-btn
         outlined
         color="primary"
@@ -21,8 +21,7 @@
     <div v-else class="icon-upload__preview">
       <div class="icon-preview-container">
         <div class="icon-preview">
-          <img :src="displayPreviewUrl" alt="Icon preview" class="icon-preview__image" />
-          <div v-if="showGeneratedPreview && !value" class="icon-preview__badge">Auto-generated</div>
+          <img :src="previewUrl" alt="Icon preview" class="icon-preview__image" />
         </div>
         <div class="icon-preview__info">
           <div class="icon-preview__filename">{{ fileName }}</div>
@@ -90,18 +89,6 @@ export default {
       type: Boolean,
       default: false
     },
-    previewUrl: {
-      type: String,
-      default: null
-    },
-    showGeneratedPreview: {
-      type: Boolean,
-      default: false
-    },
-    generatedFileName: {
-      type: String,
-      default: null
-    }
   },
   data() {
     return {
@@ -109,42 +96,18 @@ export default {
     };
   },
   computed: {
-    displayPreviewUrl() {
-      // Use previewUrl prop if provided and showGeneratedPreview is true
-      if (this.showGeneratedPreview && this.previewUrl) {
-        return this.previewUrl;
-      }
-      // Otherwise use value
+    previewUrl() {
       return resolveIconPath(this.value);
     },
-    hasPreview() {
-      return this.value || (this.showGeneratedPreview && this.previewUrl);
-    },
     fileName() {
-      // If showing generated preview and we have a generated filename, use it
-      if (this.showGeneratedPreview && this.generatedFileName && !this.value) {
-        return this.generatedFileName;
-      }
-      
       if (this.currentFileName) {
         return this.currentFileName;
       }
-      // Extract filename from path or data URL
-      if (!this.value) {
-        if (this.showGeneratedPreview && this.previewUrl) {
-          return this.generatedFileName || 'auto-generated.svg';
-        }
-        return '';
-      }
-      
-      // If it's a path like /icons/cardonline.svg
+      if (!this.value) return '';
       if (this.value.startsWith('/')) {
         const parts = this.value.split('/');
         return parts[parts.length - 1] || 'icon.svg';
       }
-      
-      // If it's a data URL, try to get filename from previous upload
-      // Otherwise return a generic name
       return 'uploaded-icon.svg';
     }
   },
@@ -153,9 +116,6 @@ export default {
       if (!newVal) {
         this.currentFileName = null;
       }
-    },
-    previewUrl() {
-      // Preview URL changed, update if showing generated preview
     }
   },
   methods: {
@@ -176,10 +136,7 @@ export default {
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUrl = e.target.result;
-        this.previewUrl = dataUrl;
         this.$emit('input', dataUrl);
-        // Emit filename change event
-        this.$emit('filename-changed', file.name);
       };
       reader.onerror = () => {
         this.$emit('error', 'Failed to read file');
@@ -223,19 +180,6 @@ export default {
   border-radius: 8px;
   padding: tokens.$space-xs;
   background: white;
-  position: relative;
-}
-
-.icon-preview__badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
 }
 
 .icon-preview__image {
