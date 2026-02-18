@@ -66,18 +66,39 @@ export default {
         document.execCommand('unlink', false, null);
       } else if (hasSelection) {
         const url = window.prompt('Enter URL:', 'https://');
-        if (url) {
+        if (url && this.isSafeUrl(url)) {
           document.execCommand('createLink', false, url);
+        } else if (url) {
+          this.$emit('error', 'Only http, https, mailto, and tel URLs are allowed');
         }
       } else {
         const text = window.prompt('Link text:', '');
         const url = text ? window.prompt('Enter URL:', 'https://') : null;
-        if (text && url) {
-          document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" rel="noopener">${text}</a>`);
+        if (text && url && this.isSafeUrl(url)) {
+          const escapedText = this.escapeHtml(text);
+          const escapedHref = this.escapeHtml(url);
+          document.execCommand('insertHTML', false, `<a href="${escapedHref}" target="_blank" rel="noopener">${escapedText}</a>`);
+        } else if (text && url) {
+          this.$emit('error', 'Only http, https, mailto, and tel URLs are allowed');
         }
       }
       this.updateToolbarState();
       this.emitValue();
+    },
+    escapeHtml(str) {
+      if (!str || typeof str !== 'string') return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    },
+    isSafeUrl(url) {
+      if (!url || typeof url !== 'string') return false;
+      const trimmed = url.trim();
+      if (!trimmed) return false;
+      const lower = trimmed.toLowerCase();
+      const dangerous = ['javascript:', 'data:', 'vbscript:', 'file:'];
+      if (dangerous.some(s => lower.startsWith(s))) return false;
+      return true;
     },
     updateToolbarState() {
       this.$nextTick(() => {

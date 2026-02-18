@@ -54,7 +54,8 @@ const state = Vue.observable({
   _dirty: {
     paymentMethodDetail: false,
     rulesForm: false,
-    feeForm: false
+    feeForm: false,
+    methodsOrder: false
   }
 });
 

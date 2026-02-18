@@ -53,6 +53,15 @@
       />
       <div class="gateways-hint-wrap">
         <p1>This is how payment methods appear at checkout. Drag items to change the order.</p1>
+        <v-btn
+          color="primary"
+          :disabled="!orderHasChanged"
+          @click="saveOrder"
+          class="save-order-btn"
+        >
+          <v-icon left small>mdi-sort</v-icon>
+          Save sort order
+        </v-btn>
       </div>
       <draggable
         v-model="orderedGateways"
@@ -797,6 +806,8 @@ export default {
       suspendDialogDirty: false,
       showDeleteConfirmation: false,
       snackbar: { show: false, text: '' },
+      localGatewaysOrder: [],
+      orderDirty: false,
       loading: false
     };
   },
@@ -916,11 +927,16 @@ export default {
     },
     orderedGateways: {
       get() {
-        return this.sortedGateways;
+        return this.localGatewaysOrder;
       },
       set(newOrder) {
-        store.actions.reorderPaymentMethods(newOrder);
+        this.localGatewaysOrder = newOrder;
+        this.orderDirty = true;
+        store.dirty.set('methodsOrder', true);
       }
+    },
+    orderHasChanged() {
+      return this.orderDirty;
     },
     enabledCount() {
       return this.sortedGateways.filter(g => g.enabled).length;
@@ -944,6 +960,22 @@ export default {
     }
   },
   watch: {
+    sortedGateways: {
+      handler(newVal) {
+        if (!newVal || !newVal.length) return;
+        const currentCodes = (this.localGatewaysOrder || []).map(g => g.code).sort().join(',');
+        const newCodes = newVal.map(g => g.code).sort().join(',');
+        const setChanged = currentCodes !== newCodes;
+        if (setChanged || !this.orderDirty) {
+          this.localGatewaysOrder = [...newVal];
+          if (setChanged) {
+            this.orderDirty = false;
+            store.dirty.clear('methodsOrder');
+          }
+        }
+      },
+      immediate: true
+    },
     editedGateway: {
       deep: true,
       handler() {
@@ -953,6 +985,13 @@ export default {
     }
   },
   methods: {
+    saveOrder() {
+      if (!this.orderHasChanged) return;
+      store.actions.reorderPaymentMethods(this.localGatewaysOrder);
+      this.orderDirty = false;
+      store.dirty.clear('methodsOrder');
+      this.snackbar = { show: true, text: 'Sort order saved' };
+    },
     setShowEnabledOnly(val) {
       this.showEnabledOnly = val;
     },
@@ -1276,7 +1315,15 @@ export default {
 }
 
 .gateways-hint-wrap {
-  padding: tokens.$space-md tokens.$space-lg 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$space-md;
+  padding: tokens.$space-lg tokens.$space-lg 0;
+
+  .save-order-btn {
+    flex-shrink: 0;
+  }
 }
 
 .switch-control {

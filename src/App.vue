@@ -326,8 +326,11 @@ h1, .text-h1 {
     }
   }
   
-  // Border on the right side of drawer
-  border-right: 1px solid tokens.$color-border-subtle !important;
+  // Border on the right side of drawer - same color and width as header
+  :deep(.v-navigation-drawer__border) {
+    width: 1px !important;
+    background-color: tokens.$color-border-subtle !important;
+  }
 }
 
 .app-main {
@@ -380,6 +383,7 @@ h1, .text-h1 {
     }
   }
 }
+
 
 .tenant-switcher {
   color: tokens.$color-text-primary !important;
@@ -445,7 +449,7 @@ h1, .text-h1 {
 
 // Chips and tags
 :deep(.v-chip--active) {
-  background-color: tokens.$color-green-50 !important;
+  background-color: tokens.$color-green-500 !important;
   color: white !important;
 }
 

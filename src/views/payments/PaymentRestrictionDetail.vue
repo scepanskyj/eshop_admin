@@ -72,19 +72,19 @@
                 <Label>Reason (shown to customer when payment method is disabled)</Label>
                 <RichTextStub v-model="ruleForm.reason" />
                 <v-checkbox
-                  v-model="ruleForm.showInTooltip"
-                  label="Show reason in tooltip"
-                  color="primary"
-                  hide-details
-                />
-                <v-checkbox
                   v-model="ruleForm.showWhenApplied"
                   label="Display reason to customer"
                   color="primary"
                   hide-details
-                  class="mt-2"
                 />
-                
+                <v-checkbox
+                  v-model="ruleForm.showInTooltip"
+                  label="Show reason in tooltip"
+                  color="primary"
+                  hide-details
+                  class="mt-2"
+                  :disabled="!ruleForm.showWhenApplied"
+                />
               </div>
             </ModalCard>
 
@@ -234,6 +234,11 @@ export default {
         if (this.suspendDirty) return;
         store.dirty.set('rulesForm', true);
       }
+    },
+    'ruleForm.showWhenApplied'(val) {
+      if (!val && this.ruleForm.showInTooltip) {
+        this.ruleForm.showInTooltip = false;
+      }
     }
   },
   created() {
@@ -306,7 +311,9 @@ export default {
           this.ruleForm.groups = preset.groups && preset.groups.length
             ? JSON.parse(JSON.stringify(preset.groups))
             : this.ruleForm.groups;
+          if (preset.showWhenApplied !== undefined) this.ruleForm.showWhenApplied = preset.showWhenApplied;
           if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
+          if (!this.ruleForm.showWhenApplied) this.ruleForm.showInTooltip = false;
           this.snackbar = { show: true, text: `Loaded example: ${preset.name}` };
         }
         this.$router.replace({ path: this.$route.path, query: {} });
