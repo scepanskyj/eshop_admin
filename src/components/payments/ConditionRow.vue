@@ -3,13 +3,13 @@
     <div class="condition-field">
       <Label>Condition Type</Label>
       <v-autocomplete
-        :value="condition.type"
-        @input="updateCondition('type', $event)"
+        :model-value="condition.type"
+        @update:model-value="updateCondition('type', $event)"
         :items="conditionTypeItems"
         item-value="value"
-        item-text="label"
-        dense
-        outlined
+        item-title="label"
+        density="compact"
+        variant="outlined"
         hide-details="auto"
         placeholder="Select condition type"
         clearable
@@ -18,13 +18,13 @@
     <div class="condition-field" v-if="condition.type">
       <Label>Operator</Label>
       <v-autocomplete
-        :value="condition.operator"
-        @input="updateCondition('operator', $event)"
+        :model-value="condition.operator"
+        @update:model-value="updateCondition('operator', $event)"
         :items="availableOperators"
         item-value="value"
-        item-text="label"
-        dense
-        outlined
+        item-title="label"
+        density="compact"
+        variant="outlined"
         hide-details="auto"
         placeholder="Select operator"
         clearable
@@ -34,10 +34,10 @@
       <Label>Value</Label>
       <component
         :is="valueInputComponent"
-        :value="condition.value"
+        :model-value="condition.value"
         :operator="condition.operator"
         v-bind="valueInputProps"
-        @input="updateCondition('value', $event)"
+        @update:model-value="updateCondition('value', $event)"
       />
     </div>
     <v-btn
@@ -104,6 +104,7 @@ export default {
       required: true
     }
   },
+  emits: ['update', 'remove'],
   computed: {
     conditionTypeItems() {
       return getConditionTypesForAutocomplete();

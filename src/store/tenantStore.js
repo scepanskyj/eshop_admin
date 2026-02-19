@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 
 const TENANT_OPTIONS = [
   { code: 'IT', label: 'Italy', flag: '🇮🇹' },
@@ -9,7 +9,7 @@ const TENANT_OPTIONS = [
   { code: 'RS', label: 'Serbia', flag: '🇷🇸' }
 ];
 
-const state = Vue.observable({
+const state = reactive({
   current: 'IT',
   options: TENANT_OPTIONS
 });

@@ -2,9 +2,7 @@
   <v-btn
     v-bind="$attrs"
     :class="['tertiary-button', $attrs.class]"
-    :outlined="outlined"
-    :text="text"
-    v-on="$listeners"
+    :variant="computedVariant"
   >
     <slot></slot>
   </v-btn>
@@ -22,6 +20,13 @@ export default {
     text: {
       type: Boolean,
       default: true
+    }
+  },
+  computed: {
+    computedVariant() {
+      if (this.text) return 'text';
+      if (this.outlined) return 'outlined';
+      return 'elevated';
     }
   }
 };
@@ -53,7 +58,7 @@ export default {
     }
   }
 
-  &.v-btn--text {
+  &.v-btn--variant-text {
     border: none !important;
     color: tokens.$color-text-primary !important;
 
@@ -66,7 +71,7 @@ export default {
     }
   }
 
-  &.v-btn--outlined {
+  &.v-btn--variant-outlined {
     border-color: tokens.$color-text-primary !important;
     color: tokens.$color-text-primary !important;
 

@@ -2,7 +2,6 @@
   <v-btn
     v-bind="$attrs"
     :class="['primary-button', $attrs.class]"
-    v-on="$listeners"
   >
     <slot></slot>
   </v-btn>
@@ -40,12 +39,7 @@ export default {
     }
   }
   
-  // Override Vuetify's default button styles
-  &.v-btn:not(.v-btn--text):not(.v-btn--outlined) {
-    background-color: tokens.$color-green-500 !important;
-  }
-  
-  &.v-btn--has-bg {
+  &.v-btn:not(.v-btn--variant-text):not(.v-btn--variant-outlined) {
     background-color: tokens.$color-green-500 !important;
   }
 }

@@ -3,11 +3,11 @@
     <PageHeader :breadcrumbs="breadcrumbs" />
 
     <StickyActionsBar>
-      <TertiaryButton text @click="onReset">Reset</TertiaryButton>
+      <TertiaryButton variant="text" @click="onReset">Reset</TertiaryButton>
       <v-btn color="primary" @click="onSave">Save</v-btn>
     </StickyActionsBar>
 
-    <v-card outlined class="mb-6 page-card">
+    <v-card variant="outlined" class="mb-6 page-card">
       <v-card-title class="section-heading">General Settings</v-card-title>
       <v-divider />
       <v-card-text>
@@ -24,7 +24,7 @@
               class="state-switch"
             />
           </div>
-          <v-alert type="info" dense outlined class="mt-2 memo-alert">
+          <v-alert type="info" density="compact" variant="outlined" class="mt-2 memo-alert">
             Changes take effect after saving.
           </v-alert>
         </div>
@@ -34,8 +34,8 @@
           <HintText>Displayed label shown to shoppers</HintText>
           <v-text-field
             class="form-field"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model="form.title"
             placeholder="Payment Fee"
             hide-details="auto"
@@ -55,8 +55,8 @@
           <HintText>Position within order totals summary</HintText>
           <v-text-field
             class="form-field"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             v-model.number="form.totalsSortOrder"
             type="number"
             placeholder="35"
@@ -68,7 +68,7 @@
 
     <v-expand-transition>
       <div>
-        <v-card outlined class="mb-6 page-card" :class="{ 'card-disabled': !form.enabled }">
+        <v-card variant="outlined" class="mb-6 page-card" :class="{ 'card-disabled': !form.enabled }">
           <v-card-title class="section-heading">Payment Fee Settings</v-card-title>
           <v-divider />
           <v-card-text>
@@ -77,8 +77,8 @@
               <HintText>Choose how the fee amount is calculated</HintText>
               <v-select
                 class="form-field"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 v-model="form.priceType"
                 :items="['Fixed price', 'Percent']"
                 placeholder="Select price type"
@@ -92,8 +92,8 @@
                 <HintText>Minimum order amount to apply Payment Fee</HintText>
                 <v-text-field
                   class="form-field"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   v-model.number="form.minAmount"
                   type="number"
                   placeholder="0"
@@ -105,8 +105,8 @@
                 <HintText>Maximum order amount to apply Payment Fee</HintText>
                 <v-text-field
                   class="form-field"
-                  outlined
-                  dense
+                  variant="outlined"
+                  density="compact"
                   v-model.number="form.maxAmount"
                   type="number"
                   placeholder="9999"
@@ -126,7 +126,7 @@
             <div class="field-block">
               <Label>Payment Method Fee</Label>
               <HintText>Amount added when the selected payment method is used</HintText>
-              <v-simple-table class="fee-table">
+              <v-table class="fee-table">
                 <thead>
                   <tr>
                     <th>Payment Method</th>
@@ -139,25 +139,25 @@
                     <td>
               <v-autocomplete
                 class="form-field"
-                outlined
+                variant="outlined"
                 :items="methodOptions"
                 v-model="row.methodCode"
-                item-text="label"
+                item-title="label"
                 item-value="value"
                 placeholder="Select payment method"
                 hide-details="auto"
-                dense
+                density="compact"
                 clearable
               />
                     </td>
                     <td class="text-right fee-input-cell">
                       <v-text-field
                         class="form-field"
-                        outlined
+                        variant="outlined"
                         v-model.number="row.amount"
                         type="number"
                         placeholder="0.00"
-                        dense
+                        density="compact"
                         hide-details="auto"
                       />
                     </td>
@@ -173,9 +173,9 @@
                     </td>
                   </tr>
                 </tbody>
-              </v-simple-table>
+              </v-table>
               <v-btn small color="secondary" class="mt-2 add-fee-btn" @click="addFeeRow">
-                <v-icon left>mdi-plus</v-icon>
+                <v-icon start>mdi-plus</v-icon>
                 Add Fee
               </v-btn>
             </div>
@@ -185,14 +185,13 @@
               <HintText>Assign fee to selected customer groups. If left blank, the fee will be applied for all.</HintText>
               <v-select
                 class="form-field"
-                outlined
-                dense
+                variant="outlined"
+                density="compact"
                 v-model="form.segments"
                 :items="segmentsOptions"
                 multiple
                 chips
-                small-chips
-                item-text="label"
+                item-title="label"
                 item-value="value"
                 placeholder="Select customer groups"
                 hide-details="auto"
@@ -201,7 +200,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card outlined class="page-card" :class="{ 'card-disabled': !form.enabled }">
+        <v-card variant="outlined" class="page-card" :class="{ 'card-disabled': !form.enabled }">
           <v-card-title class="section-heading">Tax Settings</v-card-title>
           <v-divider />
           <v-card-text>
@@ -226,7 +225,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
+      <TertiaryButton variant="text" @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
  </template>
@@ -254,7 +253,7 @@ export default {
     this.$nextTick(() => { this.suspendDirty = false; });
   },
   computed: {
-    breadcrumbs() { return [ { text: 'Payment methods', disabled: true }, { text: 'Payment fee', disabled: true } ]; },
+    breadcrumbs() { return [ { title: 'Payment methods', disabled: true }, { title: 'Payment fee', disabled: true } ]; },
     methodOptions() {
       const base = (store.state.gateways || []).map(g => ({ label: `${g.title || g.code} - ${g.code}`, value: g.code }));
       const extras = [
@@ -334,6 +333,7 @@ export default {
 
 .page-card {
   border-radius: 12px !important;
+  border-color: tokens.$color-border-subtle !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 

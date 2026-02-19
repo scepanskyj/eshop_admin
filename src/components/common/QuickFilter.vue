@@ -5,7 +5,7 @@
       :label="label"
       hide-details
       class="ma-0"
-      @change="onChange"
+      @update:model-value="onChange"
       @click.stop
     />
   </v-sheet>
@@ -15,7 +15,7 @@
 export default {
   name: 'QuickFilter',
   props: {
-    value: {
+    modelValue: {
       type: Boolean,
       default: false
     },
@@ -24,19 +24,20 @@ export default {
       required: true
     }
   },
+  emits: ['update:modelValue', 'change'],
   data() {
     return {
-      localValue: this.value
+      localValue: this.modelValue
     };
   },
   watch: {
-    value(newVal) {
+    modelValue(newVal) {
       this.localValue = newVal;
     }
   },
   methods: {
     onChange() {
-      this.$emit('input', this.localValue);
+      this.$emit('update:modelValue', this.localValue);
       this.$emit('change', this.localValue);
     },
     handleClick() {
@@ -58,4 +59,3 @@ export default {
   user-select: none;
 }
 </style>
-

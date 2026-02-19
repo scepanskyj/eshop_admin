@@ -232,7 +232,6 @@ export default {
 
 .gateway-detail-wrapper {
   background-color: tokens.$color-surface-muted;
-  min-height: calc(100vh - 64px);
   padding: tokens.$page-padding;
 }
 

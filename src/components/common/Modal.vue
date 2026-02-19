@@ -1,11 +1,11 @@
 <template>
   <v-dialog
-    :value="value"
+    :model-value="modelValue"
     :max-width="maxWidth"
     :persistent="persistent"
     scrollable
     :retain-focus="false"
-    @input="handleInput"
+    @update:model-value="handleInput"
     @keydown.esc="handleEsc"
   >
     <v-card
@@ -35,7 +35,7 @@
         <v-card-actions class="modal-footer">
           <slot name="footer">
             <v-spacer />
-            <TertiaryButton text @click="handleClose">Cancel</TertiaryButton>
+            <TertiaryButton variant="text" @click="handleClose">Cancel</TertiaryButton>
             <v-btn color="primary" @click="handleSave">Save</v-btn>
           </slot>
         </v-card-actions>
@@ -51,7 +51,7 @@ export default {
   name: 'Modal',
   components: { TertiaryButton },
   props: {
-    value: {
+    modelValue: {
       type: Boolean,
       default: false
     },
@@ -72,8 +72,9 @@ export default {
       default: true
     }
   },
+  emits: ['update:modelValue', 'close', 'save'],
   watch: {
-    value(newVal) {
+    modelValue(newVal) {
       if (newVal) {
         this.$nextTick(() => {
           this.focusFirstElement();
@@ -83,18 +84,16 @@ export default {
   },
   methods: {
     handleInput(value) {
-      this.$emit('input', value);
+      this.$emit('update:modelValue', value);
     },
     handleClose() {
-      // Always allow closing via button click
-      this.$emit('input', false);
+      this.$emit('update:modelValue', false);
       this.$emit('close');
     },
     handleEsc(e) {
-      // ESC should always close the modal
       e.preventDefault();
       e.stopPropagation();
-      this.$emit('input', false);
+      this.$emit('update:modelValue', false);
       this.$emit('close');
     },
     handleSave() {
@@ -103,6 +102,7 @@ export default {
     getFocusableElements() {
       if (!this.$refs.modalCard) return [];
       
+      const el = this.$refs.modalCard.$el || this.$refs.modalCard;
       const selectors = [
         'a[href]',
         'button:not([disabled])',
@@ -112,7 +112,7 @@ export default {
         '[tabindex]:not([tabindex="-1"])'
       ].join(', ');
       
-      return Array.from(this.$refs.modalCard.querySelectorAll(selectors)).filter(
+      return Array.from(el.querySelectorAll(selectors)).filter(
         el => {
           const style = window.getComputedStyle(el);
           return style.display !== 'none' && style.visibility !== 'hidden';
@@ -122,7 +122,6 @@ export default {
     focusFirstElement() {
       const focusable = this.getFocusableElements();
       if (focusable.length > 0) {
-        // Skip the close button, focus the second element (usually first input)
         const elementToFocus = focusable.length > 1 ? focusable[1] : focusable[0];
         elementToFocus.focus();
       }
@@ -134,7 +133,6 @@ export default {
       const currentIndex = focusable.indexOf(document.activeElement);
       
       if (currentIndex === focusable.length - 1) {
-        // Last element, wrap to first
         e.preventDefault();
         focusable[0].focus();
       }
@@ -146,7 +144,6 @@ export default {
       const currentIndex = focusable.indexOf(document.activeElement);
       
       if (currentIndex === 0 || currentIndex === -1) {
-        // First element or not found, wrap to last
         e.preventDefault();
         focusable[focusable.length - 1].focus();
       }
@@ -177,4 +174,3 @@ export default {
   min-height: 64px;
 }
 </style>
-

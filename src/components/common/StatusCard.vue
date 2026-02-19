@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="status-card" :class="{ 'status-card--enabled': enabled }" outlined>
+  <v-sheet class="status-card" :class="{ 'status-card--enabled': enabled }" border>
     <div v-if="!hideLabel" class="status-card__header">
       <span>{{ label || 'Status' }}</span>
       <StatusChip
@@ -31,7 +31,7 @@ export default {
   name: 'StatusCard',
   components: { StatusChip },
   props: {
-    value: {
+    modelValue: {
       type: Boolean,
       default: false
     },
@@ -52,13 +52,14 @@ export default {
       default: false
     }
   },
+  emits: ['update:modelValue'],
   computed: {
     enabled: {
       get() {
-        return this.value;
+        return this.modelValue;
       },
       set(val) {
-        this.$emit('input', val);
+        this.$emit('update:modelValue', val);
       }
     }
   }
@@ -120,14 +121,16 @@ export default {
 .state-switch {
   margin: 0;
   
-  :deep(.v-input--selection-controls__input .v-input--switch__thumb) {
-    color: white !important;
+  :deep(.v-switch__track) {
+    background-color: rgba(0, 0, 0, 0.38);
   }
   
-  :deep(.v-input--is-label-active .v-input--switch__track) {
-    background-color: tokens.$color-green-500 !important;
+  :deep(.v-selection-control--dirty .v-switch__track) {
+    background-color: tokens.$color-green-500;
+  }
+  
+  :deep(.v-switch__thumb) {
+    color: white !important;
   }
 }
-
 </style>
-

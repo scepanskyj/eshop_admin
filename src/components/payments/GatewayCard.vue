@@ -1,5 +1,5 @@
 <template>
-  <v-card outlined class="gateway-card">
+  <v-card variant="outlined" class="gateway-card">
     <div class="gateway-content">
       <div class="gateway-header">
         <div
@@ -26,8 +26,8 @@
             </div>
           </div>
         </div>
-        <v-btn outlined color="primary" @click.stop="onConfigure(gateway)" :aria-label="`Configure ${gateway.title}`" class="ml-auto">
-          <v-icon left small>mdi-tune</v-icon>
+        <v-btn variant="outlined" color="primary" @click.stop="onConfigure(gateway)" :aria-label="`Configure ${gateway.title}`" class="ml-auto">
+          <v-icon start size="small">mdi-tune</v-icon>
           Configure
         </v-btn>
       </div>
@@ -58,6 +58,7 @@ export default {
 .gateway-card {
   padding: tokens.$space-lg;
   border-radius: 12px;
+  border-color: tokens.$color-border-subtle !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
