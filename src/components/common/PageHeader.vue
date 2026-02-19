@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-breadcrumbs :items="breadcrumbs" class="pa-0 breadcrumbs-spacing breadcrumbs-text" />
+    <v-breadcrumbs :items="normalizedBreadcrumbs" class="pa-0 breadcrumbs-spacing breadcrumbs-text" />
 
     <div class="d-flex align-center heading-spacing">
       <h1 class="h1 page-title">{{ pageTitle }}</h1>
@@ -27,12 +27,19 @@ export default {
     }
   },
   computed: {
+    normalizedBreadcrumbs() {
+      // Vuetify 3 v-breadcrumbs expects 'title'; support both 'title' and 'text'
+      return (this.breadcrumbs || []).map(item => ({
+        ...item,
+        title: item.title ?? item.text ?? ''
+      }));
+    },
     pageTitle() {
       // Use explicit title if provided (for backward compatibility or special cases),
       // otherwise derive from last breadcrumb item
       if (this.title) return this.title;
       const lastBreadcrumb = this.breadcrumbs[this.breadcrumbs.length - 1];
-      return lastBreadcrumb?.text || '';
+      return lastBreadcrumb?.title ?? lastBreadcrumb?.text ?? '';
     }
   }
 };

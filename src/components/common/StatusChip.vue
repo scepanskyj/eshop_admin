@@ -1,5 +1,5 @@
 <template>
-  <v-chip size="small" :class="chipClass">
+  <v-chip size="small" variant="flat" :class="chipClass">
     {{ label }}
   </v-chip>
 </template>
@@ -39,14 +39,14 @@ export default {
   &.status-chip--active {
     background-color: tokens.$color-green-50 !important;
     color: tokens.$color-green-700 !important;
-    font-size: 13px !important;
+    font-size: tokens.$font-size-chip !important;
     font-weight: 500 !important;
   }
 
   &.status-chip--inactive {
     background-color: tokens.$color-gray-50 !important;
     color: tokens.$color-gray-700 !important;
-    font-size: 13px !important;
+    font-size: tokens.$font-size-chip !important;
     font-weight: 500 !important;
   }
 }

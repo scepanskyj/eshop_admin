@@ -1,0 +1,16 @@
+@use '@/styles/tokens.scss' as tokens;
+
+// Filter chips / default chips - neutral gray
+:deep(.v-chip:not(.status-chip):not(.v-chip--variant-elevated)) {
+  background-color: tokens.$color-gray-100 !important;
+  color: tokens.$color-gray-700 !important;
+}
+
+// Links
+a:not(.app-drawer a) {
+  color: tokens.$color-green-500 !important;
+
+  &:hover {
+    color: tokens.$color-green-600 !important;
+  }
+}

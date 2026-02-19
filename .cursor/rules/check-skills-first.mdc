@@ -1,0 +1,14 @@
+---
+description: Always check skills for relevance before responding
+alwaysApply: true
+---
+
+# Check Skills Before Responding
+
+Before answering, implementing, or taking any action:
+
+1. **Scan the available skills** (listed in agent_skills). If there's even a 1% chance a skill applies, read it and follow it.
+2. **Process skills first** (brainstorming, systematic-debugging) — they define HOW to approach the task.
+3. **Implementation skills second** (frontend-design, etc.) — they guide execution.
+
+Do not skip because the task "seems simple" or you "need more context first."

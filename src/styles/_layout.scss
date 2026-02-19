@@ -1,0 +1,207 @@
+@use '@/styles/tokens.scss' as tokens;
+
+html, body, #app { height: 100%; }
+
+.app-header {
+  background-color: white !important;
+  border-bottom: 1px solid tokens.$color-border-subtle !important;
+  box-shadow: none !important;
+
+  :deep(.v-toolbar-title) {
+    color: tokens.$color-text-primary !important;
+  }
+
+  .header-switcher {
+    color: tokens.$color-text-primary !important;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04) !important;
+    }
+  }
+
+  .header-switcher-label {
+    color: tokens.$color-text-primary !important;
+    font-size: tokens.$font-size-body;
+  }
+
+  :deep(.v-btn:not(.header-icon-btn) .v-icon) {
+    color: tokens.$color-text-primary !important;
+  }
+
+  :deep(.v-overlay__content .v-list-item--active) {
+    background-color: tokens.$color-green-50 !important;
+    color: tokens.$color-green-500 !important;
+  }
+
+  :deep(.v-overlay__content .v-list-item:hover) {
+    background-color: tokens.$color-green-50 !important;
+  }
+
+  :deep(.v-overlay__content .v-icon) {
+    color: tokens.$color-green-500 !important;
+  }
+}
+
+.app-logo {
+  height: 40px;
+  width: auto;
+  margin-right: 16px;
+  margin-left: 8px;
+}
+
+.app-drawer {
+  width: 256px !important;
+  background-color: white !important;
+
+  :deep(.v-list-item),
+  :deep(.v-list-group__items .v-list-item),
+  :deep(.v-list-group .v-list-group__header),
+  :deep(.v-list-group--open > .v-list-group__header) {
+    font-size: tokens.$font-size-nav !important;
+  }
+
+  :deep(.v-list-item) {
+    color: tokens.$color-text-primary !important;
+
+    .v-list-item-title {
+      font-size: tokens.$font-size-nav !important;
+      color: tokens.$color-text-primary !important;
+    }
+  }
+
+  :deep(.v-list-item .v-list-item__prepend .v-icon) {
+    color: tokens.$color-text-secondary !important;
+  }
+
+  :deep(.v-list-item--active) {
+    background-color: tokens.$color-green-50 !important;
+    color: tokens.$color-green-500 !important;
+
+    .v-list-item-title {
+      color: tokens.$color-green-500 !important;
+      font-weight: 500 !important;
+    }
+
+    .v-icon,
+    .v-list-item__prepend .v-icon {
+      color: tokens.$color-green-500 !important;
+    }
+  }
+
+  :deep(.v-list-item:hover:not(.v-list-item--active)) {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+
+  :deep(.v-list-group__items .v-list-item) {
+    color: tokens.$color-text-primary !important;
+
+    .v-list-item-title {
+      font-size: tokens.$font-size-nav !important;
+      color: tokens.$color-text-primary !important;
+    }
+  }
+
+  :deep(.v-list-group .v-list-group__header) {
+    color: tokens.$color-text-primary !important;
+
+    .v-list-item-title {
+      font-size: tokens.$font-size-nav !important;
+    }
+  }
+
+  :deep(.v-list-group .v-list-group__header .v-icon) {
+    color: tokens.$color-text-secondary !important;
+  }
+
+  :deep(.v-list-group--open > .v-list-group__header) {
+    background-color: tokens.$color-green-50 !important;
+    color: tokens.$color-green-500 !important;
+
+    .v-list-item-title {
+      font-size: tokens.$font-size-nav !important;
+      color: tokens.$color-green-500 !important;
+      font-weight: 500 !important;
+    }
+
+    .v-icon {
+      color: tokens.$color-green-500 !important;
+    }
+  }
+
+  :deep(.v-navigation-drawer__border) {
+    width: 1px !important;
+    background-color: tokens.$color-border-subtle !important;
+  }
+
+  a {
+    color: tokens.$color-text-primary !important;
+
+    &:hover {
+      color: tokens.$color-text-primary !important;
+    }
+  }
+}
+
+.app-main {
+  background-color: tokens.$color-surface-muted !important;
+}
+
+.nested-link {
+  padding-left: 32px;
+}
+
+.header-right-items {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.version-text {
+  font-size: 11px;
+  color: tokens.$color-text-secondary;
+  white-space: nowrap;
+  padding: 0 2px;
+}
+
+.header-divider {
+  margin: 0 2px;
+  height: 16px !important;
+  align-self: center;
+}
+
+.header-icon-btn {
+  color: tokens.$color-text-secondary !important;
+  min-width: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+
+  :deep(.v-icon) {
+    color: tokens.$color-text-secondary !important;
+    font-size: 18px !important;
+  }
+
+  &:hover {
+    color: tokens.$color-text-primary !important;
+    background-color: rgba(0, 0, 0, 0.04) !important;
+
+    :deep(.v-icon) {
+      color: tokens.$color-text-primary !important;
+    }
+  }
+}
+
+.header-switcher {
+  color: tokens.$color-text-primary !important;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: tokens.$font-size-chip;
+  min-width: auto;
+  padding: 0 4px;
+}
+
+.header-switcher-flag {
+  font-size: 18px;
+  margin-right: 6px;
+}

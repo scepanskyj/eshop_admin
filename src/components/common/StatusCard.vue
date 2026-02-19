@@ -120,17 +120,5 @@ export default {
 
 .state-switch {
   margin: 0;
-  
-  :deep(.v-switch__track) {
-    background-color: rgba(0, 0, 0, 0.38);
-  }
-  
-  :deep(.v-selection-control--dirty .v-switch__track) {
-    background-color: tokens.$color-green-500;
-  }
-  
-  :deep(.v-switch__thumb) {
-    color: white !important;
-  }
 }
 </style>

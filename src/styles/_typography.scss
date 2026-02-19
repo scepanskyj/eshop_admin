@@ -1,0 +1,35 @@
+@use '@/styles/tokens.scss' as tokens;
+
+h1, .text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: tokens.$font-family-base !important;
+}
+
+h1, .text-h1 {
+  font: tokens.$text-h1 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h2 {
+  font: tokens.$text-h2 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h3 {
+  font: tokens.$text-h3 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h4 {
+  font: tokens.$text-h4 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h5 {
+  font: tokens.$text-h5 !important;
+  color: tokens.$color-text-primary !important;
+}
+
+.text-h6 {
+  font: tokens.$text-h6 !important;
+  color: tokens.$color-text-primary !important;
+}
