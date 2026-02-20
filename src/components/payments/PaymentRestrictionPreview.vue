@@ -41,7 +41,13 @@ export default {
 
       const groupSummaries = groups.map(group => {
         const conditionParts = group.conditions
-          .filter(c => c.type && c.operator && c.value !== null && c.value !== undefined && c.value !== '')
+          .filter(c => {
+          if (!c.type || !c.operator) return false;
+          const v = c.value;
+          if (v === null || v === undefined || v === '') return false;
+          if (Array.isArray(v) && v.length === 0) return false;
+          return true;
+        })
           .map(cond => {
             const typeLabel = getConditionTypeLabel(cond.type);
             const operatorLabel = getOperatorLabel(cond.type, cond.operator);
@@ -66,6 +72,12 @@ export default {
       if (value === null || value === undefined || value === '') return '';
 
       if (conditionType === 'SELECTED_PAYMENT_METHOD') {
+        if (Array.isArray(value)) {
+          return value.map(code => {
+            const gateway = store.state.gateways.find(g => g.code === code);
+            return gateway ? gateway.title : String(code);
+          }).join(', ');
+        }
         const gateway = store.state.gateways.find(g => g.code === value);
         return gateway ? gateway.title : String(value);
       }

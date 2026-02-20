@@ -1,15 +1,15 @@
 <template>
   <v-autocomplete
-    :value="value"
-    @input="$emit('input', $event)"
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
     :items="options"
     item-value="value"
-    item-text="label"
+    item-title="label"
     multiple
     chips
     small-chips
-    dense
-    outlined
+    density="compact"
+    variant="outlined"
     hide-details="auto"
     :placeholder="placeholder"
   />
@@ -21,7 +21,7 @@ import { OPTIONS_BY_TYPE } from '@/utils/conditionConfig';
 export default {
   name: 'PromotionInput',
   props: {
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     },

@@ -9,9 +9,9 @@
         </PrimaryButton>
         <v-menu location="start bottom">
           <template v-slot:activator="{ props }">
-            <v-btn icon variant="plain" class="ml-2" v-bind="props" aria-label="More actions">
+            <IconButton class="ml-2" v-bind="props" aria-label="More actions">
               <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
+            </IconButton>
           </template>
           <v-list density="compact">
             <v-list-item @click="handleDuplicate" prepend-icon="mdi-content-copy">
@@ -60,6 +60,8 @@
                   class="form-field"
                   v-model="ruleForm.paymentMethods"
                   :items="availablePaymentMethods"
+                  item-title="text"
+                  item-value="value"
                   :rules="[v => (Array.isArray(v) && v.length > 0) || 'At least one payment method is required']"
                   multiple
                   chips
@@ -153,6 +155,7 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
 import HintText from '@/components/common/HintText.vue';
+import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
@@ -160,7 +163,7 @@ import { addUserExample } from '@/data/userExampleRules';
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton, Label, HintText },
+  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton, Label, HintText, IconButton },
   props: {
     id: {
       type: String,

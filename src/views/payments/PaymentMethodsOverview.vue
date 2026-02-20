@@ -1179,13 +1179,6 @@ export default {
   background-color: white !important;
 }
 
-.breadcrumbs-text :deep(.v-breadcrumbs__item) {
-  color: tokens.$color-text-secondary !important;
-}
-
-.breadcrumbs-text :deep(.v-breadcrumbs__divider) {
-  color: tokens.$color-text-secondary !important;
-}
 
 .filter-wrapper {
   border-radius: 4px;

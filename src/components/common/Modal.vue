@@ -16,14 +16,12 @@
       <v-toolbar flat>
         <v-toolbar-title>{{ title }}</v-toolbar-title>
         <v-spacer />
-        <v-btn
-          icon
-          variant="plain"
+        <IconButton
           @click="handleClose"
           :aria-label="`Close ${title}`"
         >
           <v-icon>mdi-close</v-icon>
-        </v-btn>
+        </IconButton>
       </v-toolbar>
       <v-divider />
       
@@ -47,10 +45,11 @@
 
 <script>
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
+import IconButton from '@/components/common/IconButton.vue';
 
 export default {
   name: 'Modal',
-  components: { TertiaryButton },
+  components: { TertiaryButton, IconButton },
   props: {
     modelValue: {
       type: Boolean,

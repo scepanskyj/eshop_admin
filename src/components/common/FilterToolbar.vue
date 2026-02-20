@@ -12,9 +12,8 @@
       />
 
       <div class="quick-filters">
-        <template v-for="q in quickFilters">
+        <template v-for="q in quickFilters" :key="q.key">
           <v-select
-            :key="q.key"
             v-model="localQuick[q.key]"
             :items="q.items"
             :label="q.label"
@@ -52,17 +51,17 @@
         <v-toolbar flat>
           <v-toolbar-title>Filters</v-toolbar-title>
           <v-spacer />
-          <v-btn icon variant="plain" @click="dialog = false">
+          <IconButton @click="dialog = false">
             <v-icon>mdi-close</v-icon>
-          </v-btn>
+          </IconButton>
         </v-toolbar>
         <v-divider />
         
         <v-card-text class="modal-content">
           <v-container>
             <v-row>
-              <template v-for="f in dialogFields">
-                <v-col :key="f.key" cols="12" md="4">
+              <template v-for="f in dialogFields" :key="f.key">
+                <v-col cols="12" md="4">
                   <component
                     :is="fieldComponent(f)"
                     v-model="localDialog[f.key]"
@@ -95,8 +94,11 @@
  </template>
 
 <script>
+import IconButton from '@/components/common/IconButton.vue';
+
 export default {
   name: 'FilterToolbar',
+  components: { IconButton },
   props: {
     searchLabel: String,
     search: { type: String, default: '' },

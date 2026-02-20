@@ -24,7 +24,7 @@
               {{ currentTenant.code }}
             </v-btn>
           </template>
-          <v-list density="compact">
+          <v-list density="default">
             <v-list-item
               v-for="option in tenantOptions"
               :key="option.code"
@@ -47,7 +47,7 @@
               <v-icon size="small">mdi-account-outline</v-icon>
             </v-btn>
           </template>
-          <v-list density="compact">
+          <v-list density="default">
             <v-list-item
               v-for="option in roleOptions"
               :key="option.code"
@@ -65,22 +65,24 @@
     </v-app-bar>
 
     <v-navigation-drawer permanent class="app-drawer">
-      <v-list density="compact">
+      <v-list density="default">
         <v-list-group value="Payment section">
           <template v-slot:activator="{ props }">
-            <v-list-item v-bind="props" prepend-icon="mdi-cog" title="Payment section" />
+            <v-list-item v-bind="props" title="Payment section" class="drawer-group-header">
+              <template v-slot:prepend>
+                <i class="fa-solid fa-credit-card drawer-icon" />
+              </template>
+            </v-list-item>
           </template>
 
           <v-list-item
             :to="{ name: 'PaymentMethodsOverview' }"
-            prepend-icon="mdi-credit-card-outline"
             title="Payment methods"
             class="nested-link"
           />
 
           <v-list-item
             :to="{ name: 'PaymentRestrictions' }"
-            prepend-icon="mdi-shield-half-full"
             title="Payment restrictions"
             class="nested-link"
           />
@@ -225,6 +227,15 @@ h1, .text-h1 {
 .app-drawer {
   background-color: white !important;
   
+  // All list items - font size and weight
+  :deep(.v-list-item),
+  :deep(.v-list-item-title),
+  :deep(.v-list-group__header),
+  :deep(.v-list-group__header .v-list-item-title) {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+  
   :deep(.v-list-item) {
     color: tokens.$color-text-primary !important;
     
@@ -233,24 +244,31 @@ h1, .text-h1 {
     }
   }
   
+  // Font Awesome icon styling
+  .drawer-icon {
+    color: tokens.$color-text-secondary !important;
+    font-size: 18px !important;
+    margin-right: 8px !important;
+  }
+  
   :deep(.v-list-item .v-list-item__prepend .v-icon) {
     color: tokens.$color-text-secondary !important;
   }
   
+  // Active items
   :deep(.v-list-item--active) {
     background-color: tokens.$color-green-50 !important;
     color: tokens.$color-green-500 !important;
     
     .v-list-item-title {
       color: tokens.$color-green-500 !important;
-      font-weight: 500 !important;
     }
     
     .v-icon {
       color: tokens.$color-green-500 !important;
     }
     
-    .v-list-item__prepend .v-icon {
+    .drawer-icon {
       color: tokens.$color-green-500 !important;
     }
   }
@@ -259,32 +277,70 @@ h1, .text-h1 {
     background-color: rgba(0, 0, 0, 0.04) !important;
   }
   
+  // Nested items - remove the large left padding
   :deep(.v-list-group__items .v-list-item) {
     color: tokens.$color-text-primary !important;
+    --indent-padding: 52px !important;
+    padding-left: 52px !important;
+    padding-inline-start: 52px !important;
     
     .v-list-item-title {
       color: tokens.$color-text-primary !important;
     }
   }
   
-  :deep(.v-list-group .v-list-group__header .v-icon) {
+  
+  // List group header chevron (default state)
+  :deep(.v-list-group .v-list-group__header .v-icon),
+  :deep(.v-list-group .v-list-group__header .v-list-group__items .v-icon) {
     color: tokens.$color-text-secondary !important;
   }
   
+  // Expanded group header - green-600 for title, icon, and chevron
   :deep(.v-list-group--open > .v-list-group__header) {
     background-color: tokens.$color-green-50 !important;
-    color: tokens.$color-green-500 !important;
     
     .v-list-item-title {
-      color: tokens.$color-green-500 !important;
-      font-weight: 500 !important;
+      color: tokens.$color-green-600 !important;
     }
     
-    .v-icon {
-      color: tokens.$color-green-500 !important;
+    .drawer-icon {
+      color: tokens.$color-green-600 !important;
+    }
+    
+    // Chevron icon when expanded - target all possible locations
+    .v-icon,
+    :deep(.v-icon),
+    .v-list-item__append .v-icon,
+    :deep(.v-list-item__append .v-icon) {
+      color: tokens.$color-green-600 !important;
     }
   }
   
+  // Also target the chevron in the append slot
+  :deep(.v-list-group--open .v-list-group__header .v-list-item__append .v-icon) {
+    color: tokens.$color-green-600 !important;
+  }
+  
+  // Group header when any child is active - make it green and bolder
+  :deep(.v-list-group:has(.v-list-item--active) > .v-list-group__header) {
+    background-color: tokens.$color-green-50 !important;
+    
+    .v-list-item-title {
+      color: tokens.$color-green-600 !important;
+      font-weight: 600 !important;
+    }
+    
+    .drawer-icon {
+      color: tokens.$color-green-600 !important;
+    }
+    
+    .v-icon {
+      color: tokens.$color-green-600 !important;
+    }
+  }
+  
+  // Border
   :deep(.v-navigation-drawer__border) {
     width: 1px !important;
     background-color: tokens.$color-border-subtle !important;
@@ -296,7 +352,12 @@ h1, .text-h1 {
 }
 
 .nested-link {
-  padding-left: 32px;
+  --indent-padding: 0px !important;
+  
+  :deep(.v-list-item) {
+    padding-left: 52px !important;
+    padding-inline-start: 52px !important;
+  }
 }
 
 .header-right-items {
@@ -389,9 +450,28 @@ h1, .text-h1 {
   color: white !important;
 }
 
+// Chips - tonal variant styling
+:deep(.v-chip--variant-tonal) {
+  opacity: 1 !important;
+}
+
+// Tonal chips with green color
+:deep(.v-chip--variant-tonal.v-chip--color-green) {
+  background-color: tokens.$color-green-50 !important;
+  color: tokens.$color-green-600 !important;
+}
+
+// Tonal chips with grey color
+:deep(.v-chip--variant-tonal.v-chip--color-grey) {
+  background-color: tokens.$color-gray-50 !important;
+  color: tokens.$color-gray-700 !important;
+}
+
+// Elevated chips (green primary chips)
 :deep(.v-chip--variant-elevated) {
   background-color: tokens.$color-green-500 !important;
   color: white !important;
+  opacity: 1 !important;
 }
 
 a:not(.app-drawer a) {
@@ -418,4 +498,23 @@ a:not(.app-drawer a) {
   color: tokens.$color-green-500 !important;
   --v-field-border-width: 2px;
 }
+
+// Breadcrumbs - remove left padding globally with maximum specificity
+// Target all possible combinations including spacing class
+.v-breadcrumbs,
+.v-breadcrumbs.v-breadcrumbs--density-default,
+.v-breadcrumbs--density-default,
+.v-breadcrumbs-spacing,
+.v-breadcrumbs.v-breadcrumbs-spacing,
+.v-breadcrumbs--density-default.v-breadcrumbs-spacing,
+.no-left-padding,
+.no-left-padding.v-breadcrumbs,
+.no-left-padding.v-breadcrumbs-spacing {
+  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
+  padding-right: 0 !important;
+  padding-inline-end: 0 !important;
+  padding: 16px 0 !important; // Override shorthand: top/bottom 16px, left/right 0
+}
+
 </style>

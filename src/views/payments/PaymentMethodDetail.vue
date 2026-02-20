@@ -192,15 +192,18 @@
               <div class="field-block fee-input-field">
                 <Label>Apply Payment Fee For Specific Customers</Label>
                 <HintText>If left blank, the fee applies to all customers.</HintText>
-                <v-select
+                <v-autocomplete
                   class="form-field"
                   v-model="form.feeSettings.customerTypes"
                   :items="customerTypeOptions"
+                  item-title="text"
+                  item-value="value"
                   multiple
                   chips
                   density="compact"
                   variant="outlined"
                   hide-details="auto"
+                  placeholder="Select customer groups"
                 />
               </div>
 
@@ -384,7 +387,8 @@ export default {
     customerTypeOptions() {
       return [
         { text: 'Logged in user', value: 'logged_in' },
-        { text: 'Not logged in', value: 'guest' },
+        { text: 'Guest user', value: 'guest' },
+        { text: 'Business', value: 'business' },
         { text: 'Wholesale', value: 'wholesale' }
       ];
     },
@@ -693,14 +697,6 @@ export default {
   font-size: 14px;
 }
 
-// Truncate breadcrumb title if too long
-:deep(.v-breadcrumbs__item:last-child) {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-}
 
 
 // Ensure h1 title truncates properly

@@ -8,12 +8,28 @@
         :items="conditionTypeItems"
         item-value="value"
         item-title="label"
+        item-type="type"
         density="compact"
         variant="outlined"
         hide-details="auto"
         placeholder="Select condition type"
-        clearable
-      />
+        class="condition-type-autocomplete"
+      >
+        <template #item="{ props, item }">
+          <v-list-item
+            v-if="item.raw.type === 'subheader'"
+            v-bind="{ ...props, title: null }"
+            disabled
+            class="condition-type-header"
+            style="font-weight: 600; text-transform: small-caps;"
+          >
+            <span class="condition-type-header-text">{{ item.raw.label }}</span>
+          </v-list-item>
+          <v-list-item v-else v-bind="{ ...props, title: null }">
+            <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
+          </v-list-item>
+        </template>
+      </v-autocomplete>
     </div>
     <div class="condition-field" v-if="condition.type">
       <Label>Operator</Label>
@@ -27,7 +43,6 @@
         variant="outlined"
         hide-details="auto"
         placeholder="Select operator"
-        clearable
       />
     </div>
     <div class="condition-field condition-value" v-if="condition.type && condition.operator">
@@ -40,14 +55,12 @@
         @update:model-value="updateCondition('value', $event)"
       />
     </div>
-    <v-btn
-      icon
-      variant="plain"
+    <IconButton
       @click="$emit('remove')"
       class="remove-btn"
     >
       <v-icon color="red">mdi-trash-can-outline</v-icon>
-    </v-btn>
+    </IconButton>
   </div>
 </template>
 
@@ -66,6 +79,7 @@ import OptionSelectInput from './conditionInputs/OptionSelectInput.vue';
 import TextInput from './conditionInputs/TextInput.vue';
 import PaymentMethodSelectInput from './conditionInputs/PaymentMethodSelectInput.vue';
 import Label from '@/components/common/Label.vue';
+import IconButton from '@/components/common/IconButton.vue';
 
 const COMPONENT_MAP = {
   ShippingMethodInput,
@@ -86,6 +100,7 @@ export default {
   name: 'ConditionRow',
   components: {
     Label,
+    IconButton,
     ShippingMethodInput,
     GiftCardInput,
     PaymentAmountInput,
@@ -139,10 +154,14 @@ export default {
       // Reset dependent fields when type or operator changes
       if (field === 'type') {
         updated.operator = '';
-        updated.value = null;
+        updated.value = updated.type === 'SELECTED_PAYMENT_METHOD' ? [] : null;
       } else if (field === 'operator') {
         // Reset value when operator changes; equals_zero requires value 0 for save validation
-        updated.value = value === 'equals_zero' ? 0 : null;
+        if (this.condition.type === 'SELECTED_PAYMENT_METHOD') {
+          updated.value = [];
+        } else {
+          updated.value = value === 'equals_zero' ? 0 : null;
+        }
       }
       
       this.$emit('update', updated);
@@ -177,4 +196,24 @@ export default {
   margin-top: 28px;
   flex-shrink: 0;
 }
+
+.condition-type-header {
+  pointer-events: none;
+  opacity: 1;
+}
+
+.condition-type-header-text {
+  display: block;
+  flex: 1 1 100%;
+  font-weight: 800;
+  text-transform: small-caps;
+  min-width: 0;
+}
+
+/* Single-select: no checkboxes in dropdown list */
+.condition-type-autocomplete :deep(.v-list-item__prepend .v-selection-control),
+.condition-type-autocomplete :deep(.v-list-item .v-selection-control) {
+  display: none;
+}
 </style>
+

@@ -53,9 +53,9 @@
         <v-toolbar flat>
           <v-toolbar-title>Confirm delete</v-toolbar-title>
           <v-spacer />
-          <v-btn icon variant="plain" @click="confirmDelete = false">
+          <IconButton @click="confirmDelete = false">
             <v-icon>mdi-close</v-icon>
-          </v-btn>
+          </IconButton>
         </v-toolbar>
         <v-divider />
         
@@ -94,12 +94,13 @@ import StatusCard from '@/components/common/StatusCard.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
 import HintText from '@/components/common/HintText.vue';
+import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import roleStore from '@/store/roleStore';
 
 export default {
   name: 'GatewayDetail',
-  components: { PageHeader, ModalCard, StatusCard, TertiaryButton, Label, HintText },
+  components: { PageHeader, ModalCard, StatusCard, TertiaryButton, Label, HintText, IconButton },
   props: { code: String },
   data() {
     return {
@@ -259,12 +260,4 @@ export default {
   font-size: 13px;
 }
 
-// Truncate breadcrumb title if too long
-:deep(.v-breadcrumbs__item:last-child) {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-}
 </style>

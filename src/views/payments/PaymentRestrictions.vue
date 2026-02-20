@@ -55,12 +55,12 @@
         {{ item.shopType || '1P' }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn icon variant="plain" @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
+        <IconButton @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
           <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn icon variant="plain" @click.stop="confirmDelete(item)">
+        </IconButton>
+        <IconButton @click.stop="confirmDelete(item)">
           <v-icon color="red">mdi-trash-can-outline</v-icon>
-        </v-btn>
+        </IconButton>
       </template>
     </v-data-table>
     </div>
@@ -116,9 +116,9 @@
         <!-- Step 2: Preset picker -->
         <template v-else>
           <div class="preset-picker-header">
-            <v-btn icon variant="plain" @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
+            <IconButton @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
               <v-icon>mdi-arrow-left</v-icon>
-            </v-btn>
+            </IconButton>
             <p class="preset-picker-text">Choose an example rule</p>
           </div>
           <div class="preset-table-wrapper">
@@ -140,13 +140,11 @@
                   <td class="preset-desc">{{ preset.description }}</td>
                   <td class="preset-actions">
                     <v-btn color="primary" @click="selectPreset(preset)">Use</v-btn>
-                    <v-btn
-                      icon
-                      variant="plain"
+                    <IconButton
                       @click="confirmDeleteExample(preset)"
                     >
                       <v-icon color="red">mdi-trash-can-outline</v-icon>
-                    </v-btn>
+                    </IconButton>
                   </td>
                 </tr>
               </tbody>
@@ -188,6 +186,7 @@ import Modal from '@/components/common/Modal.vue';
 import StatusChip from '@/components/common/StatusChip.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import SecondaryButton from '@/components/common/SecondaryButton.vue';
+import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { getPresetsForCountry } from '@/data/exampleRulePresets';
@@ -197,7 +196,7 @@ const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton },
+  components: { OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton, IconButton },
   data() {
     return {
       search: '',
@@ -229,7 +228,7 @@ export default {
   computed: {
     breadcrumbs() {
       return [
-        { title: 'Payment methods', disabled: true },
+        { title: 'Payment section', disabled: true },
         { title: 'Payment restrictions overview', disabled: true }
       ];
     },
@@ -445,13 +444,6 @@ export default {
   padding-left: 0;
 }
 
-.breadcrumbs-text :deep(.v-breadcrumbs__item) {
-  color: tokens.$color-text-secondary !important;
-}
-
-.breadcrumbs-text :deep(.v-breadcrumbs__divider) {
-  color: tokens.$color-text-secondary !important;
-}
 
 .modal-content {
   max-height: calc(100vh - 280px);

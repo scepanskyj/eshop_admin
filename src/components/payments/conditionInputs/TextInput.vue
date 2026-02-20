@@ -1,8 +1,8 @@
 <template>
   <input
     type="text"
-    :value="value"
-    @input="$emit('input', $event.target.value || null)"
+    :value="modelValue"
+    @input="$emit('update:modelValue', $event.target.value || null)"
     class="native-input"
     :placeholder="placeholder"
   />
@@ -12,7 +12,7 @@
 export default {
   name: 'TextInput',
   props: {
-    value: {
+    modelValue: {
       type: [String, Number],
       default: null
     },

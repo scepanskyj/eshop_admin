@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-breadcrumbs :items="normalizedBreadcrumbs" class="pa-0 breadcrumbs-spacing breadcrumbs-text" />
+    <Breadcrumbs :items="breadcrumbs" class="breadcrumbs-spacing" />
 
     <div class="d-flex align-center heading-spacing">
       <h1 class="h1 page-title">{{ pageTitle }}</h1>
@@ -13,8 +13,13 @@
 </template>
 
 <script>
+import Breadcrumbs from './Breadcrumbs.vue';
+
 export default {
   name: 'PageHeader',
+  components: {
+    Breadcrumbs
+  },
   props: {
     breadcrumbs: {
       type: Array,
@@ -27,13 +32,6 @@ export default {
     }
   },
   computed: {
-    normalizedBreadcrumbs() {
-      // Vuetify 3 v-breadcrumbs expects 'title'; support both 'title' and 'text'
-      return (this.breadcrumbs || []).map(item => ({
-        ...item,
-        title: item.title ?? item.text ?? ''
-      }));
-    },
     pageTitle() {
       // Use explicit title if provided (for backward compatibility or special cases),
       // otherwise derive from last breadcrumb item (support both 'title' and 'text' for Vuetify 2/3)
@@ -48,20 +46,8 @@ export default {
 <style lang="scss" scoped>
 @use '@/styles/tokens.scss' as tokens;
 
-.breadcrumbs-spacing {
-  margin-bottom: tokens.$space-lg;
-}
-
 .heading-spacing {
   margin-bottom: tokens.$space-lg;
-}
-
-.breadcrumbs-text :deep(.v-breadcrumbs__item) {
-  color: tokens.$color-text-secondary !important;
-}
-
-.breadcrumbs-text :deep(.v-breadcrumbs__divider) {
-  color: tokens.$color-text-secondary !important;
 }
 
 :deep(.filters-section) {
@@ -74,14 +60,6 @@ export default {
   white-space: nowrap;
   max-width: calc(100% - 200px); // Leave space for action buttons
   min-width: 0; // Allow flex item to shrink
-}
-
-:deep(.v-breadcrumbs__item:last-child) {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
 }
 </style>
 

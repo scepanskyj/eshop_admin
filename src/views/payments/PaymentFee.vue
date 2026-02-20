@@ -162,9 +162,9 @@
                       />
                     </td>
                     <td class="text-right">
-                      <v-btn icon variant="plain" @click="form.feeMatrix.splice(idx, 1)">
+                      <IconButton @click="form.feeMatrix.splice(idx, 1)">
                         <v-icon color="red">mdi-trash-can-outline</v-icon>
-                      </v-btn>
+                      </IconButton>
                     </td>
                   </tr>
                   <tr v-if="!form.feeMatrix.length">
@@ -183,7 +183,7 @@
             <div class="field-block fee-input-field">
               <Label>Apply Payment Fee for Specific Customers</Label>
               <HintText>Assign fee to selected customer groups. If left blank, the fee will be applied for all.</HintText>
-              <v-select
+              <v-autocomplete
                 class="form-field"
                 variant="outlined"
                 density="compact"
@@ -236,11 +236,12 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
 import HintText from '@/components/common/HintText.vue';
+import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 
 export default {
   name: 'PaymentFee',
-  components: { StickyActionsBar, PageHeader, TertiaryButton, Label, HintText },
+  components: { StickyActionsBar, PageHeader, TertiaryButton, Label, HintText, IconButton },
   data() {
     return {
       form: JSON.parse(JSON.stringify(store.state.fee)),
@@ -278,7 +279,10 @@ export default {
     },
     segmentsOptions() {
       return [
-        { label: 'NOT LOGGED IN', value: 'not_logged_in' },
+        { label: 'Logged in user', value: 'logged_in' },
+        { label: 'Guest user', value: 'guest' },
+        { label: 'Business', value: 'business' },
+        { label: 'Not logged in', value: 'not_logged_in' },
         { label: 'General', value: 'general' },
         { label: 'Wholesale', value: 'wholesale' },
         { label: 'Retailer', value: 'retailer' },
