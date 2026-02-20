@@ -11,12 +11,12 @@
             <span class="group-label">Group {{ groupIndex + 1 }}</span>
             <v-btn
               v-if="groups.length > 1"
-              text
-              color="red"
-              @click="removeGroup(groupIndex)"
-              class="delete-group-btn"
-            >
-              <v-icon left small>mdi-trash-can-outline</v-icon>
+            variant="text"
+            color="red"
+            @click="removeGroup(groupIndex)"
+            class="delete-group-btn"
+          >
+              <v-icon start size="small">mdi-trash-can-outline</v-icon>
               Delete group
             </v-btn>
           </div>
@@ -38,11 +38,11 @@
             </div>
 
             <v-btn
-              outlined
-              @click="addCondition(groupIndex)"
-              class="add-condition-btn"
-            >
-              <v-icon left>mdi-plus</v-icon>
+            variant="outlined"
+            @click="addCondition(groupIndex)"
+            class="add-condition-btn"
+          >
+              <v-icon start>mdi-plus</v-icon>
               Add condition
             </v-btn>
           </div>
@@ -57,16 +57,16 @@
       </div>
 
       <v-btn
-        outlined
+        variant="outlined"
         @click="addGroup"
         class="add-group-btn"
       >
-        <v-icon left>mdi-plus</v-icon>
+        <v-icon start>mdi-plus</v-icon>
         Add OR group
       </v-btn>
     </div>
 
-    <v-alert v-if="groups.length === 0" type="warning" outlined class="mt-4">
+    <v-alert v-if="groups.length === 0" type="warning" variant="outlined" class="mt-4">
       At least one condition group is required.
     </v-alert>
   </div>
@@ -82,30 +82,31 @@ export default {
     ConditionRow
   },
   props: {
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     }
   },
+  emits: ['update:modelValue'],
   computed: {
     groups: {
       get() {
-        return this.value && this.value.length > 0 ? this.value : [createConditionGroup()];
+        return this.modelValue && this.modelValue.length > 0 ? this.modelValue : [createConditionGroup()];
       },
       set(newValue) {
-        this.$emit('input', newValue);
+        this.$emit('update:modelValue', newValue);
       }
     }
   },
   methods: {
     addGroup() {
       const newGroups = [...this.groups, createConditionGroup()];
-      this.$emit('input', newGroups);
+      this.$emit('update:modelValue', newGroups);
     },
     removeGroup(index) {
       if (this.groups.length <= 1) return;
       const newGroups = this.groups.filter((_, i) => i !== index);
-      this.$emit('input', newGroups);
+      this.$emit('update:modelValue', newGroups);
     },
     addCondition(groupIndex) {
       const newGroups = [...this.groups];
@@ -113,7 +114,7 @@ export default {
         ...newGroups[groupIndex],
         conditions: [...newGroups[groupIndex].conditions, createCondition()]
       };
-      this.$emit('input', newGroups);
+      this.$emit('update:modelValue', newGroups);
     },
     removeCondition(groupIndex, conditionIndex) {
       const newGroups = [...this.groups];
@@ -121,7 +122,7 @@ export default {
         ...newGroups[groupIndex],
         conditions: newGroups[groupIndex].conditions.filter((_, i) => i !== conditionIndex)
       };
-      this.$emit('input', newGroups);
+      this.$emit('update:modelValue', newGroups);
     },
     updateCondition(groupIndex, conditionIndex, updatedCondition) {
       const newGroups = [...this.groups];
@@ -131,7 +132,7 @@ export default {
           i === conditionIndex ? updatedCondition : cond
         )
       };
-      this.$emit('input', newGroups);
+      this.$emit('update:modelValue', newGroups);
     }
   }
 };
@@ -179,7 +180,7 @@ export default {
   transition: box-shadow 0.2s ease;
 
   // Ensure all inputs have white background (Vuetify and native)
-  :deep(.v-input__slot) {
+  :deep(.v-field) {
     background-color: white !important;
   }
   :deep(input.native-input),

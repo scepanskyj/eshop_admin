@@ -2,20 +2,20 @@
   <div class="reason-editor">
     <div class="toolbar">
       <v-btn
-        small
-        text
+        size="small"
+        variant="text"
         :class="{ 'primary--text': isBold }"
         @click="execBold"
       >
-        <v-icon small>mdi-format-bold</v-icon>
+        <v-icon size="small">mdi-format-bold</v-icon>
       </v-btn>
       <v-btn
-        small
-        text
+        size="small"
+        variant="text"
         :class="{ 'primary--text': hasLink }"
         @click="toggleLink"
       >
-        <v-icon small>mdi-link</v-icon>
+        <v-icon size="small">mdi-link</v-icon>
       </v-btn>
     </div>
     <div
@@ -34,15 +34,16 @@
 <script>
 export default {
   name: 'RichTextStub',
-  props: { value: String },
+  props: { modelValue: String },
+  emits: ['update:modelValue', 'error'],
   data() {
     return { isBold: false, hasLink: false };
   },
   mounted() {
-    if (this.value) this.$refs.editor.innerHTML = this.value;
+    if (this.modelValue) this.$refs.editor.innerHTML = this.modelValue;
   },
   watch: {
-    value(newVal) {
+    modelValue(newVal) {
       if (!this.$refs.editor) return;
       const incoming = newVal || '';
       if (this.$refs.editor.innerHTML !== incoming) {
@@ -121,7 +122,7 @@ export default {
       return false;
     },
     emitValue() {
-      this.$emit('input', this.$refs.editor.innerHTML);
+      this.$emit('update:modelValue', this.$refs.editor.innerHTML);
     }
   }
 };

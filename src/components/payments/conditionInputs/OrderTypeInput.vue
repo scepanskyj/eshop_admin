@@ -1,15 +1,14 @@
 <template>
   <v-autocomplete
-    :value="value"
-    @input="$emit('input', $event)"
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
     :items="options"
     item-value="value"
-    item-text="label"
-    dense
-    outlined
+    item-title="label"
+    density="compact"
+    variant="outlined"
     hide-details="auto"
     :placeholder="placeholder"
-    clearable
   />
 </template>
 
@@ -19,7 +18,7 @@ import { OPTIONS_BY_TYPE } from '@/utils/conditionConfig';
 export default {
   name: 'OrderTypeInput',
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: null
     },

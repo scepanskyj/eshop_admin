@@ -8,7 +8,7 @@
           @click="createGateway" 
           :disabled="loading"
         >
-          <v-icon left>mdi-plus</v-icon>
+          <v-icon start>mdi-plus</v-icon>
           Create payment method
         </v-btn>
       </template>
@@ -18,8 +18,8 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 prepend-inner-icon="mdi-magnify"
                 label="Search title or code"
                 hide-details
@@ -31,7 +31,7 @@
       </template>
     </PageHeader>
 
-    <v-overlay :value="loading" z-index="9999">
+    <v-overlay :model-value="loading" z-index="9999">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
     </v-overlay>
 
@@ -59,7 +59,7 @@
           @click="saveOrder"
           class="save-order-btn"
         >
-          <v-icon left small>mdi-sort</v-icon>
+          <v-icon start size="small">mdi-sort</v-icon>
           Save sort order
         </v-btn>
       </div>
@@ -69,19 +69,20 @@
         ghost-class="gateway-card--ghost"
         drag-class="gateway-card--drag"
         class="gateways-list"
+        item-key="code"
       >
-        <GatewayCard
-          v-for="(gateway, index) in orderedGateways"
-          :key="gateway.code"
-          :gateway="gateway"
-          :position="index + 1"
-          :icon="getGatewayIcon(gateway.code)"
-          :updated-label="formatUpdated(gateway.updatedAt)"
-          :on-configure="openConfigure"
-          :show-country-badge="showCountryBadge"
-          :country-flag="getCountryFlag(gateway.countryCode)"
-          :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
-        />
+        <template #item="{ element: gateway, index }">
+          <GatewayCard
+            :gateway="gateway"
+            :position="index + 1"
+            :icon="getGatewayIcon(gateway.code)"
+            :updated-label="formatUpdated(gateway.updatedAt)"
+            :on-configure="openConfigure"
+            :show-country-badge="showCountryBadge"
+            :country-flag="getCountryFlag(gateway.countryCode)"
+            :country-abbreviation="getCountryAbbreviation(gateway.countryCode)"
+          />
+        </template>
       </draggable>
     </div>
 
@@ -91,11 +92,11 @@
           <v-alert
             v-if="showDeleteConfirmation"
             type="error"
-            outlined
-            dense
+            variant="outlined"
+            density="compact"
             class="mb-4"
-            dismissible
-            @input="showDeleteConfirmation = false"
+            closable
+            @click:close="showDeleteConfirmation = false"
           >
             <strong>Warning:</strong> Deleting this gateway is irreversible. Click "Confirm delete" below to proceed.
           </v-alert>
@@ -111,8 +112,8 @@
                 <v-text-field
                   class="form-field"
                   v-model="editedGateway.title"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   hide-details="auto"
                   :rules="[requiredRule]"
                 />
@@ -122,10 +123,10 @@
                 <v-select
                   class="form-field"
                   v-model="editedGateway.icon"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   :items="iconOptions"
-                  item-text="text"
+                  item-title="text"
                   item-value="value"
                   hide-details="auto"
                 >
@@ -152,8 +153,8 @@
                 <v-textarea
                   class="form-field"
                   v-model="editedGateway.description"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   rows="3"
                   hide-details="auto"
                   placeholder="Enter description for this payment method"
@@ -163,22 +164,22 @@
 
             <v-expansion-panels multiple>
               <v-expansion-panel>
-                <v-expansion-panel-header>
+                <v-expansion-panel-title>
                   <div>
                     <div class="modal-card__title">Payment Fee Settings</div>
                     <div class="modal-card__subtitle">
                       Configure fee settings for this payment method
                     </div>
                   </div>
-                </v-expansion-panel-header>
-                <v-expansion-panel-content>
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
                   <div class="modal-card__body">
                     <div class="field-block">
                       <Label>Price Type</Label>
                       <v-select
                         class="form-field"
-                        outlined
-                        dense
+                        variant="outlined"
+                        density="compact"
                         v-model="editedGateway.feeSettings.priceType"
                         :items="['Fixed price', 'Percent']"
                         placeholder="Select price type"
@@ -190,8 +191,8 @@
                         <Label>Minimum Order Amount</Label>
                         <v-text-field
                           class="form-field"
-                          outlined
-                          dense
+                          variant="outlined"
+                          density="compact"
                           v-model.number="editedGateway.feeSettings.minAmount"
                           type="number"
                           placeholder="0"
@@ -202,8 +203,8 @@
                         <Label>Maximum Order Amount</Label>
                         <v-text-field
                           class="form-field"
-                          outlined
-                          dense
+                          variant="outlined"
+                          density="compact"
                           v-model.number="editedGateway.feeSettings.maxAmount"
                           type="number"
                           placeholder="9999"
@@ -215,8 +216,8 @@
                       <Label>Fee Amount</Label>
                       <v-text-field
                         class="form-field"
-                        outlined
-                        dense
+                        variant="outlined"
+                        density="compact"
                         v-model.number="editedGateway.feeSettings.amount"
                         type="number"
                         placeholder="0.00"
@@ -231,27 +232,27 @@
                       />
                     </div>
                   </div>
-                </v-expansion-panel-content>
+                </v-expansion-panel-text>
               </v-expansion-panel>
 
               <v-expansion-panel>
-                <v-expansion-panel-header>
+                <v-expansion-panel-title>
                   <div>
                     <div class="modal-card__title">Gateway Settings</div>
                     <div class="modal-card__subtitle">
                       Technical configuration for the payment gateway (if needed)
                     </div>
                   </div>
-                </v-expansion-panel-header>
-                <v-expansion-panel-content>
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
                   <div class="modal-card__body">
                     <div class="field-block">
                       <Label>Sort order</Label>
                       <v-text-field
                         class="form-field"
                         v-model.number="editedGateway.sortOrder"
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         type="number"
                         hide-details="auto"
                       />
@@ -261,8 +262,8 @@
                       <v-select
                         class="form-field"
                         v-model="editedGateway.language"
-                        dense
-                        outlined
+                        density="compact"
+                        variant="outlined"
                         :items="languages"
                         hide-details="auto"
                       />
@@ -275,8 +276,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.mid"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -285,8 +286,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.url"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                           :rules="[urlRule]"
                         />
@@ -303,8 +304,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.keysPath"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -313,8 +314,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.privateKey"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -323,8 +324,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.publicKey"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -333,8 +334,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.failUrl"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -343,8 +344,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.terminalDomain"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -353,8 +354,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.successUrl"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -377,8 +378,8 @@
                         <v-select
                           class="form-field"
                           v-model="editedGateway.paymentAction"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           :items="actions"
                           hide-details="auto"
                         />
@@ -388,12 +389,11 @@
                         <v-autocomplete
                           class="form-field"
                           v-model="editedGateway.countries"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           :items="allCountryOptions"
                           multiple
                           chips
-                          small-chips
                           hide-details="auto"
                           :filter="countryFilter"
                         />
@@ -403,15 +403,15 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.externalGuid"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                           :readonly="!!editedGateway.details.externalGuid"
                         />
                       </div>
                     </ModalCard>
                   </div>
-                </v-expansion-panel-content>
+                </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
 
@@ -422,15 +422,15 @@
               >
                       <v-expansion-panels multiple focusable>
                       <v-expansion-panel>
-                        <v-expansion-panel-header>API Configuration</v-expansion-panel-header>
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-title>API Configuration</v-expansion-panel-title>
+                        <v-expansion-panel-text>
                           <div class="field-block">
                             <Label>Endpoint</Label>
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiEndpoint"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               :items="['Klarna Payments (Europe)', 'Klarna Payments (US)']"
                               hide-details="auto"
                             />
@@ -440,8 +440,8 @@
                             <v-text-field
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiUsername"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               hide-details="auto"
                             />
                           </div>
@@ -450,8 +450,8 @@
                             <v-text-field
                               class="form-field"
                               v-model="editedGateway.details.klarnaApiPassword"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               type="password"
                               hide-details="auto"
                             />
@@ -461,8 +461,8 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaMode"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               :items="['Playground', 'Production']"
                               hide-details="auto"
                             />
@@ -472,18 +472,18 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaLogging"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               :items="['Enable', 'Disable']"
                               hide-details="auto"
                             />
                           </div>
-                        </v-expansion-panel-content>
+                        </v-expansion-panel-text>
                       </v-expansion-panel>
 
                       <v-expansion-panel>
-                        <v-expansion-panel-header>Klarna Payments</v-expansion-panel-header>
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-title>Klarna Payments</v-expansion-panel-title>
+                        <v-expansion-panel-text>
                           <div class="field-block">
                             <v-checkbox
                               v-model="editedGateway.details.klarnaPaymentsEnable"
@@ -496,8 +496,8 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaPaymentsAllowedCountries"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               :items="['All Allowed Countries', 'Specific Countries']"
                               hide-details="auto"
                             />
@@ -523,12 +523,12 @@
                               hide-details
                             />
                           </div>
-                        </v-expansion-panel-content>
+                        </v-expansion-panel-text>
                       </v-expansion-panel>
 
                       <v-expansion-panel>
-                        <v-expansion-panel-header>Klarna On-Site Messaging</v-expansion-panel-header>
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-title>Klarna On-Site Messaging</v-expansion-panel-title>
+                        <v-expansion-panel-text>
                           <div class="field-block">
                             <v-checkbox
                               v-model="editedGateway.details.klarnaMessagingEnable"
@@ -541,13 +541,13 @@
                             <v-select
                               class="form-field"
                               v-model="editedGateway.details.klarnaMessagingPlacement"
-                              dense
-                              outlined
+                              density="compact"
+                              variant="outlined"
                               :items="['cart', 'product', 'sidebar']"
                               hide-details="auto"
                             />
                           </div>
-                        </v-expansion-panel-content>
+                        </v-expansion-panel-text>
                       </v-expansion-panel>
               </v-expansion-panels>
               </ModalCard>
@@ -563,8 +563,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankAccountPrefix"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -573,8 +573,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankAccountNumber"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -583,8 +583,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.bankCode"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -593,8 +593,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.constantSymbol"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -603,8 +603,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.safeKey"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -613,8 +613,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.currency"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -623,8 +623,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.paymentTargetUrl"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -633,8 +633,8 @@
                         <v-text-field
                           class="form-field"
                           v-model="editedGateway.details.paymentReturnUrl"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           hide-details="auto"
                         />
                       </div>
@@ -650,8 +650,8 @@
                         <v-select
                           class="form-field"
                           v-model="editedGateway.details.allowedCountries"
-                          dense
-                          outlined
+                          density="compact"
+                          variant="outlined"
                           :items="['All Allowed Countries', 'Specific Countries']"
                           hide-details="auto"
                         />
@@ -674,13 +674,13 @@
                     color="red"
                     @click="initiateDelete"
                   >
-                    <v-icon left>mdi-delete-outline</v-icon>
+                    <v-icon start>mdi-delete-outline</v-icon>
                     Delete gateway
                   </v-btn>
                   <div v-else class="d-flex align-center" style="gap: 8px;">
-                    <TertiaryButton text @click="showDeleteConfirmation = false">Cancel</TertiaryButton>
-                    <v-btn color="red" dark @click="confirmDelete">
-                      <v-icon left>mdi-delete</v-icon>
+                    <TertiaryButton variant="text" @click="showDeleteConfirmation = false">Cancel</TertiaryButton>
+                    <v-btn color="red" variant="plain" @click="confirmDelete">
+                      <v-icon start>mdi-delete</v-icon>
                       Confirm delete
                     </v-btn>
                   </div>
@@ -693,14 +693,14 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <TertiaryButton text @click="handleDialogClose">Cancel</TertiaryButton>
+        <TertiaryButton variant="text" @click="handleDialogClose">Cancel</TertiaryButton>
         <v-btn color="primary" @click="saveGateway">Save</v-btn>
       </template>
     </Modal>
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
+      <TertiaryButton variant="text" @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -849,8 +849,8 @@ export default {
     },
     breadcrumbs() {
       return [
-        { text: 'Payment section', disabled: true },
-        { text: 'Payment methods overview', disabled: true }
+        { title: 'Payment section', disabled: true },
+        { title: 'Payment methods overview', disabled: true }
       ];
     },
     iconOptions() {
@@ -1159,7 +1159,6 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .gateways-page-wrapper {
-  min-height: calc(100vh - 64px);
   padding: tokens.$page-padding;
 }
 
@@ -1176,17 +1175,10 @@ export default {
   padding-left: 0;
 }
 
-.search-field :deep(.v-input__slot) {
+.search-field :deep(.v-field) {
   background-color: white !important;
 }
 
-.breadcrumbs-text :deep(.v-breadcrumbs__item) {
-  color: tokens.$color-text-secondary !important;
-}
-
-.breadcrumbs-text :deep(.v-breadcrumbs__divider) {
-  color: tokens.$color-text-secondary !important;
-}
 
 .filter-wrapper {
   border-radius: 4px;
@@ -1402,18 +1394,18 @@ export default {
   box-shadow: none !important;
 }
 
-:deep(.v-expansion-panel-header) {
+:deep(.v-expansion-panel-title) {
   padding: tokens.$space-xl !important;
   min-height: auto !important;
   background-color: transparent !important;
 }
 
-:deep(.v-expansion-panel-header__icon) {
+:deep(.v-expansion-panel-title__icon) {
   margin-left: auto;
   margin-right: 0;
 }
 
-:deep(.v-expansion-panel-content__wrap) {
+:deep(.v-expansion-panel-text__wrapper) {
   padding: 0 tokens.$space-xl tokens.$space-xl tokens.$space-xl !important;
 }
 </style>

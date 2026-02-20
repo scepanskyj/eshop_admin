@@ -2,41 +2,41 @@
   <div>
     <v-text-field
       v-if="operator === 'between'"
-      :value="value && value.min"
-      @input="updateBetweenValue('min', $event)"
+      :model-value="modelValue && modelValue.min"
+      @update:model-value="updateBetweenValue('min', $event)"
       type="number"
-      dense
-      outlined
+      density="compact"
+      variant="outlined"
       hide-details="auto"
       placeholder="Min amount"
       class="mb-2"
     />
     <v-text-field
       v-if="operator === 'between'"
-      :value="value && value.max"
-      @input="updateBetweenValue('max', $event)"
+      :model-value="modelValue && modelValue.max"
+      @update:model-value="updateBetweenValue('max', $event)"
       type="number"
-      dense
-      outlined
+      density="compact"
+      variant="outlined"
       hide-details="auto"
       placeholder="Max amount"
     />
     <v-text-field
       v-else-if="operator === 'equals_zero'"
-      :value="0"
+      :model-value="0"
       disabled
-      dense
-      outlined
+      density="compact"
+      variant="outlined"
       hide-details="auto"
       placeholder="0"
     />
     <v-text-field
       v-else
-      :value="value"
-      @input="$emit('input', $event ? parseFloat($event) : null)"
+      :model-value="modelValue"
+      @update:model-value="$emit('update:modelValue', $event ? parseFloat($event) : null)"
       type="number"
-      dense
-      outlined
+      density="compact"
+      variant="outlined"
       hide-details="auto"
       :placeholder="placeholder"
     />
@@ -47,7 +47,7 @@
 export default {
   name: 'PaymentAmountInput',
   props: {
-    value: {
+    modelValue: {
       type: [Number, Object],
       default: null
     },
@@ -63,10 +63,10 @@ export default {
   methods: {
     updateBetweenValue(key, val) {
       const newValue = {
-        ...(this.value || {}),
+        ...(this.modelValue || {}),
         [key]: val ? parseFloat(val) : null
       };
-      this.$emit('input', newValue);
+      this.$emit('update:modelValue', newValue);
     }
   }
 };

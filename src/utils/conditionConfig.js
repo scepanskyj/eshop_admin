@@ -4,6 +4,7 @@
 
 export const CONDITION_TYPE_CATEGORIES = [
   { id: 'order', label: 'Order' },
+  { id: 'payment', label: 'Payment' },
   { id: 'product', label: 'Product' },
   { id: 'shipping', label: 'Shipping & Delivery' },
   { id: 'customer', label: 'Customer' },
@@ -14,8 +15,8 @@ export const CONDITION_TYPE_CATEGORIES = [
 export const CONDITION_TYPES = [
   { value: 'ORDER_TYPE', label: 'Order type', category: 'order' },
   { value: 'ORDER_FLOW', label: 'Order flow', category: 'order' },
-  { value: 'PAYMENT_AMOUNT', label: 'Payment amount', category: 'order' },
-  { value: 'SELECTED_PAYMENT_METHOD', label: 'Selected payment method', category: 'order' },
+  { value: 'PAYMENT_AMOUNT', label: 'Payment amount', category: 'payment' },
+  { value: 'SELECTED_PAYMENT_METHOD', label: 'Selected payment method', category: 'payment' },
   { value: 'PRODUCT_TYPE', label: 'Product type', category: 'product' },
   { value: 'PRODUCT_SKU', label: 'Product SKU', category: 'product' },
   { value: 'PRODUCT_FLAGS_COMBINATION', label: 'Product flags', category: 'product' },
@@ -265,14 +266,14 @@ export function getConditionTypesFlat() {
 
 /**
  * Get condition types for autocomplete with category headers (Product, Order, etc.)
- * Returns flat list with header items for Vuetify v-select/v-autocomplete optgroup-style display
+ * Returns flat list: subheader items use type: 'subheader' for Vuetify's native subheader slot (no duplication).
  */
 export function getConditionTypesForAutocomplete() {
   const result = [];
   for (const cat of CONDITION_TYPE_CATEGORIES) {
     const types = CONDITION_TYPES.filter(t => t.category === cat.id);
     if (types.length === 0) continue;
-    result.push({ header: cat.label, label: cat.label }); // label helps filter keep header when search matches category
+    result.push({ type: 'subheader', label: cat.label });
     result.push(...types.map(t => ({ value: t.value, label: t.label })));
   }
   return result;

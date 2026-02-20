@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 import seed, { gatewaysOnly } from '@/mock/payments.mock';
 import { paymentMethods } from '@/mock/paymentMethods.seed';
 import { migrateRules } from '@/utils/ruleMigration';
@@ -46,7 +46,7 @@ function mergeStripeGatewayIntoCardMethods(paymentMethods, stripeGateway) {
   return updatedMethods;
 }
 
-const state = Vue.observable({
+const state = reactive({
   gateways: [], // Payment methods (backward compatibility name)
   rules: [],
   fee: null,
@@ -242,7 +242,7 @@ const actions = {
       if (conflict) throw new Error('Payment method code already exists');
     }
     const merged = { ...state.gateways[idx], ...incoming, updatedAt: new Date().toISOString() };
-    Vue.set(state.gateways, idx, merged);
+    state.gateways[idx] = merged;
     persist();
   },
   deletePaymentMethod(code) {
@@ -280,7 +280,7 @@ const actions = {
     const idx = state.rules.findIndex(r => r.id === id);
     if (idx === -1) throw new Error('Rule not found');
     const merged = { ...state.rules[idx], ...deepClone(data), updatedAt: new Date().toISOString() };
-    Vue.set(state.rules, idx, merged);
+    state.rules[idx] = merged;
     persist();
   },
   deleteRule(id) {
@@ -297,8 +297,8 @@ const actions = {
 };
 
 const dirty = {
-  set(pageKey, value) { Vue.set(state._dirty, pageKey, !!value); },
-  clear(pageKey) { Vue.set(state._dirty, pageKey, false); },
+  set(pageKey, value) { state._dirty[pageKey] = !!value; },
+  clear(pageKey) { state._dirty[pageKey] = false; },
   clearAll() { Object.keys(state._dirty).forEach(k => { state._dirty[k] = false; }); },
   shouldBlockNavigation() { return Object.values(state._dirty).some(Boolean); }
 };

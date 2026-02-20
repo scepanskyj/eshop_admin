@@ -5,31 +5,30 @@
         v-model="localSearch"
         :label="searchLabel || 'Search'"
         prepend-inner-icon="mdi-magnify"
-        dense
+        density="compact"
         clearable
         hide-details
-        @input="emitSearch"
+        @update:model-value="emitSearch"
       />
 
       <div class="quick-filters">
-        <template v-for="q in quickFilters">
+        <template v-for="q in quickFilters" :key="q.key">
           <v-select
-            :key="q.key"
             v-model="localQuick[q.key]"
             :items="q.items"
             :label="q.label"
-            dense
+            density="compact"
             clearable
             hide-details
             class="mr-4"
-            @change="emitQuick"
+            @update:model-value="emitQuick"
           />
         </template>
       </div>
 
       <v-spacer />
-      <v-btn color="primary" outlined @click="dialog = true">
-        <v-icon left>mdi-filter-variant</v-icon>
+      <v-btn color="primary" variant="outlined" @click="dialog = true">
+        <v-icon start>mdi-filter-variant</v-icon>
         Filters
       </v-btn>
     </v-toolbar>
@@ -39,12 +38,12 @@
         v-for="(chip, i) in chips"
         :key="i"
         class="mr-2 mb-2"
-        close
+        closable
         @click:close="$emit('remove-chip', chip)"
       >
         {{ chip.label }}
       </v-chip>
-      <v-btn text small color="primary" @click="$emit('clear-all')">Clear all</v-btn>
+      <v-btn variant="text" size="small" color="primary" @click="$emit('clear-all')">Clear all</v-btn>
     </div>
 
     <v-dialog v-model="dialog" max-width="900">
@@ -52,17 +51,17 @@
         <v-toolbar flat>
           <v-toolbar-title>Filters</v-toolbar-title>
           <v-spacer />
-          <v-btn icon @click="dialog = false">
+          <IconButton @click="dialog = false">
             <v-icon>mdi-close</v-icon>
-          </v-btn>
+          </IconButton>
         </v-toolbar>
         <v-divider />
         
         <v-card-text class="modal-content">
           <v-container>
             <v-row>
-              <template v-for="f in dialogFields">
-                <v-col :key="f.key" cols="12" md="4">
+              <template v-for="f in dialogFields" :key="f.key">
+                <v-col cols="12" md="4">
                   <component
                     :is="fieldComponent(f)"
                     v-model="localDialog[f.key]"
@@ -71,7 +70,7 @@
                     :multiple="f.multiple || false"
                     :chips="f.multiple || false"
                     :type="f.type === 'text' ? 'text' : undefined"
-                    dense
+                    density="compact"
                     clearable
                     hide-details
                   />
@@ -85,7 +84,7 @@
           <v-divider />
           <v-card-actions class="modal-footer">
             <v-spacer />
-            <v-btn text @click="resetDialog">Reset</v-btn>
+            <v-btn variant="text" @click="resetDialog">Reset</v-btn>
             <v-btn color="primary" @click="applyDialog">Apply</v-btn>
           </v-card-actions>
         </div>
@@ -95,8 +94,11 @@
  </template>
 
 <script>
+import IconButton from '@/components/common/IconButton.vue';
+
 export default {
   name: 'FilterToolbar',
+  components: { IconButton },
   props: {
     searchLabel: String,
     search: { type: String, default: '' },

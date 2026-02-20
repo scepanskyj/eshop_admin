@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { reactive } from 'vue';
 
 const ROLE_OPTIONS = [
   { code: 'admin', label: 'Admin', icon: 'mdi-shield-crown' },
@@ -6,7 +6,7 @@ const ROLE_OPTIONS = [
   { code: 'user', label: 'User', icon: 'mdi-account' }
 ];
 
-const state = Vue.observable({
+const state = reactive({
   current: 'admin',
   options: ROLE_OPTIONS
 });

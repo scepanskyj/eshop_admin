@@ -2,13 +2,13 @@
   <div class="payment-method-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
-        <v-btn v-if="!isCreate && canDelete" text color="red" @click="showDeleteConfirm = true" class="ml-2">
-          <v-icon left>mdi-delete-outline</v-icon>
+        <TertiaryButton variant="text" @click="handleCancel">Cancel</TertiaryButton>
+        <v-btn v-if="!isCreate && canDelete" variant="text" color="red" @click="showDeleteConfirm = true" class="ml-2">
+          <v-icon start>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
         <v-btn color="primary" @click="handleSave" :loading="saving" class="ml-2">
-          <v-icon left>mdi-check</v-icon>
+          <v-icon start>mdi-check</v-icon>
           Save
         </v-btn>
       </template>
@@ -28,8 +28,8 @@
               <v-text-field
                 class="form-field"
                 v-model="form.title"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 hide-details="auto"
                 :rules="[requiredRule]"
               />
@@ -59,8 +59,8 @@
               <v-textarea
                 class="form-field"
                 v-model="form.description"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 rows="3"
                 hide-details="auto"
                 placeholder="Enter description for this payment method"
@@ -72,8 +72,8 @@
               <v-text-field
                 class="form-field"
                 v-model.number="form.sortOrder"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 type="number"
                 hide-details="auto"
                 :rules="[sortOrderRule]"
@@ -96,8 +96,8 @@
                 <v-text-field
                   class="form-field"
                   v-model="form.stripeTitle"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   hide-details="auto"
                   placeholder="Text shown in Stripe gateway as title"
                 />
@@ -113,8 +113,8 @@
               <v-textarea
                 class="form-field json-editor"
                 v-model="form.gatewayConfig"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 rows="20"
                 hide-details="auto"
                 placeholder='{"key": "value"}'
@@ -139,8 +139,8 @@
                 <v-text-field
                   class="form-field"
                   v-model.number="form.feeSettings.amount"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   type="number"
                   step="0.01"
                   hide-details="auto"
@@ -156,8 +156,8 @@
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.minOrderAmount"
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     type="number"
                     step="0.01"
                     hide-details="auto"
@@ -171,8 +171,8 @@
                   <v-text-field
                     class="form-field"
                     v-model.number="form.feeSettings.maxOrderAmount"
-                    dense
-                    outlined
+                    density="compact"
+                    variant="outlined"
                     type="number"
                     step="0.01"
                     hide-details="auto"
@@ -192,16 +192,18 @@
               <div class="field-block fee-input-field">
                 <Label>Apply Payment Fee For Specific Customers</Label>
                 <HintText>If left blank, the fee applies to all customers.</HintText>
-                <v-select
+                <v-autocomplete
                   class="form-field"
                   v-model="form.feeSettings.customerTypes"
                   :items="customerTypeOptions"
+                  item-title="text"
+                  item-value="value"
                   multiple
                   chips
-                  small-chips
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   hide-details="auto"
+                  placeholder="Select customer groups"
                 />
               </div>
 
@@ -231,11 +233,11 @@
         <v-alert
           v-if="showDeleteConfirmation"
           type="error"
-          outlined
-          dense
+          variant="outlined"
+          density="compact"
           class="mb-4"
-          dismissible
-          @input="showDeleteConfirmation = false"
+          closable
+          @click:close="showDeleteConfirmation = false"
         >
           <strong>Warning:</strong> Deleting this payment method is irreversible. Click "Confirm delete" below to proceed.
         </v-alert>
@@ -247,14 +249,14 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <TertiaryButton text @click="showDeleteConfirm = false; showDeleteConfirmation = false">Cancel</TertiaryButton>
+        <TertiaryButton variant="text" @click="showDeleteConfirm = false; showDeleteConfirmation = false">Cancel</TertiaryButton>
         <v-btn
           v-if="!showDeleteConfirmation"
           outlined
           color="red"
           @click="showDeleteConfirmation = true"
         >
-          <v-icon left>mdi-delete-outline</v-icon>
+          <v-icon start>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
         <v-btn
@@ -263,7 +265,7 @@
           dark
           @click="handleDelete"
         >
-          <v-icon left>mdi-delete</v-icon>
+          <v-icon start>mdi-delete</v-icon>
           Confirm delete
         </v-btn>
       </template>
@@ -271,7 +273,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
+      <TertiaryButton variant="text" @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -377,15 +379,16 @@ export default {
       const baseTitle = this.isCreate ? 'Create payment method' : 'Edit payment method';
       const title = this.form && this.form.title ? `${baseTitle} - ${this.form.title}` : baseTitle;
       return [
-        { text: 'Payment section', disabled: true },
-        { text: 'Payment methods', to: { name: 'PaymentMethodsOverview' } },
-        { text: title, disabled: true }
+        { title: 'Payment section', disabled: true },
+        { title: 'Payment methods', to: { name: 'PaymentMethodsOverview' } },
+        { title: title, disabled: true }
       ];
     },
     customerTypeOptions() {
       return [
         { text: 'Logged in user', value: 'logged_in' },
-        { text: 'Not logged in', value: 'guest' },
+        { text: 'Guest user', value: 'guest' },
+        { text: 'Business', value: 'business' },
         { text: 'Wholesale', value: 'wholesale' }
       ];
     },
@@ -615,7 +618,6 @@ export default {
 @use '@/styles/form-fields.scss';
 
 .payment-method-detail-wrapper {
-  min-height: calc(100vh - 64px);
   padding: tokens.$page-padding;
 }
 
@@ -665,11 +667,11 @@ export default {
   box-shadow: none !important;
 }
 
-:deep(.payment-fee-accordions .v-expansion-panel-header) {
+:deep(.payment-fee-accordions .v-expansion-panel-title) {
   padding: tokens.$space-md tokens.$space-lg !important;
 }
 
-:deep(.payment-fee-accordions .v-expansion-panel-content) {
+:deep(.payment-fee-accordions .v-expansion-panel-text) {
   padding: 0 tokens.$space-lg tokens.$space-lg tokens.$space-lg !important;
 }
 
@@ -695,14 +697,6 @@ export default {
   font-size: 14px;
 }
 
-// Truncate breadcrumb title if too long
-:deep(.v-breadcrumbs__item:last-child) {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-}
 
 
 // Ensure h1 title truncates properly

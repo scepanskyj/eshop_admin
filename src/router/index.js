@@ -1,5 +1,4 @@
-import Vue from 'vue';
-import Router from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 import PaymentMethodsOverview from '@/views/payments/PaymentMethodsOverview.vue';
 import PaymentMethodDetail from '@/views/payments/PaymentMethodDetail.vue';
@@ -8,10 +7,8 @@ import PaymentRestrictionDetail from '@/views/payments/PaymentRestrictionDetail.
 import PaymentFee from '@/views/payments/PaymentFee.vue';
 import paymentsStore from '@/store/paymentsStore';
 
-Vue.use(Router);
-
-const router = new Router({
-  mode: 'hash',
+const router = createRouter({
+  history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: { name: 'PaymentMethodsOverview' } },
     { path: '/payments/methods', name: 'PaymentMethodsOverview', component: PaymentMethodsOverview },
@@ -24,10 +21,8 @@ const router = new Router({
   ]
 });
 
-// Initialize store (seed from mocks if needed)
 paymentsStore.init();
 
-// Global dirty-guard
 router.beforeEach((to, from, next) => {
   if (paymentsStore.dirty.shouldBlockNavigation()) {
     const ok = window.confirm('You have unsaved changes. Are you sure you want to leave this page?');
@@ -38,5 +33,3 @@ router.beforeEach((to, from, next) => {
 });
 
 export default router;
-
-

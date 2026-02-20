@@ -1,11 +1,9 @@
 @use '@/styles/tokens.scss' as tokens;
 
-// Content container max-width
 .content-col {
   max-width: tokens.$content-max-width !important;
 }
 
-// Standard form field wrapper
 .field-block {
   display: flex;
   flex-direction: column;
@@ -17,27 +15,22 @@
   color: #d32f2f;
 }
 
-// Standardize all Vuetify inputs - white fill + outlined border
-:deep(.form-field .v-input__slot) {
+:deep(.form-field .v-field) {
   background-color: white !important;
 }
 
-// Ensure outlined variant has white background
-:deep(.form-field.v-input--is-outlined .v-input__slot) {
+:deep(.form-field.v-field--variant-outlined .v-field) {
   background-color: white !important;
 }
 
-// Textarea should have white background but flexible height
-:deep(.form-field.v-textarea .v-input__slot) {
+:deep(.form-field.v-textarea .v-field) {
   background-color: white !important;
 }
 
-// Ensure fieldset border is visible
-:deep(.form-field.v-input--is-outlined .v-input__slot fieldset) {
-  border-color: rgba(0, 0, 0, 0.38) !important;
+:deep(.form-field .v-field--variant-outlined .v-field__outline) {
+  color: rgba(0, 0, 0, 0.38) !important;
 }
 
-:deep(.form-field.v-input--is-outlined.v-input--is-focused .v-input__slot fieldset) {
-  border-color: rgba(0, 0, 0, 0.87) !important;
+:deep(.form-field .v-field--focused .v-field__outline) {
+  color: rgba(0, 0, 0, 0.87) !important;
 }
-

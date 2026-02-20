@@ -2,34 +2,25 @@
   <div class="payment-restriction-detail-wrapper">
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
-        <TertiaryButton text @click="handleCancel">Cancel</TertiaryButton>
+        <TertiaryButton variant="text" @click="handleCancel">Cancel</TertiaryButton>
         <PrimaryButton @click="handleSave" :loading="saving" class="ml-2">
-          <v-icon left>mdi-check</v-icon>
+          <v-icon start>mdi-check</v-icon>
           Save
         </PrimaryButton>
-        <v-menu offset-y left>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn icon text class="ml-2" v-bind="attrs" v-on="on" aria-label="More actions">
+        <v-menu location="start bottom">
+          <template v-slot:activator="{ props }">
+            <IconButton class="ml-2" v-bind="props" aria-label="More actions">
               <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
+            </IconButton>
           </template>
-          <v-list dense>
-            <v-list-item @click="handleDuplicate">
-              <v-list-item-icon>
-                <v-icon small>mdi-content-copy</v-icon>
-              </v-list-item-icon>
+          <v-list density="compact">
+            <v-list-item @click="handleDuplicate" prepend-icon="mdi-content-copy">
               <v-list-item-title>Duplicate</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="handleSaveAsExample">
-              <v-list-item-icon>
-                <v-icon small>mdi-bookmark-plus-outline</v-icon>
-              </v-list-item-icon>
+            <v-list-item @click="handleSaveAsExample" prepend-icon="mdi-bookmark-plus-outline">
               <v-list-item-title>Save as example</v-list-item-title>
             </v-list-item>
-            <v-list-item v-if="!isCreate" @click="deleteDialog = true" class="red--text">
-              <v-list-item-icon>
-                <v-icon small color="red">mdi-delete-outline</v-icon>
-              </v-list-item-icon>
+            <v-list-item v-if="!isCreate" @click="deleteDialog = true" class="red--text" prepend-icon="mdi-delete-outline">
               <v-list-item-title>Delete</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -57,8 +48,8 @@
                   class="form-field"
                   v-model="ruleForm.name"
                   :rules="[v=>!!v||'Required']"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   hide-details="auto"
                 />
               </div>
@@ -69,12 +60,13 @@
                   class="form-field"
                   v-model="ruleForm.paymentMethods"
                   :items="availablePaymentMethods"
+                  item-title="text"
+                  item-value="value"
                   :rules="[v => (Array.isArray(v) && v.length > 0) || 'At least one payment method is required']"
                   multiple
                   chips
-                  small-chips
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   hide-details="auto"
                 />
               </div>
@@ -85,8 +77,8 @@
                 <v-textarea
                   class="form-field description-textarea"
                   v-model="ruleForm.description"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   hide-details="auto"
                 />
               </div>
@@ -136,9 +128,9 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
-        <v-btn color="red" dark @click="doDelete">
-          <v-icon left>mdi-delete-outline</v-icon>
+        <TertiaryButton variant="text" @click="cancelDelete">Cancel</TertiaryButton>
+        <v-btn color="red" variant="plain" @click="doDelete">
+          <v-icon start>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
       </template>
@@ -146,7 +138,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
+      <TertiaryButton variant="text" @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -163,6 +155,7 @@ import PrimaryButton from '@/components/common/PrimaryButton.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
 import HintText from '@/components/common/HintText.vue';
+import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
@@ -170,7 +163,7 @@ import { addUserExample } from '@/data/userExampleRules';
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton, Label, HintText },
+  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton, Label, HintText, IconButton },
   props: {
     id: {
       type: String,
@@ -193,13 +186,13 @@ export default {
     },
     breadcrumbs() {
       const crumbs = [
-        { text: 'Payment methods', disabled: false, to: { name: 'PaymentRestrictions' } },
-        { text: 'Payment restrictions', disabled: false, to: { name: 'PaymentRestrictions' } }
+        { title: 'Payment methods', disabled: false, to: { name: 'PaymentRestrictions' } },
+        { title: 'Payment restrictions', disabled: false, to: { name: 'PaymentRestrictions' } }
       ];
       if (this.isCreate) {
-        crumbs.push({ text: this.ruleForm?.name || 'New rule', disabled: true });
+        crumbs.push({ title: this.ruleForm?.name || 'New rule', disabled: true });
       } else {
-        crumbs.push({ text: this.ruleForm?.name || 'Edit rule', disabled: true });
+        crumbs.push({ title: this.ruleForm?.name || 'Edit rule', disabled: true });
       }
       return crumbs;
     },

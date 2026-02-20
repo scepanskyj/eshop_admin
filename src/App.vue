@@ -8,23 +8,23 @@
       <div class="header-right-items">
         <span class="version-text">client v{{ clientVersion }}, server v{{ serverVersion }}</span>
         <v-divider vertical class="header-divider" />
-        <v-btn icon text class="header-icon-btn" aria-label="Info">
-          <v-icon small>mdi-information-outline</v-icon>
+        <v-btn icon variant="text" class="header-icon-btn" aria-label="Info">
+          <v-icon size="small">mdi-information-outline</v-icon>
         </v-btn>
-        <v-btn icon text class="header-icon-btn" aria-label="Package">
-          <v-icon small>mdi-cube-outline</v-icon>
+        <v-btn icon variant="text" class="header-icon-btn" aria-label="Package">
+          <v-icon size="small">mdi-cube-outline</v-icon>
         </v-btn>
-        <v-btn icon text class="header-icon-btn" aria-label="Documentation">
-          <v-icon small>mdi-book-open-outline</v-icon>
+        <v-btn icon variant="text" class="header-icon-btn" aria-label="Documentation">
+          <v-icon size="small">mdi-book-open-outline</v-icon>
         </v-btn>
         <v-divider vertical class="header-divider" />
-        <v-menu offset-y>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn text class="tenant-switcher" v-bind="attrs" v-on="on">
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn variant="text" class="tenant-switcher" v-bind="props">
               {{ currentTenant.code }}
             </v-btn>
           </template>
-          <v-list dense>
+          <v-list density="default">
             <v-list-item
               v-for="option in tenantOptions"
               :key="option.code"
@@ -34,30 +34,30 @@
                 <span class="tenant-flag">{{ option.flag }}</span>
                 <span class="tenant-label">{{ option.label }}</span>
               </v-list-item-title>
-              <v-spacer />
-              <v-icon v-if="option.code === currentTenant.code">mdi-check</v-icon>
+              <template v-slot:append>
+                <v-icon v-if="option.code === currentTenant.code">mdi-check</v-icon>
+              </template>
             </v-list-item>
           </v-list>
         </v-menu>
         <v-divider vertical class="header-divider" />
-        <v-menu offset-y>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn icon text class="header-icon-btn" aria-label="User profile" v-bind="attrs" v-on="on">
-              <v-icon small>mdi-account-outline</v-icon>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn icon variant="text" class="header-icon-btn" aria-label="User profile" v-bind="props">
+              <v-icon size="small">mdi-account-outline</v-icon>
             </v-btn>
           </template>
-          <v-list dense>
+          <v-list density="default">
             <v-list-item
               v-for="option in roleOptions"
               :key="option.code"
+              :prepend-icon="option.icon"
               @click="selectRole(option.code)"
             >
-              <v-list-item-icon>
-                <v-icon>{{ option.icon }}</v-icon>
-              </v-list-item-icon>
               <v-list-item-title>{{ option.label }}</v-list-item-title>
-              <v-spacer />
-              <v-icon v-if="option.code === currentRole.code" small>mdi-check</v-icon>
+              <template v-slot:append>
+                <v-icon v-if="option.code === currentRole.code" size="small">mdi-check</v-icon>
+              </template>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -65,27 +65,27 @@
     </v-app-bar>
 
     <v-navigation-drawer permanent class="app-drawer">
-      <v-list dense>
-        <v-list-group prepend-icon="mdi-cog" value="true">
-          <template v-slot:activator>
-            <v-list-item-content>
-              <v-list-item-title>Payment section</v-list-item-title>
-            </v-list-item-content>
+      <v-list density="default">
+        <v-list-group value="Payment section">
+          <template v-slot:activator="{ props }">
+            <v-list-item v-bind="props" title="Payment section" class="drawer-group-header">
+              <template v-slot:prepend>
+                <i class="fa-solid fa-credit-card drawer-icon" />
+              </template>
+            </v-list-item>
           </template>
 
-          <v-list-item :to="{ name: 'PaymentMethodsOverview' }" link class="nested-link">
-            <v-list-item-action><v-icon>mdi-credit-card-outline</v-icon></v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Payment methods</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+          <v-list-item
+            :to="{ name: 'PaymentMethodsOverview' }"
+            title="Payment methods"
+            class="nested-link"
+          />
 
-          <v-list-item :to="{ name: 'PaymentRestrictions' }" link class="nested-link">
-            <v-list-item-action><v-icon>mdi-shield-half-full</v-icon></v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Payment restrictions</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+          <v-list-item
+            :to="{ name: 'PaymentRestrictions' }"
+            title="Payment restrictions"
+            class="nested-link"
+          />
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
@@ -142,7 +142,6 @@ export default {
 
 html, body, #app { height: 100%; }
 
-// Global typography overrides for Vuetify classes
 h1, .text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
   font-family: tokens.$font-family-base !important;
 }
@@ -180,20 +179,12 @@ h1, .text-h1 {
 .app-header {
   background-color: white !important;
   border-bottom: 1px solid tokens.$color-border-subtle !important;
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  height: 64px !important;
   box-shadow: none !important;
   
-  // Toolbar title - black
-  :deep(.v-toolbar__title) {
+  :deep(.v-toolbar-title) {
     color: tokens.$color-text-primary !important;
   }
   
-  // Menu buttons - black text
   .tenant-switcher,
   .role-switcher {
     color: tokens.$color-text-primary !important;
@@ -203,28 +194,25 @@ h1, .text-h1 {
     }
   }
   
-  // Menu buttons text
   .tenant-label,
   .role-label {
     color: tokens.$color-text-primary !important;
   }
   
-  // Menu icons - black (except header icon buttons which use secondary)
   :deep(.v-btn:not(.header-icon-btn) .v-icon) {
     color: tokens.$color-text-primary !important;
   }
   
-  // Menu dropdown active states
-  :deep(.v-menu__content .v-list-item--active) {
+  :deep(.v-overlay__content .v-list-item--active) {
     background-color: tokens.$color-green-50 !important;
     color: tokens.$color-green-500 !important;
   }
   
-  :deep(.v-menu__content .v-list-item:hover) {
+  :deep(.v-overlay__content .v-list-item:hover) {
     background-color: tokens.$color-green-50 !important;
   }
   
-  :deep(.v-menu__content .v-icon) {
+  :deep(.v-overlay__content .v-icon) {
     color: tokens.$color-green-500 !important;
   }
 }
@@ -237,96 +225,122 @@ h1, .text-h1 {
 }
 
 .app-drawer {
-  top: 64px !important;
-  height: calc(100% - 64px) !important;
-  width: 256px !important;
-  z-index: 1;
-  position: fixed !important;
-  left: 0 !important;
   background-color: white !important;
   
-  // Default navigation items - black text and icons
+  // All list items - font size and weight
+  :deep(.v-list-item),
+  :deep(.v-list-item-title),
+  :deep(.v-list-group__header),
+  :deep(.v-list-group__header .v-list-item-title) {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+  
   :deep(.v-list-item) {
     color: tokens.$color-text-primary !important;
     
-    .v-list-item__title {
+    .v-list-item-title {
       color: tokens.$color-text-primary !important;
     }
   }
   
-  // Icons in navigation - black by default
-  :deep(.v-list-item__action .v-icon) {
+  // Font Awesome icon styling
+  .drawer-icon {
+    color: tokens.$color-text-secondary !important;
+    font-size: 18px !important;
+    margin-right: 8px !important;
+  }
+  
+  :deep(.v-list-item .v-list-item__prepend .v-icon) {
     color: tokens.$color-text-secondary !important;
   }
   
-  // Active navigation items - green
+  // Active items
   :deep(.v-list-item--active) {
     background-color: tokens.$color-green-50 !important;
     color: tokens.$color-green-500 !important;
     
-    .v-list-item__title {
+    .v-list-item-title {
       color: tokens.$color-green-500 !important;
-      font-weight: 500 !important;
     }
     
     .v-icon {
       color: tokens.$color-green-500 !important;
     }
     
-    .v-list-item__action .v-icon {
+    .drawer-icon {
       color: tokens.$color-green-500 !important;
     }
   }
   
-  // Hover states - subtle gray, not green
   :deep(.v-list-item:hover:not(.v-list-item--active)) {
     background-color: rgba(0, 0, 0, 0.04) !important;
   }
   
-  // List group header - black by default
-  :deep(.v-list-group__header) {
+  // Nested items - remove the large left padding
+  :deep(.v-list-group__items .v-list-item) {
     color: tokens.$color-text-primary !important;
+    --indent-padding: 52px !important;
+    padding-left: 52px !important;
+    padding-inline-start: 52px !important;
     
-    .v-list-item__title {
+    .v-list-item-title {
       color: tokens.$color-text-primary !important;
     }
+  }
+  
+  
+  // List group header chevron (default state)
+  :deep(.v-list-group .v-list-group__header .v-icon),
+  :deep(.v-list-group .v-list-group__header .v-list-group__items .v-icon) {
+    color: tokens.$color-text-secondary !important;
+  }
+  
+  // Expanded group header - green-600 for title, icon, and chevron
+  :deep(.v-list-group--open > .v-list-group__header) {
+    background-color: tokens.$color-green-50 !important;
     
-    // Prepend icon (left icon) - black by default
-    .v-list-item__icon .v-icon {
-      color: tokens.$color-text-secondary !important;
+    .v-list-item-title {
+      color: tokens.$color-green-600 !important;
+    }
+    
+    .drawer-icon {
+      color: tokens.$color-green-600 !important;
+    }
+    
+    // Chevron icon when expanded - target all possible locations
+    .v-icon,
+    :deep(.v-icon),
+    .v-list-item__append .v-icon,
+    :deep(.v-list-item__append .v-icon) {
+      color: tokens.$color-green-600 !important;
     }
   }
   
-  // List group icons - black by default (including prepend-icon)
-  :deep(.v-list-group__header .v-icon) {
-    color: tokens.$color-text-secondary !important;
+  // Also target the chevron in the append slot
+  :deep(.v-list-group--open .v-list-group__header .v-list-item__append .v-icon) {
+    color: tokens.$color-green-600 !important;
   }
   
-  // List group prepend icon specifically
-  :deep(.v-list-group[prepend-icon] .v-list-group__header .v-list-item__icon .v-icon) {
-    color: tokens.$color-text-secondary !important;
-  }
-  
-  // List group active state - green
-  :deep(.v-list-group--active > .v-list-group__header) {
+  // Group header when any child is active - make it green and bolder
+  :deep(.v-list-group:has(.v-list-item--active) > .v-list-group__header) {
     background-color: tokens.$color-green-50 !important;
-    color: tokens.$color-green-500 !important;
     
-    .v-list-item__title {
-      color: tokens.$color-green-500 !important;
-      font-weight: 500 !important;
+    .v-list-item-title {
+      color: tokens.$color-green-600 !important;
+      font-weight: 600 !important;
+    }
+    
+    .drawer-icon {
+      color: tokens.$color-green-600 !important;
     }
     
     .v-icon {
-      color: tokens.$color-green-500 !important;
-    }
-    
-    .v-list-item__icon .v-icon {
-      color: tokens.$color-green-500 !important;
+      color: tokens.$color-green-600 !important;
     }
   }
   
-  // Border on the right side of drawer - same color and width as header
+  // Border
   :deep(.v-navigation-drawer__border) {
     width: 1px !important;
     background-color: tokens.$color-border-subtle !important;
@@ -334,13 +348,16 @@ h1, .text-h1 {
 }
 
 .app-main {
-  padding-top: 64px !important;
-  margin-left: 256px !important; /* Standard Vuetify drawer width */
   background-color: tokens.$color-surface-muted !important;
 }
 
 .nested-link {
-  padding-left: 32px;
+  --indent-padding: 0px !important;
+  
+  :deep(.v-list-item) {
+    padding-left: 52px !important;
+    padding-inline-start: 52px !important;
+  }
 }
 
 .header-right-items {
@@ -417,43 +434,46 @@ h1, .text-h1 {
   color: tokens.$color-text-primary !important;
 }
 
-// Global interactive elements - use green colors
-:deep(.v-input--checkbox .v-input--selection-controls__input .v-input--selection-controls__ripple) {
+:deep(.v-selection-control__input) {
   color: tokens.$color-green-500 !important;
 }
 
-:deep(.v-input--checkbox .v-input--selection-controls__input input:checked + .v-input--selection-controls__ripple) {
-  color: tokens.$color-green-500 !important;
-}
-
-:deep(.v-input--switch .v-input--selection-controls__input .v-input--switch__track) {
+:deep(.v-switch__track) {
   background-color: rgba(0, 0, 0, 0.38) !important;
 }
 
-:deep(.v-input--switch .v-input--is-label-active .v-input--switch__track) {
+:deep(.v-selection-control--dirty .v-switch__track) {
   background-color: tokens.$color-green-500 !important;
 }
 
-:deep(.v-input--switch .v-input--selection-controls__input .v-input--switch__thumb) {
+:deep(.v-switch__thumb) {
   color: white !important;
 }
 
-// Radio buttons
-:deep(.v-input--radio-group .v-input--selection-controls__input .v-input--selection-controls__ripple) {
-  color: tokens.$color-green-500 !important;
+// Chips - tonal variant styling
+:deep(.v-chip--variant-tonal) {
+  opacity: 1 !important;
 }
 
-:deep(.v-input--radio-group .v-input--selection-controls__input input:checked + .v-input--selection-controls__ripple) {
-  color: tokens.$color-green-500 !important;
+// Tonal chips with green color
+:deep(.v-chip--variant-tonal.v-chip--color-green) {
+  background-color: tokens.$color-green-50 !important;
+  color: tokens.$color-green-600 !important;
 }
 
-// Chips and tags
-:deep(.v-chip--active) {
+// Tonal chips with grey color
+:deep(.v-chip--variant-tonal.v-chip--color-grey) {
+  background-color: tokens.$color-gray-50 !important;
+  color: tokens.$color-gray-700 !important;
+}
+
+// Elevated chips (green primary chips)
+:deep(.v-chip--variant-elevated) {
   background-color: tokens.$color-green-500 !important;
   color: white !important;
+  opacity: 1 !important;
 }
 
-// Links - exclude navigation drawer links
 a:not(.app-drawer a) {
   color: tokens.$color-green-500 !important;
   
@@ -462,7 +482,6 @@ a:not(.app-drawer a) {
   }
 }
 
-// Override link color in drawer to use black
 .app-drawer a {
   color: tokens.$color-text-primary !important;
   
@@ -471,15 +490,31 @@ a:not(.app-drawer a) {
   }
 }
 
-// Focus states
-:deep(.v-input--is-focused .v-input__slot fieldset) {
-  border-color: tokens.$color-green-500 !important;
+:deep(.v-field--focused .v-field__outline) {
+  color: tokens.$color-green-500 !important;
 }
 
-:deep(.v-text-field--outlined.v-input--is-focused .v-input__slot fieldset) {
-  border-color: tokens.$color-green-500 !important;
-  border-width: 2px !important;
+:deep(.v-field--variant-outlined.v-field--focused .v-field__outline) {
+  color: tokens.$color-green-500 !important;
+  --v-field-border-width: 2px;
 }
+
+// Breadcrumbs - remove left padding globally with maximum specificity
+// Target all possible combinations including spacing class
+.v-breadcrumbs,
+.v-breadcrumbs.v-breadcrumbs--density-default,
+.v-breadcrumbs--density-default,
+.v-breadcrumbs-spacing,
+.v-breadcrumbs.v-breadcrumbs-spacing,
+.v-breadcrumbs--density-default.v-breadcrumbs-spacing,
+.no-left-padding,
+.no-left-padding.v-breadcrumbs,
+.no-left-padding.v-breadcrumbs-spacing {
+  padding-left: 0 !important;
+  padding-inline-start: 0 !important;
+  padding-right: 0 !important;
+  padding-inline-end: 0 !important;
+  padding: 16px 0 !important; // Override shorthand: top/bottom 16px, left/right 0
+}
+
 </style>
-
-

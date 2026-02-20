@@ -3,7 +3,7 @@
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
         <v-btn color="primary" @click="newRuleDialog = true">
-          <v-icon left>mdi-plus</v-icon>New rule
+          <v-icon start>mdi-plus</v-icon>New rule
         </v-btn>
       </template>
       <template v-slot:filters>
@@ -12,8 +12,8 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 prepend-inner-icon="mdi-magnify"
                 label="Search in all columns"
                 hide-details
@@ -35,8 +35,7 @@
       :headers="tableHeaders"
       :items="sortedRules"
       class="rules-table"
-      :sort-by.sync="sortBy"
-      :sort-desc.sync="sortDesc"
+      v-model:sort-by="sortByArray"
       @click:row="onRowClick"
     >
       <template v-slot:item.paymentMethods="{ item }">
@@ -56,12 +55,12 @@
         {{ item.shopType || '1P' }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn icon @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
+        <IconButton @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
           <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn icon @click.stop="confirmDelete(item)">
+        </IconButton>
+        <IconButton @click.stop="confirmDelete(item)">
           <v-icon color="red">mdi-trash-can-outline</v-icon>
-        </v-btn>
+        </IconButton>
       </template>
     </v-data-table>
     </div>
@@ -76,9 +75,9 @@
       
       <template v-slot:footer>
         <v-spacer />
-        <TertiaryButton text @click="cancelDelete">Cancel</TertiaryButton>
-        <v-btn color="red" dark @click="doDelete">
-          <v-icon left>mdi-delete-outline</v-icon>
+        <TertiaryButton variant="text" @click="cancelDelete">Cancel</TertiaryButton>
+        <v-btn color="red" variant="plain" @click="doDelete">
+          <v-icon start>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
       </template>
@@ -93,12 +92,12 @@
           <div class="new-rule-dialog-actions">
             <v-btn
               block
-              large
+              size="large"
               color="primary"
               class="new-rule-option-btn"
               @click="startNewRule(false)"
             >
-              <v-icon left>mdi-file-document-outline</v-icon>
+              <v-icon start>mdi-file-document-outline</v-icon>
               Create rule
             </v-btn>
             <SecondaryButton
@@ -108,7 +107,7 @@
               class="new-rule-option-btn"
               @click="newRuleDialogStep = 'preset'"
             >
-              <v-icon left>mdi-file-document-multiple-outline</v-icon>
+              <v-icon start>mdi-file-document-multiple-outline</v-icon>
               Load example rule
             </SecondaryButton>
           </div>
@@ -117,9 +116,9 @@
         <!-- Step 2: Preset picker -->
         <template v-else>
           <div class="preset-picker-header">
-            <v-btn icon @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
+            <IconButton @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
               <v-icon>mdi-arrow-left</v-icon>
-            </v-btn>
+            </IconButton>
             <p class="preset-picker-text">Choose an example rule</p>
           </div>
           <div class="preset-table-wrapper">
@@ -141,12 +140,11 @@
                   <td class="preset-desc">{{ preset.description }}</td>
                   <td class="preset-actions">
                     <v-btn color="primary" @click="selectPreset(preset)">Use</v-btn>
-                    <v-btn
-                      icon
+                    <IconButton
                       @click="confirmDeleteExample(preset)"
                     >
                       <v-icon color="red">mdi-trash-can-outline</v-icon>
-                    </v-btn>
+                    </IconButton>
                   </td>
                 </tr>
               </tbody>
@@ -166,9 +164,9 @@
       </template>
       <template v-slot:footer>
         <v-spacer />
-        <TertiaryButton text @click="cancelDeleteExample">Cancel</TertiaryButton>
-        <v-btn color="red" dark @click="doDeleteExample">
-          <v-icon left>mdi-delete-outline</v-icon>
+        <TertiaryButton variant="text" @click="cancelDeleteExample">Cancel</TertiaryButton>
+        <v-btn color="red" variant="plain" @click="doDeleteExample">
+          <v-icon start>mdi-delete-outline</v-icon>
           Remove
         </v-btn>
       </template>
@@ -176,7 +174,7 @@
 
     <v-snackbar v-model="snackbar.show">
       {{ snackbar.text }}
-      <TertiaryButton text @click="snackbar.show=false">Close</TertiaryButton>
+      <TertiaryButton variant="text" @click="snackbar.show=false">Close</TertiaryButton>
     </v-snackbar>
   </div>
 </template>
@@ -188,6 +186,7 @@ import Modal from '@/components/common/Modal.vue';
 import StatusChip from '@/components/common/StatusChip.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import SecondaryButton from '@/components/common/SecondaryButton.vue';
+import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { getPresetsForCountry } from '@/data/exampleRulePresets';
@@ -197,13 +196,12 @@ const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton },
+  components: { OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton, IconButton },
   data() {
     return {
       search: '',
       showActiveOnly: false,
-      sortBy: 'updatedAt',
-      sortDesc: true,
+      sortByArray: [{ key: 'updatedAt', order: 'desc' }],
       deleteDialog: false,
       newRuleDialog: false,
       newRuleDialogStep: 'choice',
@@ -230,8 +228,8 @@ export default {
   computed: {
     breadcrumbs() {
       return [
-        { text: 'Payment methods', disabled: true },
-        { text: 'Payment restrictions overview', disabled: true }
+        { title: 'Payment section', disabled: true },
+        { title: 'Payment restrictions overview', disabled: true }
       ];
     },
     showShopTypeField() {
@@ -243,14 +241,14 @@ export default {
     },
     tableHeaders() {
       const headers = [
-        { text: 'Name', value: 'name', sortable: true },
-        { text: 'Method', value: 'paymentMethods', sortable: false },
-        { text: 'Updated', value: 'updatedAt', sortable: true },
-        { text: 'Status', value: 'active', sortable: false },
-        { text: 'Actions', value: 'actions', align: 'end', sortable: false }
+        { title: 'Name', key: 'name', sortable: true },
+        { title: 'Method', key: 'paymentMethods', sortable: false },
+        { title: 'Updated', key: 'updatedAt', sortable: true },
+        { title: 'Status', key: 'active', sortable: false },
+        { title: 'Actions', key: 'actions', align: 'end', sortable: false }
       ];
       if (this.showShopTypeField) {
-        headers.splice(3, 0, { text: 'Shop type', value: 'shopType', sortable: false });
+        headers.splice(3, 0, { title: 'Shop type', key: 'shopType', sortable: false });
       }
       return headers;
     },
@@ -295,7 +293,10 @@ export default {
       return rules;
     },
     sortedRules() {
-      return store.getters.sortItems(this.filteredRules, this.sortBy, this.sortDesc);
+      const sort = this.sortByArray[0];
+      const sortKey = sort ? sort.key : null;
+      const sortDesc = sort ? sort.order === 'desc' : false;
+      return store.getters.sortItems(this.filteredRules, sortKey, sortDesc);
     },
     newRuleDialogTitle() {
       return this.newRuleDialogStep === 'preset' ? 'Load example rule' : 'New rule';
@@ -346,9 +347,7 @@ export default {
       this.deleteDialog = false;
       this.toDelete = null;
     },
-    onRowClick(cellOrItem, slotOrItem) {
-      // Vuetify click:row passes (cellData, slot) where slot may be { item } or the item directly
-      const item = (slotOrItem && slotOrItem.item) || slotOrItem || cellOrItem;
+    onRowClick(event, { item }) {
       if (item && item.id != null) {
         this.$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } });
       }
@@ -445,13 +444,6 @@ export default {
   padding-left: 0;
 }
 
-.breadcrumbs-text :deep(.v-breadcrumbs__item) {
-  color: tokens.$color-text-secondary !important;
-}
-
-.breadcrumbs-text :deep(.v-breadcrumbs__divider) {
-  color: tokens.$color-text-secondary !important;
-}
 
 .modal-content {
   max-height: calc(100vh - 280px);
@@ -472,7 +464,7 @@ export default {
   min-height: 64px;
 }
 
-.search-field :deep(.v-input__slot) {
+.search-field :deep(.v-field) {
   background-color: white !important;
 }
 

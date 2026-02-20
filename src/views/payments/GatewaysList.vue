@@ -8,7 +8,7 @@
           @click="createGateway" 
           :disabled="loading"
         >
-          <v-icon left>mdi-plus</v-icon>
+          <v-icon start>mdi-plus</v-icon>
           Create gateway
         </v-btn>
       </template>
@@ -18,8 +18,8 @@
             <v-col cols="12" md="6" lg="5">
               <v-text-field
                 v-model="search"
-                dense
-                outlined
+                density="compact"
+                variant="outlined"
                 prepend-inner-icon="mdi-magnify"
                 label="Search title or code"
                 hide-details
@@ -31,7 +31,7 @@
       </template>
     </PageHeader>
 
-    <v-overlay :value="loading" z-index="9999">
+    <v-overlay :model-value="loading" z-index="9999">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
     </v-overlay>
 
@@ -94,8 +94,8 @@ export default {
     },
     breadcrumbs() {
       return [
-        { text: 'Payment section', disabled: true },
-        { text: 'Gateways', disabled: true }
+        { title: 'Payment section', disabled: true },
+        { title: 'Gateways', disabled: true }
       ];
     },
     filteredGateways() {
@@ -147,7 +147,6 @@ export default {
 @use '@/styles/tokens.scss' as tokens;
 
 .gateways-page-wrapper {
-  min-height: calc(100vh - 64px);
   padding: tokens.$page-padding;
 }
 
@@ -164,7 +163,7 @@ export default {
   padding-left: 0;
 }
 
-.search-field :deep(.v-input__slot) {
+.search-field :deep(.v-field) {
   background-color: white !important;
 }
 

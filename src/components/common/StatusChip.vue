@@ -1,5 +1,10 @@
 <template>
-  <v-chip small :class="chipClass" text-color="white">
+  <v-chip 
+    size="small" 
+    variant="default"
+    :color="active ? 'green' : 'grey'"
+    :class="chipClass"
+  >
     {{ label }}
   </v-chip>
 </template>
@@ -36,18 +41,18 @@ export default {
 @use '@/styles/tokens.scss' as tokens;
 
 .status-chip {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  
   &.status-chip--active {
-    background-color: tokens.$color-green-50 !important;
+    // Tonal variant handles background, ensure text color
     color: tokens.$color-green-700 !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
+    background-color: tokens.$color-green-50 !important;
   }
 
   &.status-chip--inactive {
-    background-color: tokens.$color-gray-50 !important;
+    // Tonal variant handles background, ensure text color  
     color: tokens.$color-gray-700 !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
   }
 }
 </style>

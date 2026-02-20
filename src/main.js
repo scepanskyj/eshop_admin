@@ -1,37 +1,52 @@
-import Vue from 'vue';
-import Vuetify from 'vuetify';
-import 'vuetify/dist/vuetify.min.css';
+import { createApp, h } from 'vue';
+import { createVuetify } from 'vuetify';
+import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
+import '@fortawesome/fontawesome-free/css/all.css';
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
 
 import App from './App.vue';
 import router from './router';
 
-Vue.use(Vuetify);
+// Font Awesome icon set
+const fa = {
+  component: (props) => {
+    // Map icon name like "fa-cog" to Font Awesome class "fa-solid fa-cog"
+    const iconName = props.icon ? props.icon.replace(/^fa-/, '') : '';
+    return h('i', {
+      class: `fa-solid fa-${iconName}`,
+      style: props.color ? { color: props.color } : undefined
+    });
+  }
+};
 
-const vuetify = new Vuetify({
-  icons: { iconfont: 'mdi' },
+const vuetify = createVuetify({
+  icons: {
+    defaultSet: 'mdi',
+    aliases,
+    sets: { mdi, fa }
+  },
   theme: {
-    dark: false,
+    defaultTheme: 'light',
     themes: {
       light: {
-        primary: '#47850A', // Green 500
-        secondary: '#356B09', // Green 600
-        accent: '#5DA20A', // Green 400
-        error: '#B00020',
-        info: '#2196F3',
-        success: '#47850A', // Green 500
-        warning: '#FB8C00'
+        colors: {
+          primary: '#47850A',
+          secondary: '#356B09',
+          accent: '#5DA20A',
+          error: '#B00020',
+          info: '#2196F3',
+          success: '#47850A',
+          warning: '#FB8C00',
+          green: '#47850A',
+          grey: '#757575'
+        }
       }
     }
   }
 });
 
-Vue.config.productionTip = false;
-
-new Vue({
-  vuetify,
-  router,
-  render: h => h(App)
-}).$mount('#app');
-
-
+const app = createApp(App);
+app.use(vuetify);
+app.use(router);
+app.mount('#app');

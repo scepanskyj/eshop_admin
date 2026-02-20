@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="modal-card" :class="cardClasses" outlined>
+  <v-sheet class="modal-card" :class="cardClasses" border>
     <div v-if="title || subtitle" class="modal-card__header">
       <div>
         <div v-if="title" class="modal-card__title">{{ title }}</div>

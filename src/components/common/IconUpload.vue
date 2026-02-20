@@ -1,13 +1,13 @@
 <template>
   <div class="icon-upload">
-    <div v-if="!value" class="icon-upload__placeholder">
+    <div v-if="!modelValue" class="icon-upload__placeholder">
       <v-btn
-        outlined
+        variant="outlined"
         color="primary"
         @click="$refs.fileInput.click()"
         :disabled="disabled"
       >
-        <v-icon left>mdi-upload</v-icon>
+        <v-icon start>mdi-upload</v-icon>
         Upload icon
       </v-btn>
       <input
@@ -27,24 +27,24 @@
           <div class="icon-preview__filename">{{ fileName }}</div>
           <div class="icon-preview__actions">
             <v-btn
-              text
-              small
+              variant="text"
+              size="small"
               @click="$refs.fileInput.click()"
               :disabled="disabled"
               class="action-btn"
             >
-              <v-icon left small>mdi-upload</v-icon>
+              <v-icon start size="small">mdi-upload</v-icon>
               Upload new
             </v-btn>
             <v-btn
-              text
-              small
+              variant="text"
+              size="small"
               color="error"
               @click="handleRemove"
               :disabled="disabled"
               class="action-btn"
             >
-              <v-icon left small>mdi-delete</v-icon>
+              <v-icon start size="small">mdi-delete</v-icon>
               Delete
             </v-btn>
           </div>
@@ -66,22 +66,19 @@ import { getAssetPath } from '@/utils/paths';
 
 function resolveIconPath(value) {
   if (!value) return '';
-  // If it's a data URL (starts with data:), return as is
   if (value.startsWith('data:')) {
     return value;
   }
-  // If it's a path (starts with /), resolve it through getAssetPath
   if (value.startsWith('/')) {
     return getAssetPath(value);
   }
-  // Otherwise return as is
   return value;
 }
 
 export default {
   name: 'IconUpload',
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: ''
     },
@@ -90,6 +87,7 @@ export default {
       default: false
     },
   },
+  emits: ['update:modelValue', 'error'],
   data() {
     return {
       currentFileName: null
@@ -97,22 +95,22 @@ export default {
   },
   computed: {
     previewUrl() {
-      return resolveIconPath(this.value);
+      return resolveIconPath(this.modelValue);
     },
     fileName() {
       if (this.currentFileName) {
         return this.currentFileName;
       }
-      if (!this.value) return '';
-      if (this.value.startsWith('/')) {
-        const parts = this.value.split('/');
+      if (!this.modelValue) return '';
+      if (this.modelValue.startsWith('/')) {
+        const parts = this.modelValue.split('/');
         return parts[parts.length - 1] || 'icon.svg';
       }
       return 'uploaded-icon.svg';
     }
   },
   watch: {
-    value(newVal) {
+    modelValue(newVal) {
       if (!newVal) {
         this.currentFileName = null;
       }
@@ -123,32 +121,28 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
 
-      // Validate file type
       if (!file.type.includes('svg') && !file.name.endsWith('.svg')) {
         this.$emit('error', 'Please select an SVG file');
         return;
       }
 
-      // Store filename
       this.currentFileName = file.name;
 
-      // Read file as data URL
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUrl = e.target.result;
-        this.$emit('input', dataUrl);
+        this.$emit('update:modelValue', dataUrl);
       };
       reader.onerror = () => {
         this.$emit('error', 'Failed to read file');
       };
       reader.readAsDataURL(file);
 
-      // Reset input
       event.target.value = '';
     },
     handleRemove() {
       this.currentFileName = null;
-      this.$emit('input', '');
+      this.$emit('update:modelValue', '');
     }
   }
 };
@@ -215,4 +209,3 @@ export default {
   padding: 0 tokens.$space-xs !important;
 }
 </style>
-
