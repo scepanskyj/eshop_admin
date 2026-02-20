@@ -162,7 +162,7 @@
                       />
                     </td>
                     <td class="text-right">
-                      <v-btn icon @click="form.feeMatrix.splice(idx, 1)">
+                      <v-btn icon variant="plain" @click="form.feeMatrix.splice(idx, 1)">
                         <v-icon color="red">mdi-trash-can-outline</v-icon>
                       </v-btn>
                     </td>

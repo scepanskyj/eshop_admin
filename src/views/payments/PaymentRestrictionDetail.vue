@@ -9,7 +9,7 @@
         </PrimaryButton>
         <v-menu location="start bottom">
           <template v-slot:activator="{ props }">
-            <v-btn icon text class="ml-2" v-bind="props" aria-label="More actions">
+            <v-btn icon variant="plain" class="ml-2" v-bind="props" aria-label="More actions">
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
@@ -127,7 +127,7 @@
       <template v-slot:footer>
         <v-spacer />
         <TertiaryButton variant="text" @click="cancelDelete">Cancel</TertiaryButton>
-        <v-btn color="red" dark @click="doDelete">
+        <v-btn color="red" variant="plain" @click="doDelete">
           <v-icon start>mdi-delete-outline</v-icon>
           Delete
         </v-btn>

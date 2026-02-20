@@ -679,7 +679,7 @@
                   </v-btn>
                   <div v-else class="d-flex align-center" style="gap: 8px;">
                     <TertiaryButton variant="text" @click="showDeleteConfirmation = false">Cancel</TertiaryButton>
-                    <v-btn color="red" dark @click="confirmDelete">
+                    <v-btn color="red" variant="plain" @click="confirmDelete">
                       <v-icon start>mdi-delete</v-icon>
                       Confirm delete
                     </v-btn>

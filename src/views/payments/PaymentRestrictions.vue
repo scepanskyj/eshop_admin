@@ -55,10 +55,10 @@
         {{ item.shopType || '1P' }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn icon @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
+        <v-btn icon variant="plain" @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
-        <v-btn icon @click.stop="confirmDelete(item)">
+        <v-btn icon variant="plain" @click.stop="confirmDelete(item)">
           <v-icon color="red">mdi-trash-can-outline</v-icon>
         </v-btn>
       </template>
@@ -76,7 +76,7 @@
       <template v-slot:footer>
         <v-spacer />
         <TertiaryButton variant="text" @click="cancelDelete">Cancel</TertiaryButton>
-        <v-btn color="red" @click="doDelete">
+        <v-btn color="red" variant="plain" @click="doDelete">
           <v-icon start>mdi-delete-outline</v-icon>
           Delete
         </v-btn>
@@ -116,7 +116,7 @@
         <!-- Step 2: Preset picker -->
         <template v-else>
           <div class="preset-picker-header">
-            <v-btn icon @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
+            <v-btn icon variant="plain" @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
               <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
             <p class="preset-picker-text">Choose an example rule</p>
@@ -142,6 +142,7 @@
                     <v-btn color="primary" @click="selectPreset(preset)">Use</v-btn>
                     <v-btn
                       icon
+                      variant="plain"
                       @click="confirmDeleteExample(preset)"
                     >
                       <v-icon color="red">mdi-trash-can-outline</v-icon>
@@ -166,7 +167,7 @@
       <template v-slot:footer>
         <v-spacer />
         <TertiaryButton variant="text" @click="cancelDeleteExample">Cancel</TertiaryButton>
-        <v-btn color="red" @click="doDeleteExample">
+        <v-btn color="red" variant="plain" @click="doDeleteExample">
           <v-icon start>mdi-delete-outline</v-icon>
           Remove
         </v-btn>

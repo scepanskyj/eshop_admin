@@ -53,7 +53,7 @@
         <v-toolbar flat>
           <v-toolbar-title>Confirm delete</v-toolbar-title>
           <v-spacer />
-          <v-btn icon @click="confirmDelete = false">
+          <v-btn icon variant="plain" @click="confirmDelete = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -74,7 +74,7 @@
           <v-card-actions class="modal-footer">
             <v-spacer />
             <TertiaryButton text @click="confirmDelete = false">Cancel</TertiaryButton>
-            <v-btn :disabled="deleteConfirmText !== code" color="red" dark @click="onDelete">
+            <v-btn :disabled="deleteConfirmText !== code" color="red" variant="plain" @click="onDelete">
               <v-icon left>mdi-delete</v-icon>
               Delete
             </v-btn>

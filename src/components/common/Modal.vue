@@ -18,6 +18,7 @@
         <v-spacer />
         <v-btn
           icon
+          variant="plain"
           @click="handleClose"
           :aria-label="`Close ${title}`"
         >

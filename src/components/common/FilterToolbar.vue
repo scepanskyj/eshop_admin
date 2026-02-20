@@ -52,7 +52,7 @@
         <v-toolbar flat>
           <v-toolbar-title>Filters</v-toolbar-title>
           <v-spacer />
-          <v-btn icon @click="dialog = false">
+          <v-btn icon variant="plain" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>

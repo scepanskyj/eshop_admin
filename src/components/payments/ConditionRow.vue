@@ -42,6 +42,7 @@
     </div>
     <v-btn
       icon
+      variant="plain"
       @click="$emit('remove')"
       class="remove-btn"
     >
