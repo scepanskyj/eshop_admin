@@ -1002,16 +1002,22 @@ export default {
       return text.toLowerCase().includes(query) || value.toLowerCase().includes(query);
     },
     getGatewayIcon(code) {
-      // Use icon from gateway if set, otherwise fall back to metadata
       const gateway = this.sortedGateways.find(g => g.code === code);
       if (gateway) {
-        // If payment method is disabled and has a disabled icon, use it
-        if (!gateway.enabled && gateway.disabledIcon) {
-          return getAssetPath(typeof gateway.disabledIcon === 'string' ? gateway.disabledIcon : gateway.disabledIcon.value);
-        }
-        // Otherwise use regular icon
-        if (gateway.icon) {
-          return getAssetPath(typeof gateway.icon === 'string' ? gateway.icon : gateway.icon.value);
+        const pick = val => {
+          if (!val) return '';
+          return getAssetPath(typeof val === 'string' ? val : val.value);
+        };
+        if (!gateway.enabled) {
+          const disabled =
+            pick(gateway.iconWebDisabled) ||
+            pick(gateway.disabledIcon) ||
+            pick(gateway.iconWeb) ||
+            pick(gateway.icon);
+          if (disabled) return disabled;
+        } else {
+          const active = pick(gateway.iconWeb) || pick(gateway.icon);
+          if (active) return active;
         }
       }
       const iconPath = this.metadataByCode[code]?.icon || '/icons/default.svg';

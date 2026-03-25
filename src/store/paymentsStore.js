@@ -5,7 +5,7 @@ import { migrateRules } from '@/utils/ruleMigration';
 
 const STORAGE_KEY = 'esa.payments';
 const GATEWAYS_STORAGE_KEY = 'esa.gateways';
-const SEED_VERSION = '2.7'; // Increment this to force reload from seed data (2.7 = added Italy pay in pharmacy)
+const SEED_VERSION = '2.8'; // 2.8 = payment method model: optional new icon/integration fields (no seed shape break)
 const VERSION_KEY = 'esa.payments.version';
 const GATEWAYS_VERSION_KEY = 'esa.gateways.version';
 
@@ -23,6 +23,7 @@ function mergeStripeGatewayIntoCardMethods(paymentMethods, stripeGateway) {
       return {
         ...method,
         needsGatewayConfig: true,
+        gatewayProvider: method.gatewayProvider || 'stripe',
         stripeTitle: stripeGateway.details.checkoutItemTitle || method.title,
         gatewayConfig: JSON.stringify({
           mid: stripeGateway.details.mid || '',

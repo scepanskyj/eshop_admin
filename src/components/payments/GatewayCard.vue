@@ -20,6 +20,7 @@
               <div class="gateway-title" role="heading" aria-level="3">{{ gateway.title }}</div>
               <StatusChip :active="gateway.enabled" active-label="Enabled" inactive-label="Disabled" class="ml-2" />
             </div>
+            <div v-if="gateway.code" class="gateway-code" aria-label="Method code">{{ gateway.code }}</div>
             <div class="gateway-updated">
               <span class="sr-only">Last updated</span>
               <span aria-hidden="true">Updated {{ updatedLabel }}</span>
@@ -126,6 +127,12 @@ export default {
 .gateway-title {
   font: tokens.$text-h5;
   color: tokens.$color-text-primary;
+}
+
+.gateway-code {
+  font: tokens.$text-p2;
+  color: tokens.$color-text-secondary;
+  font-family: ui-monospace, monospace;
 }
 
 .gateway-updated {

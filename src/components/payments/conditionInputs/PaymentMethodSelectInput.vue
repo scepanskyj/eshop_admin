@@ -42,7 +42,10 @@ export default {
       const currentTenant = tenantStore.state.current;
       return (store.state.gateways || [])
         .filter(g => g && (g.countries || []).includes(currentTenant))
-        .map(g => ({ text: g.title || g.code, value: g.code }));
+        .map(g => ({
+          text: g.title ? `${g.title} (${g.code})` : g.code,
+          value: g.code
+        }));
     }
   },
   methods: {
