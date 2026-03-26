@@ -129,18 +129,28 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/tokens.scss' as tokens;
+
 .reason-editor {
-  border: 1px solid rgba(0, 0, 0, 0.38);
-  border-radius: 4px;
-  background-color: white;
+  box-sizing: border-box;
+  /* Match Vuetify outlined idle: hairline via box-shadow avoids a heavier look than v-textarea */
+  border: none;
+  border-radius: tokens.$radius-field;
+  background-color: tokens.$color-surface-default;
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px tokens.$color-field-outline-solid-rest;
+  transition: box-shadow 0.15s ease;
+
+  &:focus-within {
+    box-shadow: inset 0 0 0 2px tokens.$color-field-outline-focus;
+  }
 }
 
 .toolbar {
   display: flex;
   gap: 2px;
   padding: 4px 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid tokens.$color-field-outline-solid-rest;
   background-color: rgba(0, 0, 0, 0.02);
 }
 
@@ -152,7 +162,7 @@ export default {
 
 .editor:empty::before {
   content: attr(data-placeholder);
-  color: rgba(0, 0, 0, 0.38);
+  color: tokens.$color-text-tertiary;
 }
 
 .editor :deep(a) {

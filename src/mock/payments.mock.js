@@ -46,6 +46,7 @@ export const gatewaysOnly = gatewaysSeed;
 export const rules = [
   {
     id: 'r-1',
+    sortOrder: 0,
     name: 'High value orders require PayPal',
     active: true,
     storeView: 'Default',
@@ -61,6 +62,7 @@ export const rules = [
   },
   {
     id: 'r-2',
+    sortOrder: 1,
     name: 'Hide COD for international',
     active: true,
     storeView: 'Default',
@@ -76,6 +78,7 @@ export const rules = [
   },
   {
     id: 'r-3',
+    sortOrder: 2,
     name: 'B2B prefer Bank',
     active: false,
     storeView: 'Wholesale',

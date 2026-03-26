@@ -5,6 +5,33 @@
 import { createConditionGroup, createCondition } from './paymentRestrictionTypes';
 
 /**
+ * Normalize PRODUCT_SKU condition values to string[] (legacy single string / CSV).
+ */
+export function normalizeProductSkuValues(rule) {
+  if (!rule || !rule.groups || !Array.isArray(rule.groups)) {
+    return rule;
+  }
+  return {
+    ...rule,
+    groups: rule.groups.map((g) => ({
+      ...g,
+      conditions: (g.conditions || []).map((c) => {
+        if (c.type !== 'PRODUCT_SKU') return c;
+        let v = c.value;
+        if (typeof v === 'string') {
+          v = v.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
+        } else if (v == null || v === '') {
+          v = [];
+        } else if (!Array.isArray(v)) {
+          v = [String(v)];
+        }
+        return { ...c, value: v };
+      })
+    }))
+  };
+}
+
+/**
  * Migrate a single rule from old format to new format
  * Old format: { conditions: { operator: 'AND'|'OR', conditions: [...] } }
  * New format: { groups: [{ id, conditions: [...] }] }
@@ -12,15 +39,15 @@ import { createConditionGroup, createCondition } from './paymentRestrictionTypes
 export function migrateRule(rule) {
   // If rule already has groups, assume it's already migrated
   if (rule.groups && Array.isArray(rule.groups)) {
-    return rule;
+    return normalizeProductSkuValues({ ...rule });
   }
 
   // If no conditions, create empty rule with one empty group
   if (!rule.conditions || !rule.conditions.conditions || !rule.conditions.conditions.length) {
-    return {
+    return normalizeProductSkuValues({
       ...rule,
       groups: [createConditionGroup()]
-    };
+    });
   }
 
   const oldConditions = rule.conditions.conditions || [];
@@ -76,13 +103,13 @@ export function migrateRule(rule) {
       };
     });
     
-    return {
+    return normalizeProductSkuValues({
       ...rule,
       groups: [{
         ...createConditionGroup(),
         conditions: migratedConditions
       }]
-    };
+    });
   }
 
   // If OR operator, create one group per condition
@@ -104,10 +131,10 @@ export function migrateRule(rule) {
     };
   });
   
-  return {
+  return normalizeProductSkuValues({
     ...rule,
     groups: migratedGroups
-  };
+  });
 }
 
 /**
@@ -147,11 +174,30 @@ function mapOldOperatorToNew(oldOperator, conditionType, value) {
 }
 
 /**
+ * Ensure each rule has sortOrder (evaluation / display order in admin).
+ * Backend contract for storefront evaluation is TBD — see RESTRICTION_SORT_ORDER_NOTE in PaymentRestrictions.vue.
+ */
+function assignSortOrderIfMissing(rules) {
+  if (!Array.isArray(rules) || !rules.length) return rules;
+  const allHave = rules.every((r) => r.sortOrder != null && r.sortOrder !== '');
+  if (allHave) {
+    return rules.map((r) => ({ ...r, sortOrder: Number(r.sortOrder) }));
+  }
+  const sorted = [...rules].sort(
+    (a, b) => new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0)
+  );
+  return sorted.map((r, i) => ({
+    ...r,
+    sortOrder: r.sortOrder != null ? Number(r.sortOrder) : i
+  }));
+}
+
+/**
  * Migrate all rules in an array
  */
 export function migrateRules(rules) {
   if (!Array.isArray(rules)) {
     return [];
   }
-  return rules.map(rule => migrateRule(rule));
+  return assignSortOrderIfMissing(rules.map((rule) => migrateRule(rule)));
 }

@@ -56,7 +56,8 @@ const state = reactive({
     paymentMethodDetail: false,
     rulesForm: false,
     feeForm: false,
-    methodsOrder: false
+    methodsOrder: false,
+    rulesOrder: false
   }
 });
 
@@ -272,7 +273,16 @@ const actions = {
     });
   },
   createRule(rule) {
-    const r = { ...deepClone(rule), id: rule.id || `r-${Date.now()}`, updatedAt: new Date().toISOString() };
+    const maxSo = state.rules.reduce(
+      (m, x) => Math.max(m, x.sortOrder != null ? Number(x.sortOrder) : -1),
+      -1
+    );
+    const r = {
+      ...deepClone(rule),
+      id: rule.id || `r-${Date.now()}`,
+      updatedAt: new Date().toISOString(),
+      sortOrder: rule.sortOrder != null ? Number(rule.sortOrder) : maxSo + 1
+    };
     state.rules.push(r);
     persist();
     return r;

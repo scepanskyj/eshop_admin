@@ -3,7 +3,7 @@
     <PageHeader :breadcrumbs="breadcrumbs">
       <template v-slot:actions>
         <v-btn color="primary" @click="newRuleDialog = true">
-          <v-icon start>mdi-plus</v-icon>New rule
+          <v-icon start>mdi-plus</v-icon>New restriction
         </v-btn>
       </template>
       <template v-slot:filters>
@@ -31,42 +31,91 @@
         :active-count="activeFilterCount"
         @update:filterActive="setShowActiveOnly"
       />
-    <v-data-table
-      :headers="tableHeaders"
-      :items="sortedRules"
-      class="rules-table"
-      v-model:sort-by="sortByArray"
-      @click:row="onRowClick"
-    >
-      <template v-slot:item.paymentMethods="{ item }">
-        {{ formatPaymentMethods(item.paymentMethods) }}
+      <template v-if="sortedRules.length">
+        <div class="restrictions-hint-wrap">
+          <p class="restrictions-hint-text">
+            Drag a row to change its priority, then save.
+          </p>
+          <v-btn
+            color="primary"
+            :disabled="!orderHasChanged"
+            @click="saveRulesOrder"
+            class="save-order-btn"
+          >
+            <v-icon start size="small">mdi-sort</v-icon>
+            Save sort order
+          </v-btn>
+        </div>
+        <v-table density="compact" class="rules-table" hover>
+          <thead>
+            <tr>
+              <th class="restriction-col-drag" scope="col" aria-label="Reorder" />
+              <th scope="col" class="restriction-col-priority">Priority order</th>
+              <th scope="col">Name</th>
+              <th scope="col">Method</th>
+              <th scope="col">Updated</th>
+              <th v-if="showShopTypeField" scope="col">Shop type</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <draggable
+            v-model="orderedRules"
+            tag="tbody"
+            item-key="id"
+            handle=".restriction-drag-handle"
+            ghost-class="restriction-row--ghost"
+            drag-class="restriction-row--drag"
+          >
+            <template #item="{ element: item, index }">
+              <tr class="restriction-row" @click="onRestrictionRowClick($event, item)">
+                <td class="restriction-col-drag" @click.stop>
+                  <div
+                    class="restriction-drag-handle"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Drag to reorder restriction"
+                  >
+                    <v-icon size="small">mdi-drag</v-icon>
+                  </div>
+                </td>
+                <td class="restriction-col-priority">{{ index + 1 }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ formatPaymentMethods(item.paymentMethods) }}</td>
+                <td>{{ formatUpdated(item.updatedAt) }}</td>
+                <td v-if="showShopTypeField">{{ item.shopType || '1P' }}</td>
+                <td>
+                  <StatusChip
+                    :active="item.active"
+                    active-label="Active"
+                    inactive-label="Inactive"
+                  />
+                </td>
+                <td class="text-end" @click.stop>
+                  <IconButton @click="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
+                    <v-icon>mdi-pencil</v-icon>
+                  </IconButton>
+                  <IconButton @click="confirmDelete(item)">
+                    <v-icon color="red">mdi-trash-can-outline</v-icon>
+                  </IconButton>
+                </td>
+              </tr>
+            </template>
+          </draggable>
+        </v-table>
       </template>
-      <template v-slot:item.updatedAt="{ item }">
-        {{ formatUpdated(item.updatedAt) }}
-      </template>
-      <template v-slot:item.active="{ item }">
-        <StatusChip
-          :active="item.active"
-          active-label="Active"
-          inactive-label="Inactive"
-        />
-      </template>
-      <template v-slot:item.shopType="{ item }">
-        {{ item.shopType || '1P' }}
-      </template>
-      <template v-slot:item.actions="{ item }">
-        <IconButton @click.stop="$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } })">
-          <v-icon>mdi-pencil</v-icon>
-        </IconButton>
-        <IconButton @click.stop="confirmDelete(item)">
-          <v-icon color="red">mdi-trash-can-outline</v-icon>
-        </IconButton>
-      </template>
-    </v-data-table>
+      <div v-else class="restrictions-empty">
+        <p v-if="hasRulesInStore" class="restrictions-hint-text">
+          No restrictions match your search or filters.
+        </p>
+        <p v-else class="restrictions-hint-text">
+          No restrictions yet. Create one using the button above.
+        </p>
+      </div>
     </div>
 
     <!-- Delete Confirmation Dialog -->
-    <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
+    <Modal v-model="deleteDialog" title="Delete restriction" max-width="520" @close="cancelDelete">
       <template v-slot:content>
         <div class="text-body-1 mb-2">
           Are you sure you want to delete <strong>{{ toDelete && toDelete.name }}</strong>?
@@ -83,7 +132,7 @@
       </template>
     </Modal>
 
-    <!-- New Rule Choice Dialog -->
+    <!-- New restriction choice dialog -->
     <Modal v-model="newRuleDialog" :title="newRuleDialogTitle" max-width="960" :has-footer="false" @close="closeNewRuleDialog">
       <template v-slot:content>
         <!-- Step 1: Choice -->
@@ -98,7 +147,7 @@
               @click="startNewRule(false)"
             >
               <v-icon start>mdi-file-document-outline</v-icon>
-              Create rule
+              Create restriction
             </v-btn>
             <SecondaryButton
               block
@@ -108,7 +157,7 @@
               @click="newRuleDialogStep = 'preset'"
             >
               <v-icon start>mdi-file-document-multiple-outline</v-icon>
-              Load example rule
+              Load example restriction
             </SecondaryButton>
           </div>
         </template>
@@ -119,7 +168,7 @@
             <IconButton @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
               <v-icon>mdi-arrow-left</v-icon>
             </IconButton>
-            <p class="preset-picker-text">Choose an example rule</p>
+            <p class="preset-picker-text">Choose an example restriction</p>
           </div>
           <div class="preset-table-wrapper">
             <table class="preset-table" v-if="presetsForCountry.length">
@@ -150,16 +199,16 @@
               </tbody>
             </table>
           </div>
-          <p v-if="!presetsForCountry.length" class="preset-empty">No example rules for this country yet.</p>
+          <p v-if="!presetsForCountry.length" class="preset-empty">No example restrictions for this country yet.</p>
         </template>
       </template>
     </Modal>
 
-    <!-- Delete Example Rule Confirmation -->
-    <Modal v-model="deleteExampleDialog" title="Remove example rule" max-width="520" @close="cancelDeleteExample">
+    <!-- Delete example restriction confirmation -->
+    <Modal v-model="deleteExampleDialog" title="Remove example restriction" max-width="520" @close="cancelDeleteExample">
       <template v-slot:content>
         <div class="text-body-1 mb-2">
-          Are you sure you want to remove <strong>{{ toDeleteExample && toDeleteExample.name }}</strong> from example rules?
+          Are you sure you want to remove <strong>{{ toDeleteExample && toDeleteExample.name }}</strong> from example restrictions?
         </div>
       </template>
       <template v-slot:footer>
@@ -180,6 +229,11 @@
 </template>
 
 <script>
+/**
+ * RESTRICTION_SORT_ORDER_NOTE (see also ruleMigration.js):
+ * In this admin UI, lower `sortOrder` values are listed first. Evaluation order for the
+ * storefront/API is a product contract — align with backend when wiring real rules.
+ */
 import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
@@ -191,17 +245,19 @@ import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { getPresetsForCountry } from '@/data/exampleRulePresets';
 import { getUserExamples, removeUserExample, getHiddenStaticPresets, hideStaticPreset } from '@/data/userExampleRules';
+import draggable from 'vuedraggable';
 
 const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
 
 export default {
   name: 'PaymentRestrictions',
-  components: { OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton, IconButton },
+  components: { draggable, OverviewTableHeader, PageHeader, Modal, StatusChip, TertiaryButton, SecondaryButton, IconButton },
   data() {
     return {
       search: '',
       showActiveOnly: false,
-      sortByArray: [{ key: 'updatedAt', order: 'desc' }],
+      localRulesOrder: [],
+      orderDirty: false,
       deleteDialog: false,
       newRuleDialog: false,
       newRuleDialogStep: 'choice',
@@ -239,18 +295,21 @@ export default {
     shopTypeOptions() {
       return ['1P', '3P'];
     },
-    tableHeaders() {
-      const headers = [
-        { title: 'Name', key: 'name', sortable: true },
-        { title: 'Method', key: 'paymentMethods', sortable: false },
-        { title: 'Updated', key: 'updatedAt', sortable: true },
-        { title: 'Status', key: 'active', sortable: false },
-        { title: 'Actions', key: 'actions', align: 'end', sortable: false }
-      ];
-      if (this.showShopTypeField) {
-        headers.splice(3, 0, { title: 'Shop type', key: 'shopType', sortable: false });
+    hasRulesInStore() {
+      return store.state.rules.length > 0;
+    },
+    orderedRules: {
+      get() {
+        return this.localRulesOrder;
+      },
+      set(newOrder) {
+        this.localRulesOrder = newOrder;
+        this.orderDirty = true;
+        store.dirty.set('rulesOrder', true);
       }
-      return headers;
+    },
+    orderHasChanged() {
+      return this.orderDirty;
     },
     activeFilterCount() {
       return store.state.rules.filter(r => r.active).length;
@@ -293,13 +352,12 @@ export default {
       return rules;
     },
     sortedRules() {
-      const sort = this.sortByArray[0];
-      const sortKey = sort ? sort.key : null;
-      const sortDesc = sort ? sort.order === 'desc' : false;
-      return store.getters.sortItems(this.filteredRules, sortKey, sortDesc);
+      const list = [...this.filteredRules];
+      list.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+      return list;
     },
     newRuleDialogTitle() {
-      return this.newRuleDialogStep === 'preset' ? 'Load example rule' : 'New rule';
+      return this.newRuleDialogStep === 'preset' ? 'Load example restriction' : 'New restriction';
     },
     currentCountryLabel() {
       const opt = tenantStore.state.options.find(o => o.code === tenantStore.state.current);
@@ -312,6 +370,27 @@ export default {
       const hidden = getHiddenStaticPresets(current);
       const staticPresets = (getPresetsForCountry(current) || []).filter(p => !hidden.includes(p.name));
       return [...getUserExamples(current), ...staticPresets];
+    }
+  },
+  watch: {
+    sortedRules: {
+      handler(newVal) {
+        if (!newVal || !newVal.length) {
+          this.localRulesOrder = [];
+          return;
+        }
+        const currentIds = (this.localRulesOrder || []).map(r => r.id).sort().join(',');
+        const newIds = newVal.map(r => r.id).sort().join(',');
+        const setChanged = currentIds !== newIds;
+        if (setChanged || !this.orderDirty) {
+          this.localRulesOrder = [...newVal];
+          if (setChanged) {
+            this.orderDirty = false;
+            store.dirty.clear('rulesOrder');
+          }
+        }
+      },
+      immediate: true
     }
   },
   methods: {
@@ -342,12 +421,23 @@ export default {
       if (this.toDelete) {
         const deletedId = this.toDelete.id;
         store.actions.deleteRule(deletedId);
-        this.snackbar = { show: true, text: 'Rule deleted' };
+        this.snackbar = { show: true, text: 'Restriction deleted' };
       }
       this.deleteDialog = false;
       this.toDelete = null;
     },
-    onRowClick(event, { item }) {
+    saveRulesOrder() {
+      if (!this.orderHasChanged) return;
+      this.localRulesOrder.forEach((rule, index) => {
+        store.actions.updateRule(rule.id, { sortOrder: index + 1 });
+      });
+      this.orderDirty = false;
+      store.dirty.clear('rulesOrder');
+      this.snackbar = { show: true, text: 'Sort order saved' };
+    },
+    onRestrictionRowClick(event, item) {
+      if (event.target.closest('.restriction-drag-handle')) return;
+      if (event.target.closest('button, a')) return;
       if (item && item.id != null) {
         this.$router.push({ name: 'PaymentRestrictionDetail', params: { id: item.id } });
       }
@@ -403,7 +493,7 @@ export default {
           hideStaticPreset(country, preset.name);
         }
         this.userExamplesRefresh += 1;
-        this.snackbar = { show: true, text: 'Example rule removed' };
+        this.snackbar = { show: true, text: 'Example restriction removed' };
       }
       this.deleteExampleDialog = false;
       this.toDeleteExample = null;
@@ -429,6 +519,70 @@ export default {
   :deep(.v-data-table) {
     box-shadow: none !important;
   }
+}
+
+.restrictions-hint-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: tokens.$space-md;
+  padding: tokens.$space-lg tokens.$space-lg 0;
+
+  .save-order-btn {
+    flex-shrink: 0;
+  }
+}
+
+.restrictions-hint-text {
+  font: tokens.$text-p1;
+  color: tokens.$color-text-secondary;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+}
+
+.restrictions-empty {
+  padding: tokens.$space-xl tokens.$space-lg;
+}
+
+.restriction-col-drag {
+  width: 44px;
+  vertical-align: middle;
+}
+
+.restriction-col-priority {
+  width: 128px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.restriction-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: tokens.$color-text-secondary;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.restriction-row--ghost {
+  opacity: 0.55;
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.restriction-row--drag {
+  opacity: 0.95;
 }
 
 .filters-section {

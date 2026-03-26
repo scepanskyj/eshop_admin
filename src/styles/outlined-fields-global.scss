@@ -1,0 +1,13 @@
+/**
+ * Default stroke for all Vuetify outlined fields app-wide (inputs, selects, comboboxes).
+ * Error state keeps Vuetify’s theme error color.
+ */
+@use '@/styles/tokens.scss' as tokens;
+
+.v-field--variant-outlined:not(.v-field--error) .v-field__outline {
+  color: tokens.$color-field-outline !important;
+}
+
+.v-field--variant-outlined.v-field--focused:not(.v-field--error) .v-field__outline {
+  color: tokens.$color-field-outline-focus !important;
+}

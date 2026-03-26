@@ -1,5 +1,6 @@
 <template>
   <v-autocomplete
+    class="form-field"
     :model-value="normalizedValue"
     @update:model-value="onInput"
     :items="paymentMethods"
@@ -43,7 +44,7 @@ export default {
       return (store.state.gateways || [])
         .filter(g => g && (g.countries || []).includes(currentTenant))
         .map(g => ({
-          text: g.title ? `${g.title} (${g.code})` : g.code,
+          text: g.code,
           value: g.code
         }));
     }

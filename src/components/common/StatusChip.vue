@@ -53,6 +53,7 @@ export default {
   &.status-chip--inactive {
     // Tonal variant handles background, ensure text color  
     color: tokens.$color-gray-700 !important;
+    background-color: tokens.$color-gray-50 !important;
   }
 }
 </style>

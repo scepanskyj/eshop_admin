@@ -41,7 +41,7 @@
               />
             </ModalCard>
 
-            <ModalCard title="Rule overview">
+            <ModalCard title="Restriction overview">
               <div class="field-block">
                 <Label>Name <span class="required-asterisk">*</span></Label>
                 <v-text-field
@@ -55,7 +55,26 @@
               </div>
 
               <div class="field-block">
+                <Label>Priority order</Label>
+                <HintText>
+                  Lower numbers are evaluated first. This matches the order on the restrictions list; you can also drag rows there and use Save sort order.
+                </HintText>
+                <v-text-field
+                  class="form-field"
+                  v-model.number="ruleForm.sortOrder"
+                  type="number"
+                  min="0"
+                  step="1"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                  :rules="[sortOrderRule]"
+                />
+              </div>
+
+              <div class="field-block">
                 <Label>Payment method <span class="required-asterisk">*</span></Label>
+                <HintText>Selected payment method codes are affected by this restriction.</HintText>
                 <v-autocomplete
                   class="form-field"
                   v-model="ruleForm.paymentMethods"
@@ -84,8 +103,9 @@
               </div>
 
               <div class="field-block reason-field-block">
-                <Label>Reason (shown to customer when payment method is disabled)</Label>
-                <RichTextStub v-model="ruleForm.reason" />
+                <Label>Reason</Label>
+                <HintText>This text is shown to customers when a payment method is disabled by this restriction.</HintText>
+                <RichTextStub v-model="ruleForm.reason" class="rich-text-stub-field" />
                 <v-checkbox
                   v-model="ruleForm.showWhenApplied"
                   label="Display reason to customer"
@@ -119,7 +139,7 @@
     </div>
 
     <!-- Delete Confirmation Dialog -->
-    <Modal v-model="deleteDialog" title="Delete rule" max-width="520" @close="cancelDelete">
+    <Modal v-model="deleteDialog" title="Delete restriction" max-width="520" @close="cancelDelete">
       <template v-slot:content>
         <div class="text-body-1 mb-2">
           Are you sure you want to delete <strong>{{ ruleForm && ruleForm.name }}</strong>?
@@ -190,23 +210,20 @@ export default {
         { title: 'Payment restrictions', disabled: false, to: { name: 'PaymentRestrictions' } }
       ];
       if (this.isCreate) {
-        crumbs.push({ title: this.ruleForm?.name || 'New rule', disabled: true });
+        crumbs.push({ title: this.ruleForm?.name || 'New restriction', disabled: true });
       } else {
-        crumbs.push({ title: this.ruleForm?.name || 'Edit rule', disabled: true });
+        crumbs.push({ title: this.ruleForm?.name || 'Edit restriction', disabled: true });
       }
       return crumbs;
     },
     availablePaymentMethods() {
       const currentTenant = tenantStore.state.current;
-      const allMethods = store.state.gateways.map(g => ({
-        text: g.title,
-        value: g.code
-      }));
-      return allMethods.filter(m => {
-        const gateway = store.state.gateways.find(g => g.code === m.value);
-        if (!gateway) return false;
-        return gateway.countries.includes(currentTenant);
-      });
+      return store.state.gateways
+        .filter(g => g && (g.countries || []).includes(currentTenant))
+        .map(g => ({
+          text: g.code,
+          value: g.code
+        }));
     },
   },
   watch: {
@@ -246,7 +263,7 @@ export default {
         if (rule) {
           this.setRuleForm(rule);
         } else {
-          this.snackbar = { show: true, text: 'Rule not found' };
+          this.snackbar = { show: true, text: 'Restriction not found' };
           this.$router.push({ name: 'PaymentRestrictions' });
         }
       }
@@ -270,6 +287,11 @@ export default {
       if (this.ruleForm.showWhenApplied === undefined) {
         this.ruleForm.showWhenApplied = false;
       }
+      if (this.ruleForm.sortOrder === undefined || this.ruleForm.sortOrder === null || this.ruleForm.sortOrder === '') {
+        this.ruleForm.sortOrder = this.nextSortOrder();
+      } else {
+        this.ruleForm.sortOrder = Number(this.ruleForm.sortOrder);
+      }
       this.$nextTick(() => { this.suspendDirty = false; });
     },
     resetRuleForm() {
@@ -279,6 +301,7 @@ export default {
       return {
         active: true,
         name: '',
+        sortOrder: this.nextSortOrder(),
         paymentMethods: [],
         description: '',
         showWhenApplied: false,
@@ -287,6 +310,19 @@ export default {
         updatedBy: 'you',
         groups: [createConditionGroup()]
       };
+    },
+    nextSortOrder() {
+      const max = store.state.rules.reduce(
+        (m, r) => Math.max(m, r.sortOrder != null ? Number(r.sortOrder) : -1),
+        -1
+      );
+      return max + 1;
+    },
+    sortOrderRule(v) {
+      if (v === null || v === undefined || v === '') return 'Required';
+      const n = Number(v);
+      if (Number.isNaN(n) || n < 0) return 'Use 0 or a positive number';
+      return true;
     },
     loadPresetFromStorage() {
       const PRESET_STORAGE_KEY = 'paymentRestrictionPreset';
@@ -305,7 +341,7 @@ export default {
           if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
           if (preset.reason !== undefined) this.ruleForm.reason = preset.reason;
           if (!this.ruleForm.showWhenApplied) this.ruleForm.showInTooltip = false;
-          this.snackbar = { show: true, text: `Loaded example: ${preset.name}` };
+            this.snackbar = { show: true, text: `Loaded example restriction: ${preset.name}` };
         }
         this.$router.replace({ path: this.$route.path, query: {} });
       } catch (e) {
@@ -355,7 +391,7 @@ export default {
       });
       const opt = tenantStore.state.options.find(o => o.code === country);
       const countryLabel = opt ? opt.label : country;
-      this.snackbar = { show: true, text: `Rule saved as example for ${countryLabel}` };
+      this.snackbar = { show: true, text: `Restriction saved as example for ${countryLabel}` };
     },
     handleSave() {
       if (!this.$refs.ruleFormRef || !this.$refs.ruleFormRef.validate()) {
@@ -389,12 +425,12 @@ export default {
       try {
         if (this.isCreate) {
           const created = store.actions.createRule(this.ruleForm);
-          this.snackbar = { show: true, text: 'Rule created' };
+          this.snackbar = { show: true, text: 'Restriction created' };
           store.dirty.clear('rulesForm');
           this.$router.push({ name: 'PaymentRestrictionDetail', params: { id: created.id } });
         } else {
           store.actions.updateRule(this.id, this.ruleForm);
-          this.snackbar = { show: true, text: 'Rule updated' };
+          this.snackbar = { show: true, text: 'Restriction updated' };
           store.dirty.clear('rulesForm');
         }
       } catch(e) {
@@ -410,7 +446,7 @@ export default {
       if (!this.ruleForm) return;
       try {
         store.actions.deleteRule(this.id);
-        this.snackbar = { show: true, text: 'Rule deleted' };
+        this.snackbar = { show: true, text: 'Restriction deleted' };
         store.dirty.clear('rulesForm');
         this.deleteDialog = false;
         this.$router.push({ name: 'PaymentRestrictions' });
@@ -459,5 +495,8 @@ export default {
   margin-top: tokens.$space-lg;
 }
 
+.rich-text-stub-field {
+  width: 100%;
+}
 
 </style>

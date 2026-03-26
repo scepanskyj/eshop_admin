@@ -78,6 +78,7 @@ import ProductFlagsInput from './conditionInputs/ProductFlagsInput.vue';
 import OptionSelectInput from './conditionInputs/OptionSelectInput.vue';
 import TextInput from './conditionInputs/TextInput.vue';
 import PaymentMethodSelectInput from './conditionInputs/PaymentMethodSelectInput.vue';
+import SkuListInput from './conditionInputs/SkuListInput.vue';
 import Label from '@/components/common/Label.vue';
 import IconButton from '@/components/common/IconButton.vue';
 
@@ -93,7 +94,8 @@ const COMPONENT_MAP = {
   ProductFlagsInput,
   OptionSelectInput,
   TextInput,
-  PaymentMethodSelectInput
+  PaymentMethodSelectInput,
+  SkuListInput
 };
 
 export default {
@@ -112,7 +114,8 @@ export default {
     ProductFlagsInput,
     OptionSelectInput,
     TextInput,
-    PaymentMethodSelectInput
+    PaymentMethodSelectInput,
+    SkuListInput
   },
   props: {
     condition: {
@@ -137,7 +140,8 @@ export default {
     valueInputProps() {
       const props = { placeholder: 'Select option' };
       if (this.condition.type === 'PRODUCT_SKU') {
-        props.placeholder = 'Enter SKU';
+        props.placeholder = 'Add SKUs (Enter or comma). Suggestions as you type.';
+        props.operator = this.condition.operator || '';
       }
       const needsOptionKey = ['ORDER_FLOW', 'CUSTOMER_BLACKLIST', 'FEATURE_FLAG', 'PRODUCT_TYPE', 'PRODUCT_CATEGORY'];
       if (needsOptionKey.includes(this.condition.type)) {
@@ -154,7 +158,8 @@ export default {
       // Reset dependent fields when type or operator changes
       if (field === 'type') {
         updated.operator = '';
-        updated.value = updated.type === 'SELECTED_PAYMENT_METHOD' ? [] : null;
+        updated.value =
+          updated.type === 'SELECTED_PAYMENT_METHOD' || updated.type === 'PRODUCT_SKU' ? [] : null;
       } else if (field === 'operator') {
         // Reset value when operator changes; equals_zero requires value 0 for save validation
         if (this.condition.type === 'SELECTED_PAYMENT_METHOD') {

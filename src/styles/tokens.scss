@@ -25,6 +25,15 @@ $color-surface-muted: #fafafa;
 $color-surface-default: #ffffff;
 $color-border-subtle: rgba(0, 0, 0, 0.08);
 
+// Vuetify outlined fields: `color` on `.v-field__outline` (SVG stroke) — matches library default.
+$color-field-outline: rgba(0, 0, 0, 0.38);
+$color-field-outline-focus: rgba(0, 0, 0, 0.87);
+$radius-field: 4px;
+
+// Custom controls that use a real CSS border/box-shadow (e.g. RichTextStub): must be lighter than
+// $color-field-outline or they read darker than adjacent v-text-field / v-textarea.
+$color-field-outline-solid-rest: rgba(0, 0, 0, 0.12);
+
 // Green color palette
 $color-green-25: #F8F9EB;
 $color-green-50: #E7F5CC;

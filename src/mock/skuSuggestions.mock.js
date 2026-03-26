@@ -1,0 +1,23 @@
+/** Mock SKU list for combobox autocomplete (admin-only). */
+export const SKU_SUGGESTIONS = [
+  'DRMX-VIT-D3-60',
+  'DRMX-OMEG-90',
+  'DRMX-BABY-POWDER-400',
+  'SKU-100234',
+  'SKU-100235',
+  'SKU-200991',
+  'PHR-PARAC-500-20',
+  'PHR-IBU-400-30',
+  'COS-LIP-BALM-01',
+  'COS-SUN-SPF50-200',
+  'MED-INSULIN-PEN-5',
+  'MED-BP-MONITOR-X1',
+  'HW-BANDAGE-SET',
+  'HW-THERM-DIGI',
+  'BEV-TEA-GREEN-100',
+  'BEV-JUICE-ORANGE-1L',
+  'PET-FOOD-CAT-2KG',
+  'PET-TICK-COLLAR-M',
+  'HOME-CANDLE-LAV-1',
+  'HOME-AIR-FILTER-03'
+];

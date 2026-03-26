@@ -1,9 +1,12 @@
 <template>
   <!-- checkout/method — Figma node 9363:63124 (1.2.0 Checkout-Components) -->
   <!-- Shell reserves top padding so the favourite row is not positioned with negative top (avoids clipping by overflow-y ancestors). -->
-  <div class="checkout-method-card-shell">
-    <div v-if="showFavourite" class="checkout-method-card__favourite">
-      <span class="checkout-method-card__favourite-text">{{ favouriteLabel }}</span>
+  <div
+    class="checkout-method-card-shell"
+    :class="{ 'checkout-method-card-shell--has-badge': showBadgeRow }"
+  >
+    <div v-if="showBadgeRow" class="checkout-method-card__favourite">
+      <span class="checkout-method-card__favourite-text" :title="resolvedBadgeLabel">{{ resolvedBadgeLabel }}</span>
       <v-tooltip
         v-if="favouriteTooltip"
         location="bottom"
@@ -178,7 +181,16 @@ export default {
     title: { type: String, default: '' },
     subtitle: { type: String, default: '' },
     price: { type: String, default: '' },
+    /** @deprecated Use checkoutBadgeMode === 'favourite' */
     showFavourite: { type: Boolean, default: false },
+    /** none | favourite | promoted | recommended | legal */
+    checkoutBadgeMode: {
+      type: String,
+      default: 'none',
+      validator: (v) => ['none', 'favourite', 'promoted', 'recommended', 'legal'].includes(v)
+    },
+    /** Custom one-line label; when empty, a default per mode is used. */
+    checkoutBadgeLabel: { type: String, default: '' },
     favouriteLabel: { type: String, default: 'Your favourite' },
     /** Tooltip copy next to the info icon (Figma info / Blue 50 surface). Set to empty string to hide tooltip. */
     favouriteTooltip: {
@@ -191,6 +203,8 @@ export default {
     description: { type: String, default: '' },
     /** When empty, uses hero PNG from Figma export (get_design_context). */
     imageSrc: { type: String, default: '' },
+    /** When true and imageSrc is empty, do not fall back to the default hero image. */
+    hideDefaultHeroImage: { type: Boolean, default: false },
     showPartnerStrip: { type: Boolean, default: true },
     imageAlt: { type: String, default: '' },
     placeTitle: { type: String, default: '' },
@@ -223,7 +237,32 @@ export default {
     };
   },
   computed: {
+    resolvedBadgeMode() {
+      if (this.checkoutBadgeMode && this.checkoutBadgeMode !== 'none') {
+        return this.checkoutBadgeMode;
+      }
+      if (this.showFavourite) return 'favourite';
+      return 'none';
+    },
+    showBadgeRow() {
+      return this.resolvedBadgeMode !== 'none';
+    },
+    resolvedBadgeLabel() {
+      const custom = (this.checkoutBadgeLabel || '').trim();
+      if (custom) return custom;
+      if (this.resolvedBadgeMode === 'favourite' && (this.favouriteLabel || '').trim()) {
+        return this.favouriteLabel.trim();
+      }
+      const defaults = {
+        favourite: 'Your favourite',
+        promoted: 'Promoted',
+        recommended: 'Recommended',
+        legal: 'Legal information'
+      };
+      return defaults[this.resolvedBadgeMode] || '';
+    },
     resolvedImageSrc() {
+      if (this.hideDefaultHeroImage && !this.imageSrc) return '';
       return this.imageSrc || this.defaultHeroUrl;
     },
     inputModel: {
@@ -245,10 +284,11 @@ export default {
   position: relative;
   max-width: 100%;
   box-sizing: border-box;
-  // Proxima applies here so the favourite row (outside .checkout-method-card) matches Figma typography.
   font-family: 'Proxima Vara', tokens.$font-family-base, sans-serif;
   font-feature-settings: 'case', 'lnum', 'pnum';
-  // Space for the absolute favourite row (no negative top; avoids clipping under overflow-y ancestors).
+  padding-top: 0;
+}
+.checkout-method-card-shell--has-badge {
   padding-top: 14px;
 }
 
@@ -271,6 +311,7 @@ export default {
   position: absolute;
   left: 44px;
   top: 0;
+  right: 12px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -278,8 +319,8 @@ export default {
   background: tokens.$color-gray-0;
   border-radius: 0 0 4px 4px;
   z-index: 1;
-  // Do not set a fixed height — 13px text + 16px icon need full line box (was 10px and clipped).
   box-sizing: border-box;
+  min-width: 0;
 }
 .checkout-method-card__favourite-text {
   font-size: 13px;
@@ -287,6 +328,11 @@ export default {
   letter-spacing: 0.15px;
   color: tokens.$color-gray-600; // Text/Black/Tertiary #5E5E5E
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 auto;
+  max-width: 100%;
   font-weight: 500;
   font-variation-settings: 'wght' 515, 'wdth' 100;
 }

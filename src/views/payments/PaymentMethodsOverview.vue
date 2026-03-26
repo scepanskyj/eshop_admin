@@ -45,12 +45,6 @@
     />
 
     <div v-if="sortedGateways.length" class="table-card">
-      <OverviewTableHeader
-        :filter-active="showEnabledOnly"
-        :active-count="enabledFilterCount"
-        filter-label="Enabled"
-        @update:filterActive="setShowEnabledOnly"
-      />
       <div class="gateways-hint-wrap">
         <p1>This is how payment methods appear at checkout. Drag items to change the order.</p1>
         <v-btn
@@ -707,7 +701,6 @@
 <script>
 import draggable from 'vuedraggable';
 import EmptyState from '@/components/common/EmptyState.vue';
-import OverviewTableHeader from '@/components/common/OverviewTableHeader.vue';
 import GatewayCard from '@/components/payments/GatewayCard.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import Modal from '@/components/common/Modal.vue';
@@ -791,11 +784,10 @@ function buildGatewayTemplate(code = '') {
 
 export default {
   name: 'PaymentMethodsOverview',
-  components: { draggable, EmptyState, GatewayCard, OverviewTableHeader, PageHeader, Modal, ModalCard, StatusCard, TertiaryButton, Label, HintText },
+  components: { draggable, EmptyState, GatewayCard, PageHeader, Modal, ModalCard, StatusCard, TertiaryButton, Label, HintText },
   data() {
     return {
       search: '',
-      showEnabledOnly: false,
       metadata: [],
       configDialog: false,
       editedGateway: null,
@@ -905,7 +897,6 @@ export default {
         const title = (gateway.title || '').toLowerCase();
         const code = (gateway.code || '').toLowerCase();
         const matchesSearch = !term || title.includes(term) || code.includes(term);
-        const matchesStatus = !this.showEnabledOnly || gateway.enabled;
         const countries =
           (gateway.countries && gateway.countries.length
             ? gateway.countries.filter(c => c !== 'GLO')
@@ -913,7 +904,7 @@ export default {
         const tenantCode = tenantStore.state.current;
         const matchesCountry = countries.includes(tenantCode);
 
-        return matchesSearch && matchesStatus && matchesCountry;
+        return matchesSearch && matchesCountry;
       });
     },
     sortedGateways() {
@@ -939,9 +930,6 @@ export default {
     },
     enabledCount() {
       return this.sortedGateways.filter(g => g.enabled).length;
-    },
-    enabledFilterCount() {
-      return this.filteredGateways.filter(g => g.enabled).length;
     },
     dialogTitle() {
       if (this.isCreating) return 'Create gateway';
@@ -990,9 +978,6 @@ export default {
       this.orderDirty = false;
       store.dirty.clear('methodsOrder');
       this.snackbar = { show: true, text: 'Sort order saved' };
-    },
-    setShowEnabledOnly(val) {
-      this.showEnabledOnly = val;
     },
     countryFilter(item, queryText) {
       const text = item.text || '';

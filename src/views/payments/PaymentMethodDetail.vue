@@ -151,10 +151,55 @@
               />
             </div>
 
+            <div class="field-block">
+              <Label>Checkout badge</Label>
+              <HintText>
+                Optional label strip above the method (favourite, promoted, recommended, legal). One line in checkout;
+                overflow is truncated.
+              </HintText>
+              <v-select
+                v-model="form.checkoutBadgeMode"
+                class="form-field"
+                :items="checkoutBadgeModeItems"
+                item-title="title"
+                item-value="value"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+              />
+            </div>
+            <div v-if="form.checkoutBadgeMode !== 'none'" class="field-block">
+              <Label>Badge text override</Label>
+              <HintText>Leave empty to use the default label for the selected type.</HintText>
+              <v-text-field
+                v-model="form.checkoutBadgeLabel"
+                class="form-field"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                maxlength="80"
+                counter="80"
+                placeholder="Optional"
+              />
+            </div>
+            <div v-if="form.checkoutBadgeMode !== 'none'" class="field-block checkout-badge-preview-wrap">
+              <Label>Preview</Label>
+              <CheckoutMethodCard
+                :title="form.title || 'Payment method'"
+                subtitle="Example delivery window"
+                price="0.00 €"
+                :checkout-badge-mode="form.checkoutBadgeMode"
+                :checkout-badge-label="form.checkoutBadgeLabel"
+                :show-partner-strip="false"
+                hide-default-hero-image
+              />
+            </div>
+
             <div v-if="canAccessGatewayConfig" class="field-block">
               <v-checkbox
                 v-model="form.needsGatewayConfig"
                 label="Gateway configuration is needed"
+                color="primary"
                 hide-details
               />
             </div>
@@ -223,6 +268,7 @@
               <v-checkbox
                 v-model="form.feeEnabled"
                 label="Enable payment fee for this method"
+                color="primary"
                 hide-details
               />
             </div>
@@ -319,12 +365,14 @@
                 <v-checkbox
                   v-model="form.feeSettings.taxSettings.calculateTax"
                   label="Calculate tax"
+                  color="primary"
                   hide-details
                   class="mt-2"
                 />
                 <v-checkbox
                   v-model="form.feeSettings.taxSettings.feeContainsTax"
                   label="Fee already contains tax"
+                  color="primary"
                   hide-details
                 />
               </div>
@@ -395,6 +443,7 @@ import Modal from '@/components/common/Modal.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
 import HintText from '@/components/common/HintText.vue';
+import CheckoutMethodCard from '@/components/checkout/CheckoutMethodCard.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -442,13 +491,15 @@ function buildPaymentMethodTemplate(countryCode) {
     needsGatewayConfig: false,
     gatewayProvider: '',
     stripeTitle: '',
-    gatewayConfig: ''
+    gatewayConfig: '',
+    checkoutBadgeMode: 'none',
+    checkoutBadgeLabel: ''
   };
 }
 
 export default {
   name: 'PaymentMethodDetail',
-  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal, TertiaryButton, Label, HintText },
+  components: { PageHeader, ModalCard, StatusCard, IconUpload, Modal, TertiaryButton, Label, HintText, CheckoutMethodCard },
   props: {
     code: {
       type: String,
@@ -487,6 +538,15 @@ export default {
         { title: 'Payment section', disabled: true },
         { title: 'Payment methods', to: { name: 'PaymentMethodsOverview' } },
         { title: title, disabled: true }
+      ];
+    },
+    checkoutBadgeModeItems() {
+      return [
+        { title: 'None', value: 'none' },
+        { title: 'Favourite', value: 'favourite' },
+        { title: 'Promoted', value: 'promoted' },
+        { title: 'Recommended', value: 'recommended' },
+        { title: 'Legal', value: 'legal' }
       ];
     },
     customerTypeOptions() {
@@ -755,6 +815,11 @@ export default {
       }
       if (typeof gateway.gatewayConfig === 'object') {
         gateway.gatewayConfig = JSON.stringify(gateway.gatewayConfig, null, 2);
+      }
+
+      if (!gateway.checkoutBadgeMode) gateway.checkoutBadgeMode = 'none';
+      if (gateway.checkoutBadgeLabel === undefined || gateway.checkoutBadgeLabel === null) {
+        gateway.checkoutBadgeLabel = '';
       }
 
       return gateway;

@@ -110,7 +110,7 @@ export const VALUE_INPUTS_BY_TYPE = {
   MARKET: 'MarketInput',
   PROMOTION_APPLIED: 'PromotionInput',
   PRODUCT_FLAGS_COMBINATION: 'ProductFlagsInput',
-  PRODUCT_SKU: 'TextInput',
+  PRODUCT_SKU: 'SkuListInput',
   PRODUCT_CATEGORY: 'ProductTypeInput',
   CUSTOMER_BLACKLIST: 'OptionSelectInput',
   SELECTED_PAYMENT_METHOD: 'PaymentMethodSelectInput',
