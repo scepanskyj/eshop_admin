@@ -57,7 +57,6 @@
         :key="gateway.code"
         :gateway="gateway"
         :icon="getGatewayIcon(gateway.code)"
-        :updated-label="formatUpdated(gateway.updatedAt)"
         :on-configure="openConfigure"
         :show-country-badge="false"
       />
@@ -127,11 +126,6 @@ export default {
         return getAssetPath(typeof gateway.icon === 'string' ? gateway.icon : gateway.icon.value);
       }
       return getAssetPath('/icons/default.svg');
-    },
-    formatUpdated(value) {
-      if (!value) return 'never';
-      const date = new Date(value);
-      return isNaN(date.getTime()) ? 'unknown' : date.toLocaleString();
     },
     openConfigure(gateway) {
       this.$router.push({ name: 'GatewayDetail', params: { code: gateway.code } });

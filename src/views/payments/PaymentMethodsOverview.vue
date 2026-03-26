@@ -76,7 +76,6 @@
             :gateway="gateway"
             :position="index + 1"
             :icon="getGatewayIcon(gateway.code)"
-            :updated-label="formatUpdated(gateway.updatedAt)"
             :on-configure="openConfigure"
             :show-country-badge="showCountryBadge"
             :country-flag="getCountryFlag(gateway.countryCode)"
@@ -1043,11 +1042,6 @@ export default {
       const tenantOption = tenantStore.state.options.find(option => option.code === code);
       if (tenantOption) return tenantOption.label;
       return code;
-    },
-    formatUpdated(value) {
-      if (!value) return 'never';
-      const date = new Date(value);
-      return isNaN(date.getTime()) ? 'unknown' : date.toLocaleString();
     },
     ensureDetails(gateway) {
       gateway.details = { ...DETAIL_DEFAULTS, ...(gateway.details || {}) };

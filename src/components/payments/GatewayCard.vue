@@ -16,14 +16,12 @@
             <v-img :src="icon" :alt="`${gateway.title} icon`" contain />
           </v-avatar>
           <div class="gateway-header__meta">
-            <div class="d-flex align-center mb-1">
-              <div class="gateway-title" role="heading" aria-level="3">{{ gateway.title }}</div>
-              <StatusChip :active="gateway.enabled" active-label="Enabled" inactive-label="Disabled" class="ml-2" />
-            </div>
-            <div v-if="gateway.code" class="gateway-code" aria-label="Method code">{{ gateway.code }}</div>
-            <div class="gateway-updated">
-              <span class="sr-only">Last updated</span>
-              <span aria-hidden="true">Updated {{ updatedLabel }}</span>
+            <div class="gateway-title-group">
+              <div class="gateway-title-row">
+                <div class="gateway-title" role="heading" aria-level="3">{{ gateway.title }}</div>
+                <StatusChip :active="gateway.enabled" active-label="Enabled" inactive-label="Disabled" class="ml-2" />
+              </div>
+              <div v-if="gateway.code" class="gateway-code" aria-label="Method code">{{ gateway.code }}</div>
             </div>
           </div>
         </div>
@@ -45,7 +43,6 @@ export default {
   props: {
     gateway: { type: Object, required: true },
     icon: { type: String, required: true },
-    updatedLabel: { type: String, required: true },
     onConfigure: { type: Function, required: true },
     position: { type: Number, default: undefined }
   },
@@ -122,33 +119,36 @@ export default {
   display: flex;
   flex-direction: column;
   gap: tokens.$space-xs;
+  min-width: 0;
+}
+
+.gateway-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gateway-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: tokens.$space-xs;
+  min-width: 0;
+  width: 100%;
 }
 
 .gateway-title {
   font: tokens.$text-h5;
   color: tokens.$color-text-primary;
+  min-width: 0;
 }
 
 .gateway-code {
   font: tokens.$text-p2;
   color: tokens.$color-text-secondary;
-  font-family: ui-monospace, monospace;
-}
-
-.gateway-updated {
-  font: tokens.$text-p2;
-  color: tokens.$color-text-secondary;
-}
-
-.sr-only {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
+  margin-top: 0;
 }
 </style>
 

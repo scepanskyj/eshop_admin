@@ -19,6 +19,7 @@
         <v-col cols="12" md="8" offset-md="0" class="content-col">
           <v-form ref="detailForm" lazy-validation>
           <ModalCard title="Status">
+            <HintText>This indicates if the method is enabled in the checkout list.</HintText>
             <StatusCard v-model="form.enabled" hide-label enabled-label="Enabled" disabled-label="Disabled" />
           </ModalCard>
 
@@ -66,39 +67,61 @@
             </div>
 
             <div class="field-block">
-              <Label>Web icon</Label>
-              <HintText>SVG format, 1:1 ratio recommended — checkout on web</HintText>
-              <IconUpload
-                v-model="form.iconWeb"
-                :disabled="saving"
-              />
-            </div>
-
-            <div class="field-block">
-              <Label>Mobile icon</Label>
-              <HintText>SVG for mobile checkout</HintText>
-              <IconUpload
-                v-model="form.iconMobile"
-                :disabled="saving"
-              />
-            </div>
-
-            <div class="field-block">
-              <Label>Disabled web icon</Label>
-              <HintText>Shown when this method is disabled on web</HintText>
-              <IconUpload
-                v-model="form.iconWebDisabled"
-                :disabled="saving"
-              />
-            </div>
-
-            <div class="field-block">
-              <Label>Disabled mobile icon</Label>
-              <HintText>Shown when this method is disabled on mobile</HintText>
-              <IconUpload
-                v-model="form.iconMobileDisabled"
-                :disabled="saving"
-              />
+              <Label>Icons</Label>
+              <HintText>
+                SVG, 1:1 aspect ratio.
+                <a
+                  class="icon-source-link"
+                  href="https://design.drmax.eu/7cb14cc9e/p/60f098-logos-and-pins"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >Dr. Max logos &amp; pins (design system)</a>
+              </HintText>
+              <!-- Row = platform: active | disabled (left to right). -->
+              <v-row class="icons-columns icons-row icons-row--web" dense align="stretch">
+                <v-col cols="12" md="6">
+                  <div class="field-block field-block--nested field-block--icons-cell">
+                    <Label>Web</Label>
+                    
+                    <IconUpload
+                      v-model="form.iconWeb"
+                      :disabled="saving"
+                    />
+                  </div>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <div class="field-block field-block--nested field-block--icons-cell">
+                    <Label>Web (disabled)</Label>
+                    
+                    <IconUpload
+                      v-model="form.iconWebDisabled"
+                      :disabled="saving"
+                    />
+                  </div>
+                </v-col>
+              </v-row>
+              <v-row class="icons-columns icons-row icons-row--mobile" dense align="stretch">
+                <v-col cols="12" md="6">
+                  <div class="field-block field-block--nested field-block--icons-cell">
+                    <Label>Mobile</Label>
+                    
+                    <IconUpload
+                      v-model="form.iconMobile"
+                      :disabled="saving"
+                    />
+                  </div>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <div class="field-block field-block--nested field-block--icons-cell">
+                    <Label>Mobile (disabled)</Label>
+                   
+                    <IconUpload
+                      v-model="form.iconMobileDisabled"
+                      :disabled="saving"
+                    />
+                  </div>
+                </v-col>
+              </v-row>
             </div>
 
             <div class="field-block">
@@ -134,13 +157,12 @@
                 label="Gateway configuration is needed"
                 hide-details
               />
-              <HintText>Enable this if this payment method requires gateway configuration (e.g., Stripe, Klarna)</HintText>
             </div>
 
             <template v-if="form.needsGatewayConfig && shouldShowStripeTitle">
               <div class="field-block">
-                <Label>Stripe title</Label>
-                <HintText>Text shown in Stripe gateway as title</HintText>
+                <Label>Gateway title</Label>
+                <HintText>Text shown in the gateway as title</HintText>
                 <v-text-field
                   class="form-field"
                   v-model="form.stripeTitle"
@@ -221,48 +243,59 @@
                 />
               </div>
 
-              <div class="field-flex">
-                <div class="field-block fee-input-field">
-                  <Label>Min Order Amount</Label>
-                  <HintText>Minimum order amount to apply payment fee</HintText>
-                  <v-text-field
-                    class="form-field"
-                    v-model.number="form.feeSettings.minOrderAmount"
-                    density="compact"
-                    variant="outlined"
-                    type="number"
-                    step="0.01"
-                    hide-details="auto"
-                    :suffix="form.currency"
-                  />
+              <div class="field-block fee-order-range-block">
+                <Label>Order total range</Label>
+                <HintText>
+                  The payment fee applies only when the checkout cart total falls between the minimum and maximum you set below.
+                </HintText>
+                <div class="field-flex fee-order-range-inputs">
+                  <div class="field-block fee-input-field fee-order-bound-column">
+                    <Label>Minimum cart total</Label>
+                    <v-text-field
+                      class="form-field"
+                      v-model.number="form.feeSettings.minOrderAmount"
+                      density="compact"
+                      variant="outlined"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      hide-details="auto"
+                      :suffix="form.currency"
+                      :rules="[minOrderAmountFeeRule]"
+                      autocomplete="off"
+                      name="payment-method-fee-min-order"
+                      inputmode="decimal"
+                      @blur="clampFeeOrderMinMax"
+                    />
+                  </div>
+                  <div class="field-block fee-input-field fee-order-bound-column">
+                    <Label>Maximum cart total</Label>
+                    <v-text-field
+                      class="form-field"
+                      v-model.number="form.feeSettings.maxOrderAmount"
+                      density="compact"
+                      variant="outlined"
+                      type="number"
+                      min="0"
+                      max="1000000"
+                      step="0.01"
+                      hide-details="auto"
+                      :suffix="form.currency"
+                      :rules="[maxOrderAmountFeeRule]"
+                      autocomplete="off"
+                      name="payment-method-fee-max-order"
+                      inputmode="decimal"
+                      @blur="clampFeeOrderMinMax"
+                    />
+                  </div>
                 </div>
-
-                <div class="field-block fee-input-field">
-                  <Label>Max Order Amount</Label>
-                  <HintText>Maximum order amount to apply payment fee</HintText>
-                  <v-text-field
-                    class="form-field"
-                    v-model.number="form.feeSettings.maxOrderAmount"
-                    density="compact"
-                    variant="outlined"
-                    type="number"
-                    step="0.01"
-                    hide-details="auto"
-                    :suffix="form.currency"
-                  />
-                </div>
-              </div>
-
-              <div class="field-block">
-                <v-checkbox
-                  v-model="form.feeSettings.refundable"
-                  label="Refund fee when order is refunded"
-                  hide-details
-                />
+                <p v-if="feeRangeSummaryText" class="fee-range-summary">
+                  {{ feeRangeSummaryText }}
+                </p>
               </div>
 
               <div class="field-block fee-input-field">
-                <Label>Apply Payment Fee For Specific Customers</Label>
+                <Label>Apply Payment Fee for Specific Customers</Label>
                 <HintText>If left blank, the fee applies to all customers.</HintText>
                 <v-autocomplete
                   class="form-field"
@@ -275,7 +308,9 @@
                   density="compact"
                   variant="outlined"
                   hide-details="auto"
-                  placeholder="Select customer groups"
+                  placeholder="Select customer groups…"
+                  autocomplete="off"
+                  name="payment-method-fee-customer-types"
                 />
               </div>
 
@@ -394,10 +429,9 @@ function buildPaymentMethodTemplate(countryCode) {
       priceType: 'Fixed price',
       minAmount: 0,
       maxAmount: 9999,
-      refundable: false,
       amount: 0,
       minOrderAmount: 0,
-      maxOrderAmount: 0,
+      maxOrderAmount: 1000000,
       currency,
       customerTypes: [],
       taxSettings: {
@@ -462,6 +496,50 @@ export default {
         { text: 'Business', value: 'business' },
         { text: 'Wholesale', value: 'wholesale' }
       ];
+    },
+    feeRangeSummaryText() {
+      if (!this.form?.feeEnabled || !this.form?.feeSettings) return '';
+      const fs = this.form.feeSettings;
+      const code = this.form.currency || 'EUR';
+      const amt = Number(fs.amount);
+      const min = Number(fs.minOrderAmount);
+      const max = Number(fs.maxOrderAmount);
+      if (Number.isNaN(amt) || amt <= 0) return '';
+      if (Number.isNaN(min) || Number.isNaN(max) || min < 0 || max < 0 || max < min) return '';
+      try {
+        const nf = new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: code,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        const feeStr = nf.format(amt);
+        const minStr = nf.format(min);
+        const maxStr = nf.format(max);
+        return `Payment fee ${feeStr} will be applied for all checkout carts that are in the range of ${minStr} and ${maxStr}.`;
+      } catch {
+        return '';
+      }
+    },
+    minOrderAmountFeeRule() {
+      return v => {
+        if (!this.form?.feeEnabled) return true;
+        const n = Number(v);
+        if (Number.isNaN(n) || n < 0) return 'Enter a minimum cart total (0 or greater)';
+        return true;
+      };
+    },
+    maxOrderAmountFeeRule() {
+      const cap = 1000000;
+      return v => {
+        if (!this.form?.feeEnabled) return true;
+        const n = Number(v);
+        if (Number.isNaN(n) || n < 0) return 'Enter a maximum cart total (0 or greater)';
+        if (n > cap) return `Maximum cart total cannot exceed ${cap.toLocaleString('en-US')}`;
+        const minV = Number(this.form.feeSettings.minOrderAmount);
+        if (!Number.isNaN(minV) && n < minV) return 'Maximum must be greater than or equal to minimum';
+        return true;
+      };
     },
     requiredRule() {
       return v => !!v || 'This field is required';
@@ -589,6 +667,25 @@ export default {
     }
   },
   methods: {
+    clampFeeOrderMinMax() {
+      const cap = 1000000;
+      if (!this.form?.feeSettings) return;
+      let minV = Number(this.form.feeSettings.minOrderAmount);
+      let maxV = Number(this.form.feeSettings.maxOrderAmount);
+      if (Number.isNaN(minV)) minV = 0;
+      if (Number.isNaN(maxV)) maxV = 0;
+      if (minV < 0) minV = 0;
+      if (maxV < 0) maxV = 0;
+      if (maxV > cap) maxV = cap;
+      if (minV > cap) minV = cap;
+      if (minV > maxV) {
+        this.form.feeSettings.minOrderAmount = maxV;
+        this.form.feeSettings.maxOrderAmount = minV;
+      } else {
+        this.form.feeSettings.minOrderAmount = minV;
+        this.form.feeSettings.maxOrderAmount = maxV;
+      }
+    },
     async initializeForm() {
       if (this.isCreate) {
         const countryCode = tenantStore.state.current;
@@ -626,10 +723,9 @@ export default {
           priceType: 'Fixed price',
           minAmount: 0,
           maxAmount: 9999,
-          refundable: false,
           amount: 0,
           minOrderAmount: 0,
-          maxOrderAmount: 0,
+          maxOrderAmount: 1000000,
           currency: gateway.currency,
           customerTypes: [],
           taxSettings: {
@@ -639,7 +735,10 @@ export default {
         };
       }
       if (gateway.feeSettings.minOrderAmount === undefined) gateway.feeSettings.minOrderAmount = 0;
-      if (gateway.feeSettings.maxOrderAmount === undefined) gateway.feeSettings.maxOrderAmount = 0;
+      if (gateway.feeSettings.maxOrderAmount === undefined) gateway.feeSettings.maxOrderAmount = 1000000;
+      if (gateway.feeSettings && Object.prototype.hasOwnProperty.call(gateway.feeSettings, 'refundable')) {
+        delete gateway.feeSettings.refundable;
+      }
 
       if (gateway.needsGatewayConfig === undefined) gateway.needsGatewayConfig = false;
       if (gateway.needsGatewayConfig && !gateway.gatewayProvider) {
@@ -767,6 +866,45 @@ export default {
   margin-bottom: tokens.$space-md;
 }
 
+.field-block--nested {
+  margin-bottom: tokens.$space-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.icons-columns {
+  margin-top: tokens.$space-xs;
+}
+
+.icons-row--web {
+  margin-bottom: tokens.$space-md;
+}
+
+.icons-row :deep(.v-col) {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-block--icons-cell {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.icon-source-link {
+  color: tokens.$color-green-500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
 .form-field {
   width: 100%;
 }
@@ -822,6 +960,28 @@ export default {
   flex-wrap: wrap;
   gap: 24px;
   margin-bottom: tokens.$space-lg;
+}
+
+.fee-range-summary {
+  margin: tokens.$space-md 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.45;
+}
+
+.fee-order-range-inputs {
+  align-items: flex-start;
+
+  > .field-block {
+    align-self: flex-start;
+  }
+}
+
+.fee-order-bound-column {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-xs;
 }
 
 .field-flex .field-block {
