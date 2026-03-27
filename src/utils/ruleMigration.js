@@ -174,6 +174,59 @@ function mapOldOperatorToNew(oldOperator, conditionType, value) {
 }
 
 /**
+ * Legacy demo codes from old seed data → real gateway codes in paymentMethods.seed.js
+ * so rules match storefront methods per country (restriction preview / disabled styling).
+ */
+const LEGACY_PAYMENT_METHOD_ALIASES = {
+  paypal: ['it_paypal', 'sk_vub', 'cz_card', 'ro_card', 'pl_card_blik', 'rs_card'],
+  cod: ['it_cod', 'sk_cod', 'cz_cod', 'ro_cod', 'pl_cod', 'rs_cod'],
+  bank: ['sk_bank']
+};
+
+function expandPaymentMethodCodeList(codes) {
+  if (!Array.isArray(codes)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const code of codes) {
+    if (code == null || code === '') continue;
+    const aliases = LEGACY_PAYMENT_METHOD_ALIASES[code];
+    if (aliases) {
+      for (const a of aliases) {
+        if (!seen.has(a)) {
+          seen.add(a);
+          out.push(a);
+        }
+      }
+    } else if (!seen.has(code)) {
+      seen.add(code);
+      out.push(code);
+    }
+  }
+  return out;
+}
+
+/**
+ * Expand legacy payment method codes on a rule (top-level + SELECTED_PAYMENT_METHOD conditions).
+ */
+export function expandLegacyPaymentMethodCodes(rule) {
+  if (!rule || typeof rule !== 'object') return rule;
+  const next = { ...rule };
+  if (Array.isArray(next.paymentMethods)) {
+    next.paymentMethods = expandPaymentMethodCodeList(next.paymentMethods);
+  }
+  if (Array.isArray(next.groups)) {
+    next.groups = next.groups.map((g) => ({
+      ...g,
+      conditions: (g.conditions || []).map((c) => {
+        if (c.type !== 'SELECTED_PAYMENT_METHOD' || !Array.isArray(c.value)) return c;
+        return { ...c, value: expandPaymentMethodCodeList(c.value) };
+      })
+    }));
+  }
+  return next;
+}
+
+/**
  * Ensure each rule has sortOrder (evaluation / display order in admin).
  * Backend contract for storefront evaluation is TBD — see RESTRICTION_SORT_ORDER_NOTE in PaymentRestrictions.vue.
  */
@@ -199,5 +252,7 @@ export function migrateRules(rules) {
   if (!Array.isArray(rules)) {
     return [];
   }
-  return assignSortOrderIfMissing(rules.map((rule) => migrateRule(rule)));
+  return assignSortOrderIfMissing(
+    rules.map((rule) => expandLegacyPaymentMethodCodes(migrateRule(rule)))
+  );
 }

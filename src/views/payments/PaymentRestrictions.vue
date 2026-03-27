@@ -243,6 +243,8 @@ import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import { showShopTypeForTenant, defaultShopTypeForTenant } from '@/utils/shopTypeByTenant';
+import { scopedPaymentMethods } from '@/utils/paymentMethodCountryScope';
+import { expandLegacyPaymentMethodCodes } from '@/utils/ruleMigration';
 import { getPresetsForCountry } from '@/data/exampleRulePresets';
 import { getUserExamples, removeUserExample, getHiddenStaticPresets, hideStaticPreset } from '@/data/userExampleRules';
 import draggable from 'vuedraggable';
@@ -392,10 +394,15 @@ export default {
   methods: {
     formatPaymentMethods(methods) {
       if (!methods || !methods.length) return '—';
-      return methods.map(code => {
-        const gateway = store.state.gateways.find(g => g.code === code);
-        return gateway ? gateway.title : code;
-      }).join(', ');
+      const tenant = tenantStore.state.current;
+      const scoped = scopedPaymentMethods(methods, tenant, store.state.gateways);
+      if (!scoped.length) return '—';
+      return scoped
+        .map(code => {
+          const gateway = store.state.gateways.find(g => g.code === code);
+          return gateway ? gateway.title : code;
+        })
+        .join(', ');
     },
     formatUpdated(value) {
       if (!value) return 'never';
@@ -459,11 +466,17 @@ export default {
     },
     selectPreset(preset) {
       try {
-        const payload = {
+        const expanded = expandLegacyPaymentMethodCodes({
           name: preset.name,
           description: preset.description,
           paymentMethods: preset.paymentMethods,
           groups: preset.groups
+        });
+        const payload = {
+          name: expanded.name,
+          description: expanded.description,
+          paymentMethods: expanded.paymentMethods,
+          groups: expanded.groups
         };
         if (preset.showWhenApplied !== undefined) payload.showWhenApplied = preset.showWhenApplied;
         if (preset.showInTooltip !== undefined) payload.showInTooltip = preset.showInTooltip;

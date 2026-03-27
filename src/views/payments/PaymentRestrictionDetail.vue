@@ -211,6 +211,11 @@ import {
   shopTypeOptionsForTenant,
   defaultShopTypeForTenant
 } from '@/utils/shopTypeByTenant';
+import {
+  scopedPaymentMethods,
+  normalizeRuleGroupsForCountry
+} from '@/utils/paymentMethodCountryScope';
+import { expandLegacyPaymentMethodCodes } from '@/utils/ruleMigration';
 
 export default {
   name: 'PaymentRestrictionDetail',
@@ -306,6 +311,14 @@ export default {
       if (!val && this.ruleForm.showInTooltip) {
         this.ruleForm.showInTooltip = false;
       }
+    },
+    tenantCode(newVal, oldVal) {
+      if (oldVal === undefined || !this.ruleForm) return;
+      this.suspendDirty = true;
+      this.applyScopedPaymentMethodsToForm();
+      this.$nextTick(() => {
+        this.suspendDirty = false;
+      });
     }
   },
   created() {
@@ -353,7 +366,23 @@ export default {
         this.ruleForm.sortOrder = Number(this.ruleForm.sortOrder);
       }
       this.normalizeShopTypeOnForm();
+      this.applyScopedPaymentMethodsToForm();
       this.$nextTick(() => { this.suspendDirty = false; });
+    },
+    applyScopedPaymentMethodsToForm() {
+      if (!this.ruleForm) return;
+      const t = this.tenantCode;
+      const gw = store.state.gateways;
+      this.ruleForm.paymentMethods = scopedPaymentMethods(
+        this.ruleForm.paymentMethods,
+        t,
+        gw
+      );
+      this.ruleForm.groups = normalizeRuleGroupsForCountry(
+        this.ruleForm.groups || [],
+        t,
+        gw
+      );
     },
     resetRuleForm() {
       this.setRuleForm(this.buildRuleForm());
@@ -402,7 +431,7 @@ export default {
       try {
         const raw = sessionStorage.getItem(PRESET_STORAGE_KEY);
         if (raw) {
-          const preset = JSON.parse(raw);
+          const preset = expandLegacyPaymentMethodCodes(JSON.parse(raw));
           sessionStorage.removeItem(PRESET_STORAGE_KEY);
           this.ruleForm.name = preset.name || '';
           this.ruleForm.description = preset.description || '';
@@ -416,6 +445,7 @@ export default {
           if (preset.shopType !== undefined) this.ruleForm.shopType = preset.shopType;
           if (!this.ruleForm.showWhenApplied) this.ruleForm.showInTooltip = false;
           this.normalizeShopTypeOnForm();
+          this.applyScopedPaymentMethodsToForm();
           this.snackbar = { show: true, text: `Loaded example restriction: ${preset.name}` };
         }
         this.$router.replace({ path: this.$route.path, query: {} });

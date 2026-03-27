@@ -43,6 +43,7 @@ export const gateways = (paymentMethods && paymentMethods.length > 0)
 // Separate export for gateways only (used by GatewaysList)
 export const gatewaysOnly = gatewaysSeed;
 
+// paymentMethods use real codes from paymentMethods.seed.js so previews show disabled methods per country.
 export const rules = [
   {
     id: 'r-1',
@@ -52,7 +53,7 @@ export const rules = [
     storeView: 'Default',
     targetShopTypes: ['B2C'],
     shopType: '1P',
-    paymentMethods: ['paypal'],
+    paymentMethods: ['it_paypal', 'sk_vub', 'cz_card', 'ro_card', 'pl_card_blik', 'rs_card'],
     description: 'Force PayPal for orders above 500',
     showWhenApplied: true,
     reason: '<p>Risk policy</p>',
@@ -68,7 +69,7 @@ export const rules = [
     storeView: 'Default',
     targetShopTypes: ['B2C', 'B2B'],
     shopType: '3P',
-    paymentMethods: ['cod'],
+    paymentMethods: ['it_cod', 'sk_cod', 'cz_cod', 'ro_cod', 'pl_cod', 'rs_cod'],
     description: 'Restrict COD outside SK/CZ',
     showWhenApplied: false,
     reason: '<p>Logistics limitations</p>',
@@ -84,7 +85,7 @@ export const rules = [
     storeView: 'Wholesale',
     targetShopTypes: ['B2B'],
     shopType: '1P',
-    paymentMethods: ['bank'],
+    paymentMethods: ['sk_bank'],
     description: 'Prefer bank transfer for B2B',
     showWhenApplied: false,
     reason: '<p>Finance flow</p>',
