@@ -1,5 +1,9 @@
 <template>
-  <v-sheet class="status-card" :class="{ 'status-card--enabled': enabled }" border>
+  <v-sheet
+    class="status-card"
+    :class="{ 'status-card--enabled': enabled, 'status-card--no-header': hideLabel }"
+    border
+  >
     <div v-if="!hideLabel" class="status-card__header">
       <span>{{ label || 'Status' }}</span>
       <StatusChip
@@ -80,6 +84,11 @@ export default {
 .status-card--enabled {
   background-color: tokens.$color-green-50;
   border-color: rgba(tokens.$color-green-500, 0.2);
+}
+
+/* Compact bottom when only the switch row is shown (hideLabel) — avoids extra band below the row. */
+.status-card--no-header {
+  padding-bottom: tokens.$space-sm;
 }
 
 .status-card__header {

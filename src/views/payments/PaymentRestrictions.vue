@@ -83,7 +83,7 @@
                 <td>{{ item.name }}</td>
                 <td>{{ formatPaymentMethods(item.paymentMethods) }}</td>
                 <td>{{ formatUpdated(item.updatedAt) }}</td>
-                <td v-if="showShopTypeField">{{ item.shopType || '1P' }}</td>
+                <td v-if="showShopTypeField">{{ formatShopTypeCell(item) }}</td>
                 <td>
                   <StatusChip
                     :active="item.active"
@@ -147,7 +147,7 @@
               @click="startNewRule(false)"
             >
               <v-icon start>mdi-file-document-outline</v-icon>
-              Create restriction
+              Create by hand
             </v-btn>
             <SecondaryButton
               block
@@ -157,13 +157,12 @@
               @click="newRuleDialogStep = 'preset'"
             >
               <v-icon start>mdi-file-document-multiple-outline</v-icon>
-              Load example restriction
+              Load example restrictions
             </SecondaryButton>
           </div>
         </template>
 
-        <!-- Step 2: Preset picker -->
-        <template v-else>
+        <template v-else-if="newRuleDialogStep === 'preset'">
           <div class="preset-picker-header">
             <IconButton @click="newRuleDialogStep = 'choice'" class="preset-back-btn">
               <v-icon>mdi-arrow-left</v-icon>
@@ -243,6 +242,7 @@ import SecondaryButton from '@/components/common/SecondaryButton.vue';
 import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
+import { showShopTypeForTenant, defaultShopTypeForTenant } from '@/utils/shopTypeByTenant';
 import { getPresetsForCountry } from '@/data/exampleRulePresets';
 import { getUserExamples, removeUserExample, getHiddenStaticPresets, hideStaticPreset } from '@/data/userExampleRules';
 import draggable from 'vuedraggable';
@@ -289,11 +289,7 @@ export default {
       ];
     },
     showShopTypeField() {
-      const currentTenant = tenantStore.state.current;
-      return currentTenant === 'CZ' || currentTenant === 'SK';
-    },
-    shopTypeOptions() {
-      return ['1P', '3P'];
+      return showShopTypeForTenant(tenantStore.state.current);
     },
     hasRulesInStore() {
       return store.state.rules.length > 0;
@@ -455,6 +451,12 @@ export default {
       this.newRuleDialog = false;
       this.newRuleDialogStep = 'choice';
     },
+    formatShopTypeCell(item) {
+      const t = tenantStore.state.current;
+      const v = item && item.shopType;
+      if (v) return v;
+      return defaultShopTypeForTenant(t) || '—';
+    },
     selectPreset(preset) {
       try {
         const payload = {
@@ -466,13 +468,13 @@ export default {
         if (preset.showWhenApplied !== undefined) payload.showWhenApplied = preset.showWhenApplied;
         if (preset.showInTooltip !== undefined) payload.showInTooltip = preset.showInTooltip;
         if (preset.reason !== undefined) payload.reason = preset.reason;
+        if (preset.shopType !== undefined) payload.shopType = preset.shopType;
         sessionStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(payload));
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn('Could not store preset', e);
       }
-      this.newRuleDialog = false;
-      this.newRuleDialogStep = 'choice';
+      this.closeNewRuleDialog();
       this.$router.push({ name: 'PaymentRestrictionCreate', query: { loadPreset: '1' } });
     },
     confirmDeleteExample(preset) {

@@ -15,10 +15,10 @@
     </PageHeader>
 
     <div v-if="form" class="payment-method-content">
-      <v-row>
-        <v-col cols="12" md="8" offset-md="0" class="content-col">
+      <div class="payment-method-detail-layout">
+        <div class="payment-method-form-column">
           <v-form ref="detailForm" lazy-validation>
-          <ModalCard title="Status">
+          <ModalCard title="Status" class="payment-method-status-modal">
             <HintText>This indicates if the method is enabled in the checkout list.</HintText>
             <StatusCard v-model="form.enabled" hide-label enabled-label="Enabled" disabled-label="Disabled" />
           </ModalCard>
@@ -69,13 +69,7 @@
             <div class="field-block">
               <Label>Icons</Label>
               <HintText>
-                SVG, 1:1 aspect ratio.
-                <a
-                  class="icon-source-link"
-                  href="https://design.drmax.eu/7cb14cc9e/p/60f098-logos-and-pins"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >Dr. Max logos &amp; pins (design system)</a>
+                SVG, 1:1 aspect ratio. Always consult your designers when adding new icons.
               </HintText>
               <!-- Row = platform: active | disabled (left to right). -->
               <v-row class="icons-columns icons-row icons-row--web" dense align="stretch">
@@ -151,56 +145,74 @@
               />
             </div>
 
-            <div class="field-block">
-              <Label>Checkout badge</Label>
+            <div class="field-block checkout-badge-section">
+              <Label>Checkout badge (web)</Label>
               <HintText>
-                Optional label strip above the method (favourite, promoted, recommended, legal). One line in checkout;
-                overflow is truncated.
+                Optional label strip above the method on <strong>web checkout</strong>. One line; overflow is truncated. Native apps may differ.
               </HintText>
-              <v-select
-                v-model="form.checkoutBadgeMode"
-                class="form-field"
-                :items="checkoutBadgeModeItems"
-                item-title="title"
-                item-value="value"
+              <v-switch
+                v-model="checkoutStripEnabled"
+                color="primary"
+                hide-details
                 density="compact"
-                variant="outlined"
-                hide-details="auto"
+                :label="checkoutStripEnabled ? 'Checkout badge enabled' : 'Checkout badge disabled'"
+                class="mt-1"
               />
-            </div>
-            <div v-if="form.checkoutBadgeMode !== 'none'" class="field-block">
-              <Label>Badge text override</Label>
-              <HintText>Leave empty to use the default label for the selected type.</HintText>
-              <v-text-field
-                v-model="form.checkoutBadgeLabel"
-                class="form-field"
-                density="compact"
-                variant="outlined"
-                hide-details="auto"
-                maxlength="80"
-                counter="80"
-                placeholder="Optional"
-              />
-            </div>
-            <div v-if="form.checkoutBadgeMode !== 'none'" class="field-block checkout-badge-preview-wrap">
-              <Label>Preview</Label>
-              <CheckoutMethodCard
-                :title="form.title || 'Payment method'"
-                subtitle="Example delivery window"
-                price="0.00 €"
-                :checkout-badge-mode="form.checkoutBadgeMode"
-                :checkout-badge-label="form.checkoutBadgeLabel"
-                :show-partner-strip="false"
-                hide-default-hero-image
-              />
+              <div v-if="checkoutStripEnabled" class="checkout-badge-settings-group">
+                <div class="field-block field-block--nested field-block--checkout-sub">
+                  <Label>Badge text</Label>
+                  <HintText>Shown on the strip. Leave empty to use the default label.</HintText>
+                  <v-text-field
+                    v-model="form.checkoutBadgeLabel"
+                    class="form-field"
+                    density="compact"
+                    variant="outlined"
+                    hide-details="auto"
+                    maxlength="80"
+                    counter="80"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div class="field-block field-block--nested field-block--checkout-sub">
+                  <v-switch
+                    v-model="form.checkoutBadgeTooltipEnabled"
+                    color="primary"
+                    hide-details
+                    density="compact"
+                    :label="form.checkoutBadgeTooltipEnabled ? 'Tooltip enabled' : 'Tooltip disabled'"
+                  />
+                </div>
+                <div
+                  v-if="form.checkoutBadgeTooltipEnabled"
+                  class="field-block field-block--nested field-block--checkout-sub"
+                >
+                  <Label>Tooltip text</Label>
+                  <HintText>Shown when the customer opens the info control next to the strip on web.</HintText>
+                  <v-textarea
+                    v-model="form.checkoutBadgeTooltip"
+                    class="form-field"
+                    density="compact"
+                    variant="outlined"
+                    rows="2"
+                    hide-details="auto"
+                    placeholder="Optional"
+                  />
+                </div>
+              </div>
             </div>
 
             <div v-if="canAccessGatewayConfig" class="field-block">
-              <v-checkbox
+              <v-switch
                 v-model="form.needsGatewayConfig"
-                label="Gateway configuration is needed"
                 color="primary"
                 hide-details
+                density="compact"
+                :label="
+                  form.needsGatewayConfig
+                    ? 'Gateway configuration required'
+                    : 'Gateway configuration not required'
+                "
+                class="mt-1"
               />
             </div>
 
@@ -265,11 +277,13 @@
           <!-- Payment Fee Settings -->
           <ModalCard title="Payment Fee">
             <div class="field-block">
-              <v-checkbox
+              <v-switch
                 v-model="form.feeEnabled"
-                label="Enable payment fee for this method"
                 color="primary"
                 hide-details
+                density="compact"
+                :label="form.feeEnabled ? 'Payment fee enabled' : 'Payment fee disabled'"
+                class="mt-1"
               />
             </div>
 
@@ -335,9 +349,6 @@
                     />
                   </div>
                 </div>
-                <p v-if="feeRangeSummaryText" class="fee-range-summary">
-                  {{ feeRangeSummaryText }}
-                </p>
               </div>
 
               <div class="field-block fee-input-field">
@@ -362,25 +373,103 @@
 
               <div class="field-block">
                 <Label>Tax Settings</Label>
-                <v-checkbox
+                <v-switch
                   v-model="form.feeSettings.taxSettings.calculateTax"
-                  label="Calculate tax"
                   color="primary"
                   hide-details
+                  density="compact"
+                  :label="
+                    form.feeSettings.taxSettings.calculateTax
+                      ? 'Calculate tax on fee'
+                      : 'Do not calculate tax on fee'
+                  "
                   class="mt-2"
                 />
-                <v-checkbox
+                <template v-if="form.feeSettings.taxSettings.calculateTax">
+                  <div class="field-block field-block--nested mt-2">
+                    <Label>Tax class</Label>
+                    <v-select
+                      v-model="form.feeSettings.taxSettings.taxClass"
+                      class="form-field"
+                      :items="feeTaxClassItems"
+                      item-title="title"
+                      item-value="value"
+                      density="compact"
+                      variant="outlined"
+                      hide-details="auto"
+                    />
+                  </div>
+                  <div class="field-block field-block--nested">
+                    <Label>Display payment fee</Label>
+                    <v-select
+                      v-model="form.feeSettings.taxSettings.displayPaymentFee"
+                      class="form-field"
+                      :items="feeDisplayPaymentFeeItems"
+                      item-title="title"
+                      item-value="value"
+                      density="compact"
+                      variant="outlined"
+                      hide-details="auto"
+                    />
+                  </div>
+                </template>
+                <v-switch
                   v-model="form.feeSettings.taxSettings.feeContainsTax"
-                  label="Fee already contains tax"
                   color="primary"
                   hide-details
+                  density="compact"
+                  :label="
+                    form.feeSettings.taxSettings.feeContainsTax
+                      ? 'Fee already contains tax'
+                      : 'Fee does not include tax'
+                  "
+                  class="mt-2"
                 />
               </div>
             </template>
           </ModalCard>
           </v-form>
-        </v-col>
-      </v-row>
+        </div>
+        <aside class="payment-method-preview-column" aria-label="Web checkout preview">
+          <div class="payment-method-preview-inner">
+            <ModalCard title="Web checkout preview" class="payment-method-preview-modal">
+              <HintText class="payment-method-preview-hint">
+                Live preview of web checkout.
+              </HintText>
+              <div
+                class="payment-method-preview-card-wrap"
+                :class="{ 'payment-method-preview-card-wrap--free-price': previewPriceIsGreen }"
+              >
+                <CheckoutMethodCard
+                  :title="form.title || 'Payment method'"
+                  :description="form.description"
+                  :price="previewCheckoutPriceLine"
+                  :checkout-badge-mode="form.checkoutBadgeMode"
+                  :checkout-badge-label="form.checkoutBadgeLabel"
+                  :favourite-tooltip="previewFavouriteTooltip"
+                  favourite-tooltip-aria="More about this label"
+                  :show-partner-strip="false"
+                  hide-default-hero-image
+                >
+                  <template v-if="previewWebIconSrc" #logo>
+                    <div class="checkout-method-card__logo-figma" data-name="Logo">
+                      <div class="checkout-method-card__logo-inner">
+                        <img
+                          :src="previewWebIconSrc"
+                          alt=""
+                          class="payment-method-preview-icon-img"
+                          width="32"
+                          height="32"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </CheckoutMethodCard>
+              </div>
+            </ModalCard>
+          </div>
+        </aside>
+      </div>
     </div>
 
     <!-- Delete Confirmation Dialog -->
@@ -444,6 +533,7 @@ import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
 import HintText from '@/components/common/HintText.vue';
 import CheckoutMethodCard from '@/components/checkout/CheckoutMethodCard.vue';
+import { resolveIconPath } from '@/utils/iconPath';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
@@ -485,7 +575,9 @@ function buildPaymentMethodTemplate(countryCode) {
       customerTypes: [],
       taxSettings: {
         calculateTax: false,
-        feeContainsTax: false
+        feeContainsTax: false,
+        taxClass: '',
+        displayPaymentFee: 'excluding_tax'
       }
     },
     needsGatewayConfig: false,
@@ -493,7 +585,9 @@ function buildPaymentMethodTemplate(countryCode) {
     stripeTitle: '',
     gatewayConfig: '',
     checkoutBadgeMode: 'none',
-    checkoutBadgeLabel: ''
+    checkoutBadgeLabel: '',
+    checkoutBadgeTooltipEnabled: false,
+    checkoutBadgeTooltip: ''
   };
 }
 
@@ -540,14 +634,84 @@ export default {
         { title: title, disabled: true }
       ];
     },
-    checkoutBadgeModeItems() {
-      return [
-        { title: 'None', value: 'none' },
-        { title: 'Favourite', value: 'favourite' },
-        { title: 'Promoted', value: 'promoted' },
-        { title: 'Recommended', value: 'recommended' },
-        { title: 'Legal', value: 'legal' }
-      ];
+    checkoutStripEnabled: {
+      get() {
+        return !!(this.form && this.form.checkoutBadgeMode && this.form.checkoutBadgeMode !== 'none');
+      },
+      set(v) {
+        if (!this.form) return;
+        if (v) {
+          if (this.form.checkoutBadgeMode === 'none') {
+            this.form.checkoutBadgeMode = 'favourite';
+          }
+        } else {
+          this.form.checkoutBadgeMode = 'none';
+        }
+      }
+    },
+    previewWebIconSrc() {
+      if (!this.form?.iconWeb) return '';
+      return resolveIconPath(this.form.iconWeb);
+    },
+    /** Country for fee/free copy: method country or current tenant. */
+    feePreviewCountryCode() {
+      return (this.form?.countryCode || tenantStore.state.current || '').toUpperCase();
+    },
+    feeIsConfigured() {
+      if (!this.form?.feeEnabled || !this.form?.feeSettings) return false;
+      const amt = Number(this.form.feeSettings.amount);
+      return !Number.isNaN(amt) && amt > 0;
+    },
+    /** Price line in checkout card: fee amount, localized “free”, or currency zero fallback. */
+    previewCheckoutPriceLine() {
+      if (!this.form) return '';
+      if (this.feeIsConfigured) {
+        const amt = Number(this.form.feeSettings.amount);
+        const code = this.form.currency || 'EUR';
+        try {
+          return new Intl.NumberFormat(undefined, {
+            style: 'currency',
+            currency: code,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }).format(amt);
+        } catch {
+          return String(amt);
+        }
+      }
+      const cc = this.feePreviewCountryCode;
+      const freeMap = {
+        CZ: 'Zdarma',
+        SK: 'Zadarmo',
+        PL: '',
+        RO: 'Gratis',
+        IT: 'Gratis'
+      };
+      if (Object.prototype.hasOwnProperty.call(freeMap, cc)) {
+        return freeMap[cc];
+      }
+      try {
+        return new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: this.form.currency || 'EUR',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(0);
+      } catch {
+        return '0.00 €';
+      }
+    },
+    /** Green-600 styling for localized free labels (not PL empty, not currency fallback). */
+    previewPriceIsGreen() {
+      if (!this.form || this.feeIsConfigured) return false;
+      const cc = this.feePreviewCountryCode;
+      return ['CZ', 'SK', 'RO', 'IT'].includes(cc);
+    },
+    previewFavouriteTooltip() {
+      if (!this.form?.checkoutBadgeTooltipEnabled) return '';
+      const t = (this.form.checkoutBadgeTooltip || '').trim();
+      // Non-empty so the preview still shows the info icon; tooltip body stays visually empty.
+      return t || '\u00A0';
     },
     customerTypeOptions() {
       return [
@@ -557,29 +721,20 @@ export default {
         { text: 'Wholesale', value: 'wholesale' }
       ];
     },
-    feeRangeSummaryText() {
-      if (!this.form?.feeEnabled || !this.form?.feeSettings) return '';
-      const fs = this.form.feeSettings;
-      const code = this.form.currency || 'EUR';
-      const amt = Number(fs.amount);
-      const min = Number(fs.minOrderAmount);
-      const max = Number(fs.maxOrderAmount);
-      if (Number.isNaN(amt) || amt <= 0) return '';
-      if (Number.isNaN(min) || Number.isNaN(max) || min < 0 || max < 0 || max < min) return '';
-      try {
-        const nf = new Intl.NumberFormat(undefined, {
-          style: 'currency',
-          currency: code,
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
-        const feeStr = nf.format(amt);
-        const minStr = nf.format(min);
-        const maxStr = nf.format(max);
-        return `Payment fee ${feeStr} will be applied for all checkout carts that are in the range of ${minStr} and ${maxStr}.`;
-      } catch {
-        return '';
-      }
+    feeTaxClassItems() {
+      return [
+        { title: 'Products 21%', value: 'products_21' },
+        { title: 'Products 10%', value: 'products_10' },
+        { title: 'Products 5%', value: 'products_5' },
+        { title: 'Shipping', value: 'shipping' },
+        { title: 'None', value: 'none' }
+      ];
+    },
+    feeDisplayPaymentFeeItems() {
+      return [
+        { title: 'Excluding tax', value: 'excluding_tax' },
+        { title: 'Including tax', value: 'including_tax' }
+      ];
     },
     minOrderAmountFeeRule() {
       return v => {
@@ -790,9 +945,19 @@ export default {
           customerTypes: [],
           taxSettings: {
             calculateTax: false,
-            feeContainsTax: false
+            feeContainsTax: false,
+            taxClass: '',
+            displayPaymentFee: 'excluding_tax'
           }
         };
+      }
+      if (gateway.feeSettings.taxSettings) {
+        if (gateway.feeSettings.taxSettings.taxClass === undefined || gateway.feeSettings.taxSettings.taxClass === null) {
+          gateway.feeSettings.taxSettings.taxClass = '';
+        }
+        if (!gateway.feeSettings.taxSettings.displayPaymentFee) {
+          gateway.feeSettings.taxSettings.displayPaymentFee = 'excluding_tax';
+        }
       }
       if (gateway.feeSettings.minOrderAmount === undefined) gateway.feeSettings.minOrderAmount = 0;
       if (gateway.feeSettings.maxOrderAmount === undefined) gateway.feeSettings.maxOrderAmount = 1000000;
@@ -820,6 +985,10 @@ export default {
       if (!gateway.checkoutBadgeMode) gateway.checkoutBadgeMode = 'none';
       if (gateway.checkoutBadgeLabel === undefined || gateway.checkoutBadgeLabel === null) {
         gateway.checkoutBadgeLabel = '';
+      }
+      if (gateway.checkoutBadgeTooltipEnabled === undefined) gateway.checkoutBadgeTooltipEnabled = false;
+      if (gateway.checkoutBadgeTooltip === undefined || gateway.checkoutBadgeTooltip === null) {
+        gateway.checkoutBadgeTooltip = '';
       }
 
       return gateway;
@@ -923,8 +1092,128 @@ export default {
   padding: tokens.$page-padding;
 }
 
+/* Status modal: less gap between hint and StatusCard, and less empty padding under the card. */
+.payment-method-detail-wrapper :deep(.payment-method-status-modal.modal-card) {
+  padding-bottom: tokens.$space-md;
+}
+
+.payment-method-detail-wrapper :deep(.payment-method-status-modal .modal-card__body) {
+  gap: tokens.$space-sm;
+}
+
+.payment-method-detail-wrapper :deep(.payment-method-status-modal .hint-text) {
+  margin-bottom: 0;
+}
+
 .payment-method-content {
   padding: 0;
+  container-type: inline-size;
+  container-name: pm-layout;
+}
+
+.payment-method-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(560px, min(800px, 100%)) minmax(328px, min(400px, 100%));
+  gap: tokens.$space-lg;
+  align-items: stretch;
+  justify-content: start;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Form column height = content; preview column stretches to row height so sticky preview has room. */
+.payment-method-form-column {
+  align-self: start;
+  min-width: 0;
+  max-width: 800px;
+  width: 100%;
+}
+
+.payment-method-preview-column {
+  align-self: stretch;
+  min-width: 0;
+  max-width: 800px;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-method-preview-inner {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-md;
+  position: sticky;
+  /* Matches v-main padding / app bar via Vuetify layout (inherits --v-layout-top from v-main) */
+  top: calc(var(--v-layout-top, #{tokens.$space-4xl}) + #{tokens.$space-md});
+  align-self: flex-start;
+  width: 100%;
+  z-index: 1;
+}
+
+.payment-method-preview-modal {
+  margin-bottom: 0 !important;
+}
+
+.payment-method-preview-hint {
+  margin: 0 0 tokens.$space-xs 0;
+}
+
+.payment-method-preview-card-wrap {
+  min-width: 328px;
+  max-width: 400px;
+}
+
+.payment-method-preview-card-wrap :deep(.checkout-method-card__logo-inner) {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.payment-method-preview-card-wrap :deep(.payment-method-preview-icon-img) {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.payment-method-preview-card-wrap--free-price :deep(.checkout-method-card__price) {
+  color: tokens.$color-green-600;
+}
+
+/* Stack when 800px form + gap + 328px preview cannot sit side by side (800 + 24 + 328 = 1152) */
+@container pm-layout (max-width: 1152px) {
+  .payment-method-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-method-preview-column {
+    order: 2;
+  }
+
+  .payment-method-form-column {
+    order: 1;
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (max-width: 1152px) {
+    .payment-method-detail-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .payment-method-preview-column {
+      order: 2;
+    }
+
+    .payment-method-form-column {
+      order: 1;
+    }
+  }
 }
 
 .field-block {
@@ -937,6 +1226,18 @@ export default {
   &:last-child {
     margin-bottom: 0;
   }
+}
+
+/* Tighter proximity: badge text + tooltip toggle + tooltip copy as one sub-form */
+.checkout-badge-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-sm;
+  margin-top: tokens.$space-xs;
+}
+
+.checkout-badge-section .checkout-badge-settings-group .field-block--checkout-sub {
+  margin-bottom: 0;
 }
 
 .icons-columns {
@@ -958,16 +1259,6 @@ export default {
   flex-direction: column;
   min-height: 0;
   margin-bottom: 0;
-}
-
-.icon-source-link {
-  color: tokens.$color-green-500;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-
-  &:hover {
-    text-decoration-thickness: 2px;
-  }
 }
 
 .form-field {
@@ -1025,14 +1316,6 @@ export default {
   flex-wrap: wrap;
   gap: 24px;
   margin-bottom: tokens.$space-lg;
-}
-
-.fee-range-summary {
-  margin: tokens.$space-md 0 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.75);
-  line-height: 1.45;
 }
 
 .fee-order-range-inputs {

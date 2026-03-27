@@ -62,18 +62,7 @@
 </template>
 
 <script>
-import { getAssetPath } from '@/utils/paths';
-
-function resolveIconPath(value) {
-  if (!value) return '';
-  if (value.startsWith('data:')) {
-    return value;
-  }
-  if (value.startsWith('/')) {
-    return getAssetPath(value);
-  }
-  return value;
-}
+import { resolveIconPath } from '@/utils/iconPath';
 
 export default {
   name: 'IconUpload',

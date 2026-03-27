@@ -6,33 +6,35 @@
     :class="{ 'checkout-method-card-shell--has-badge': showBadgeRow }"
   >
     <div v-if="showBadgeRow" class="checkout-method-card__favourite">
-      <span class="checkout-method-card__favourite-text" :title="resolvedBadgeLabel">{{ resolvedBadgeLabel }}</span>
-      <v-tooltip
-        v-if="favouriteTooltip"
-        location="bottom"
-        :open-delay="150"
-        class="checkout-method-card__favourite-tooltip-host"
-      >
-        <template #activator="{ props: tipActivatorProps }">
-          <button
-            type="button"
-            class="checkout-method-card__favourite-help"
-            v-bind="tipActivatorProps"
-            :aria-label="favouriteTooltipAria"
-          >
-            <v-icon class="checkout-method-card__favourite-icon" size="16" aria-hidden="true">
-              mdi-information-outline
-            </v-icon>
-          </button>
-        </template>
-        <span class="checkout-method-card__favourite-tooltip-text">{{ favouriteTooltip }}</span>
-      </v-tooltip>
-      <v-icon v-else class="checkout-method-card__favourite-icon" size="16" aria-hidden="true">
-        mdi-information-outline
-      </v-icon>
+      <div class="checkout-method-card__favourite-cluster">
+        <span class="checkout-method-card__favourite-text" :title="resolvedBadgeLabel">{{ resolvedBadgeLabel }}</span>
+        <v-tooltip
+          v-if="favouriteTooltip"
+          location="bottom"
+          :open-delay="150"
+          class="checkout-method-card__favourite-tooltip-host checkout-method-card__favourite-tooltip-activator"
+        >
+          <template #activator="{ props: tipActivatorProps }">
+            <button
+              type="button"
+              class="checkout-method-card__favourite-help"
+              v-bind="tipActivatorProps"
+              :aria-label="favouriteTooltipAria"
+            >
+              <v-icon class="checkout-method-card__favourite-icon" size="16" aria-hidden="true">
+                mdi-information-outline
+              </v-icon>
+            </button>
+          </template>
+          <span class="checkout-method-card__favourite-tooltip-text">{{ favouriteTooltip }}</span>
+        </v-tooltip>
+      </div>
     </div>
 
-    <div class="checkout-method-card">
+    <div
+      class="checkout-method-card"
+      :class="{ 'checkout-method-card--restricted': restricted }"
+    >
     <div class="checkout-method-card__main">
       <div class="checkout-method-card__logo-wrap">
         <slot name="logo">
@@ -64,7 +66,34 @@
 
       <div v-if="price != null && price !== ''" class="checkout-method-card__price">{{ price }}</div>
 
-      <v-icon class="checkout-method-card__chevron" size="20" aria-hidden="true">mdi-chevron-right</v-icon>
+      <v-tooltip
+        v-if="reasonTrailingTooltip"
+        location="bottom"
+        :open-delay="150"
+        class="checkout-method-card__favourite-tooltip-host"
+      >
+        <template #activator="{ props: reasonTipProps }">
+          <button
+            type="button"
+            class="checkout-method-card__favourite-help checkout-method-card__trailing-reason-btn"
+            v-bind="reasonTipProps"
+            aria-label="Restriction reason"
+          >
+            <v-icon class="checkout-method-card__favourite-icon" size="20" aria-hidden="true">
+              mdi-information-outline
+            </v-icon>
+          </button>
+        </template>
+        <span class="checkout-method-card__favourite-tooltip-text">{{ reasonTrailingTooltip }}</span>
+      </v-tooltip>
+      <v-icon
+        v-else-if="!restricted"
+        class="checkout-method-card__chevron"
+        size="20"
+        aria-hidden="true"
+      >
+        mdi-chevron-right
+      </v-icon>
     </div>
 
     <div v-if="showPartnerStrip" class="checkout-method-card__partners" data-name="Grouped methods">
@@ -224,7 +253,13 @@ export default {
     expressLabel: { type: String, default: '' },
     expressValue: { type: String, default: '' },
     expressAdditional: { type: String, default: '' },
-    changeLinkText: { type: String, default: '' }
+    changeLinkText: { type: String, default: '' },
+    /** Restriction preview: gray fill + optional disabled styling from parent */
+    restricted: { type: Boolean, default: false },
+    /**
+     * When set, replaces the trailing chevron with an info control + tooltip (restriction reason).
+     */
+    reasonTrailingTooltip: { type: String, default: '' }
   },
   emits: ['click-change', 'update:modelValue'],
   data() {
@@ -307,23 +342,45 @@ export default {
   gap: 12px;
   max-width: 100%;
 }
+
+.checkout-method-card--restricted {
+  background: tokens.$color-gray-25;
+}
+
+.checkout-method-card__trailing-reason-btn {
+  flex-shrink: 0;
+}
 .checkout-method-card__favourite {
   position: absolute;
   left: 44px;
   top: 0;
   right: 12px;
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-start;
+  justify-content: flex-start;
   padding: 2px 6px;
-  background: tokens.$color-gray-0;
   border-radius: 0 0 4px 4px;
   z-index: 1;
   box-sizing: border-box;
   min-width: 0;
 }
+
+/* Full row width so label can use space up to the info icon (ellipsis only when needed). */
+.checkout-method-card__favourite-cluster {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+}
+
+.checkout-method-card__favourite-tooltip-activator {
+  flex-shrink: 0;
+}
+
 .checkout-method-card__favourite-text {
   font-size: 13px;
+  background: tokens.$color-gray-0;
   line-height: 16px;
   letter-spacing: 0.15px;
   color: tokens.$color-gray-600; // Text/Black/Tertiary #5E5E5E
@@ -331,8 +388,6 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-  flex: 1 1 auto;
-  max-width: 100%;
   font-weight: 500;
   font-variation-settings: 'wght' 515, 'wdth' 100;
 }

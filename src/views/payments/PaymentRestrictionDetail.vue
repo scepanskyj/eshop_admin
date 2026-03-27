@@ -29,8 +29,8 @@
     </PageHeader>
 
     <div v-if="ruleForm" class="payment-restriction-content">
-      <v-row>
-        <v-col cols="12" md="8" offset-md="0" class="content-col">
+      <div class="payment-restriction-detail-layout">
+        <div class="payment-restriction-form-column">
           <v-form ref="ruleFormRef" v-model="formValid">
             <ModalCard title="Status">
               <StatusCard
@@ -102,6 +102,21 @@
                 />
               </div>
 
+              <div v-if="showShopTypeField" class="field-block">
+                <Label>Shop type</Label>
+                <HintText>Applies only to shop types available for your market.</HintText>
+                <v-select
+                  class="form-field"
+                  v-model="ruleForm.shopType"
+                  :items="shopTypeSelectItems"
+                  item-title="title"
+                  item-value="value"
+                  density="compact"
+                  variant="outlined"
+                  hide-details="auto"
+                />
+              </div>
+
               <div class="field-block reason-field-block">
                 <Label>Reason</Label>
                 <HintText>This text is shown to customers when a payment method is disabled by this restriction.</HintText>
@@ -126,16 +141,27 @@
             <ModalCard title="Condition Builder">
               <PaymentRestrictionBuilder v-model="ruleForm.groups" />
             </ModalCard>
+          </v-form>
+        </div>
 
-            <ModalCard title="Preview" class="preview-section">
-              <PaymentRestrictionPreview
-                :payment-methods="ruleForm.paymentMethods"
-                :groups="ruleForm.groups"
+        <aside class="payment-restriction-preview-column" aria-label="Restriction checkout preview">
+          <div class="payment-restriction-preview-inner">
+            <ModalCard title="Checkout preview" class="restriction-preview-modal">
+              <HintText class="restriction-preview-hint">
+                Lists all methods for this country. Restricted targets use disabled styling and your reason settings.
+              </HintText>
+              <RestrictionMethodsListPreview
+                :gateways="sortedGatewaysForPreview"
+                :restricted-codes="ruleForm.paymentMethods"
+                :reason="ruleForm.reason"
+                :show-when-applied="ruleForm.showWhenApplied"
+                :show-in-tooltip="ruleForm.showInTooltip"
+                :assume-rule-applies="true"
               />
             </ModalCard>
-          </v-form>
-        </v-col>
-      </v-row>
+          </div>
+        </aside>
+      </div>
     </div>
 
     <!-- Delete Confirmation Dialog -->
@@ -170,7 +196,7 @@ import Modal from '@/components/common/Modal.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionBuilder.vue';
-import PaymentRestrictionPreview from '@/components/payments/PaymentRestrictionPreview.vue';
+import RestrictionMethodsListPreview from '@/components/payments/RestrictionMethodsListPreview.vue';
 import PrimaryButton from '@/components/common/PrimaryButton.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
 import Label from '@/components/common/Label.vue';
@@ -178,12 +204,30 @@ import HintText from '@/components/common/HintText.vue';
 import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
-import { createConditionGroup, createCondition } from '@/utils/paymentRestrictionTypes';
+import { createConditionGroup } from '@/utils/paymentRestrictionTypes';
 import { addUserExample } from '@/data/userExampleRules';
+import {
+  showShopTypeForTenant,
+  shopTypeOptionsForTenant,
+  defaultShopTypeForTenant
+} from '@/utils/shopTypeByTenant';
 
 export default {
   name: 'PaymentRestrictionDetail',
-  components: { RichTextStub, PageHeader, Modal, ModalCard, StatusCard, PaymentRestrictionBuilder, PaymentRestrictionPreview, PrimaryButton, TertiaryButton, Label, HintText, IconButton },
+  components: {
+    RichTextStub,
+    PageHeader,
+    Modal,
+    ModalCard,
+    StatusCard,
+    PaymentRestrictionBuilder,
+    RestrictionMethodsListPreview,
+    PrimaryButton,
+    TertiaryButton,
+    Label,
+    HintText,
+    IconButton
+  },
   props: {
     id: {
       type: String,
@@ -201,6 +245,22 @@ export default {
     };
   },
   computed: {
+    tenantCode() {
+      return tenantStore.state.current;
+    },
+    showShopTypeField() {
+      return showShopTypeForTenant(this.tenantCode);
+    },
+    shopTypeSelectItems() {
+      return shopTypeOptionsForTenant(this.tenantCode);
+    },
+    sortedGatewaysForPreview() {
+      const t = this.tenantCode;
+      return store.state.gateways
+        .filter(g => g && (g.countries || []).includes(t))
+        .slice()
+        .sort((a, b) => (a.title || a.code || '').localeCompare(b.title || b.code || '', undefined, { sensitivity: 'base' }));
+    },
     isCreate() {
       return !this.id || this.id === 'create';
     },
@@ -292,24 +352,37 @@ export default {
       } else {
         this.ruleForm.sortOrder = Number(this.ruleForm.sortOrder);
       }
+      this.normalizeShopTypeOnForm();
       this.$nextTick(() => { this.suspendDirty = false; });
     },
     resetRuleForm() {
       this.setRuleForm(this.buildRuleForm());
     },
     buildRuleForm() {
+      const t = this.tenantCode;
       return {
         active: true,
         name: '',
         sortOrder: this.nextSortOrder(),
         paymentMethods: [],
         description: '',
+        shopType: showShopTypeForTenant(t) ? defaultShopTypeForTenant(t) : null,
         showWhenApplied: false,
         showInTooltip: false,
         reason: '',
         updatedBy: 'you',
         groups: [createConditionGroup()]
       };
+    },
+    normalizeShopTypeOnForm() {
+      if (!this.ruleForm) return;
+      if (showShopTypeForTenant(this.tenantCode)) {
+        if (this.ruleForm.shopType == null || this.ruleForm.shopType === '') {
+          this.ruleForm.shopType = defaultShopTypeForTenant(this.tenantCode);
+        }
+      } else {
+        this.ruleForm.shopType = null;
+      }
     },
     nextSortOrder() {
       const max = store.state.rules.reduce(
@@ -340,8 +413,10 @@ export default {
           if (preset.showWhenApplied !== undefined) this.ruleForm.showWhenApplied = preset.showWhenApplied;
           if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
           if (preset.reason !== undefined) this.ruleForm.reason = preset.reason;
+          if (preset.shopType !== undefined) this.ruleForm.shopType = preset.shopType;
           if (!this.ruleForm.showWhenApplied) this.ruleForm.showInTooltip = false;
-            this.snackbar = { show: true, text: `Loaded example restriction: ${preset.name}` };
+          this.normalizeShopTypeOnForm();
+          this.snackbar = { show: true, text: `Loaded example restriction: ${preset.name}` };
         }
         this.$router.replace({ path: this.$route.path, query: {} });
       } catch (e) {
@@ -369,7 +444,8 @@ export default {
             : [],
           showWhenApplied: this.ruleForm.showWhenApplied,
           showInTooltip: this.ruleForm.showInTooltip,
-          reason: this.ruleForm.reason || ''
+          reason: this.ruleForm.reason || '',
+          shopType: this.ruleForm.shopType
         }));
       } catch (e) {
         this.snackbar = { show: true, text: 'Could not prepare duplicate' };
@@ -387,7 +463,8 @@ export default {
         groups: this.ruleForm.groups,
         showWhenApplied: this.ruleForm.showWhenApplied,
         showInTooltip: this.ruleForm.showInTooltip,
-        reason: this.ruleForm.reason
+        reason: this.ruleForm.reason,
+        shopType: this.ruleForm.shopType
       });
       const opt = tenantStore.state.options.find(o => o.code === country);
       const countryLabel = opt ? opt.label : country;
@@ -406,6 +483,7 @@ export default {
         this.snackbar = { show: true, text: 'At least one payment method is required' };
         return;
       }
+      this.normalizeShopTypeOnForm();
       // Keep reasonDisplayMode in sync for backward compatibility
       this.ruleForm.reasonDisplayMode = !this.ruleForm.showWhenApplied ? 'none' : (this.ruleForm.showInTooltip ? 'tooltip' : 'direct');
       // Validate that at least one group has at least one condition
@@ -468,11 +546,85 @@ export default {
 
 .payment-restriction-content {
   margin-top: tokens.$space-lg;
+  container-type: inline-size;
+  container-name: pr-layout;
 }
 
-.content-col {
-  /* Allow column to shrink with grid; avoid overflow when md="8" is narrower than 800px (e.g. 960–1200px viewport) */
-  min-width: min(800px, 100%);
+.payment-restriction-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(560px, min(800px, 100%)) minmax(328px, min(400px, 100%));
+  gap: tokens.$space-lg;
+  align-items: stretch;
+  justify-content: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.payment-restriction-form-column {
+  align-self: start;
+  min-width: 0;
+  max-width: 800px;
+  width: 100%;
+}
+
+.payment-restriction-preview-column {
+  align-self: stretch;
+  min-width: 0;
+  max-width: 800px;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-restriction-preview-inner {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-md;
+  position: sticky;
+  top: calc(var(--v-layout-top, #{tokens.$space-4xl}) + #{tokens.$space-md});
+  align-self: flex-start;
+  width: 100%;
+  z-index: 1;
+}
+
+.restriction-preview-modal {
+  margin-bottom: 0 !important;
+}
+
+.restriction-preview-hint {
+  margin: 0 0 tokens.$space-sm 0;
+}
+
+/* Stack when 800px form + gap + 328px preview cannot sit side by side */
+@container pr-layout (max-width: 1152px) {
+  .payment-restriction-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-restriction-preview-column {
+    order: 2;
+  }
+
+  .payment-restriction-form-column {
+    order: 1;
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (max-width: 1152px) {
+    .payment-restriction-detail-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .payment-restriction-preview-column {
+      order: 2;
+    }
+
+    .payment-restriction-form-column {
+      order: 1;
+    }
+  }
 }
 
 .field-block {
@@ -489,10 +641,6 @@ export default {
   :deep(.v-input__control textarea) {
     min-height: 120px !important;
   }
-}
-
-.preview-section {
-  margin-top: tokens.$space-lg;
 }
 
 .rich-text-stub-field {
