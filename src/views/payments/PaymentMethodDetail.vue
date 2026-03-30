@@ -146,9 +146,9 @@
             </div>
 
             <div class="field-block checkout-badge-section">
-              <Label>Checkout badge (web)</Label>
+              <Label>Checkout badge</Label>
               <HintText>
-                Optional label strip above the method on <strong>web checkout</strong>. One line; overflow is truncated. Native apps may differ.
+                Optional label strip above the method on web checkout. One line; overflow is truncated.
               </HintText>
               <v-switch
                 v-model="checkoutStripEnabled"
