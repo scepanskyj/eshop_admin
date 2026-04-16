@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import seed, { gatewaysOnly } from '@/mock/payments.mock';
 import { paymentMethods } from '@/mock/paymentMethods.seed';
 import { migrateRules } from '@/utils/ruleMigration';
+import { stringifyGatewayTemplate } from '@/constants/gatewayProviderTemplates';
 
 const STORAGE_KEY = 'esa.payments';
 const GATEWAYS_STORAGE_KEY = 'esa.gateways';
@@ -10,6 +11,43 @@ const VERSION_KEY = 'esa.payments.version';
 const GATEWAYS_VERSION_KEY = 'esa.gateways.version';
 
 function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function gatewayConfigJsonReadyForStore(g) {
+  const v = g.gatewayConfig;
+  if (!v || !String(v).trim()) return false;
+  try {
+    JSON.parse(v);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** All methods require gateway JSON; normalize older rows and disable invalid ones. */
+function migratePaymentMethodsGatewayRequired(methods) {
+  if (!Array.isArray(methods) || methods.length === 0) return methods;
+  return methods.map(m => {
+    const g = { ...m };
+    g.needsGatewayConfig = true;
+    if (g.gatewayProvider === undefined || g.gatewayProvider === null || g.gatewayProvider === '') {
+      g.gatewayProvider = null;
+    }
+    const cfg = g.gatewayConfig;
+    if (cfg == null || (typeof cfg === 'string' && !String(cfg).trim())) {
+      if (g.gatewayProvider) {
+        g.gatewayConfig = stringifyGatewayTemplate(g.gatewayProvider);
+      } else {
+        g.gatewayConfig = '';
+      }
+    } else if (typeof cfg === 'object') {
+      g.gatewayConfig = JSON.stringify(cfg, null, 2);
+    }
+    if (!gatewayConfigJsonReadyForStore(g)) {
+      g.enabled = false;
+    }
+    return g;
+  });
+}
 
 // Helper function to merge Stripe gateway config into card payment methods
 function mergeStripeGatewayIntoCardMethods(paymentMethods, stripeGateway) {
@@ -101,7 +139,7 @@ function hydrate() {
       }
     }
     
-    state.gateways = methods;
+    state.gateways = migratePaymentMethodsGatewayRequired(methods);
     const seedRules = deepClone(seed.rules);
     state.rules = migrateRules(seedRules);
     state.fee = deepClone(seed.fee);
@@ -143,6 +181,7 @@ function hydrate() {
           console.warn('Failed to migrate gateway data:', e);
         }
       }
+      state.gateways = migratePaymentMethodsGatewayRequired(state.gateways);
     } catch (e) {
       // reset storage on parse error
       console.log('Parse error, resetting to seed data');
@@ -152,7 +191,7 @@ function hydrate() {
       if (stripeGateway) {
         methods = mergeStripeGatewayIntoCardMethods(methods, stripeGateway);
       }
-      state.gateways = methods;
+      state.gateways = migratePaymentMethodsGatewayRequired(methods);
       const seedRules = deepClone(seed.rules);
       state.rules = migrateRules(seedRules);
       state.fee = deepClone(seed.fee);

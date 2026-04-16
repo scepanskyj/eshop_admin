@@ -19,8 +19,20 @@
         <div class="payment-method-form-column">
           <v-form ref="detailForm" lazy-validation>
           <ModalCard title="Status" class="payment-method-status-modal">
-            <HintText>This indicates if the method is enabled in the checkout list.</HintText>
-            <StatusCard v-model="form.enabled" hide-label enabled-label="Enabled" disabled-label="Disabled" />
+            <HintText>When this is on, customers can use this payment method at checkout.</HintText>
+            <div class="status-enable-block">
+              <StatusCard
+                v-model="form.enabled"
+                hide-label
+                enabled-label="Enabled"
+                disabled-label="Disabled"
+                :switch-disabled="statusEnableSwitchDisabled"
+                :switch-disabled-hint="statusEnableSwitchTooltip"
+              />
+              <p v-if="statusEnableInlineHint" class="status-enable-inline-hint" role="status">
+                {{ statusEnableInlineHint }}
+              </p>
+            </div>
           </ModalCard>
 
           <!-- Basic Information -->
@@ -201,22 +213,7 @@
               </div>
             </div>
 
-            <div v-if="canAccessGatewayConfig" class="field-block">
-              <v-switch
-                v-model="form.needsGatewayConfig"
-                color="primary"
-                hide-details
-                density="compact"
-                :label="
-                  form.needsGatewayConfig
-                    ? 'Gateway configuration required'
-                    : 'Gateway configuration not required'
-                "
-                class="mt-1"
-              />
-            </div>
-
-            <template v-if="form.needsGatewayConfig && shouldShowStripeTitle">
+            <template v-if="shouldShowStripeTitle">
               <div class="field-block">
                 <Label>Gateway title</Label>
                 <HintText>Text shown in the gateway as title</HintText>
@@ -232,11 +229,16 @@
             </template>
           </ModalCard>
 
-          <!-- Gateway Configuration (Developer/Admin only) -->
-          <ModalCard v-if="form.needsGatewayConfig && canAccessGatewayConfig" title="Gateway Configuration">
+          <!-- Gateway Configuration (Developer/Admin only) — required for every method -->
+          <ModalCard v-if="canAccessGatewayConfig" title="Gateway Configuration">
+            <div class="field-block">
+              <HintText>
+                Every payment method must have gateway configuration. Complete valid JSON below before enabling this method in checkout.
+              </HintText>
+            </div>
             <div class="field-block">
               <Label>Provider</Label>
-              <HintText>Changing provider replaces the JSON below with that provider&apos;s template.</HintText>
+              <HintText>Select a provider to load a JSON template. Changing provider replaces the JSON below.</HintText>
               <v-select
                 class="form-field"
                 v-model="form.gatewayProvider"
@@ -246,6 +248,9 @@
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                clearable
+                placeholder="Select a provider"
+                :rules="[providerRule]"
               />
             </div>
             <div class="field-block">
@@ -538,11 +543,20 @@ import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
 import roleStore from '@/store/roleStore';
 import { getCurrencyForCountry } from '@/utils/currencies';
-import {
-  GATEWAY_PROVIDER_OPTIONS,
-  stringifyGatewayTemplate,
-  DEFAULT_GATEWAY_PROVIDER
-} from '@/constants/gatewayProviderTemplates';
+import { GATEWAY_PROVIDER_OPTIONS, stringifyGatewayTemplate } from '@/constants/gatewayProviderTemplates';
+
+/** Non-empty, valid JSON — required for every payment method. */
+function isGatewayConfigJsonReady(form) {
+  if (!form) return true;
+  const v = form.gatewayConfig;
+  if (!v || !String(v).trim()) return false;
+  try {
+    JSON.parse(v);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function buildPaymentMethodTemplate(countryCode) {
   const currency = getCurrencyForCountry(countryCode);
@@ -557,7 +571,7 @@ function buildPaymentMethodTemplate(countryCode) {
     iconMobile: '',
     iconWebDisabled: '',
     iconMobileDisabled: '',
-    enabled: true,
+    enabled: false,
     sortOrder: 0,
     countryCode: countryCode || tenantStore.state.current,
     currency,
@@ -580,8 +594,8 @@ function buildPaymentMethodTemplate(countryCode) {
         displayPaymentFee: 'excluding_tax'
       }
     },
-    needsGatewayConfig: false,
-    gatewayProvider: '',
+    needsGatewayConfig: true,
+    gatewayProvider: null,
     stripeTitle: '',
     gatewayConfig: '',
     checkoutBadgeMode: 'none',
@@ -621,6 +635,29 @@ export default {
     },
     canAccessGatewayConfig() {
       return roleStore.getters.canCreate(); // Only developers and admins
+    },
+    gatewayConfigReadyForEnable() {
+      return isGatewayConfigJsonReady(this.form);
+    },
+    statusEnableSwitchDisabled() {
+      if (!this.form) return false;
+      return !this.gatewayConfigReadyForEnable;
+    },
+    /** Short inline line next to Status (secondary text, not an alert). */
+    statusEnableInlineHint() {
+      if (!this.form || !this.statusEnableSwitchDisabled) return '';
+      if (this.canAccessGatewayConfig) {
+        return 'Complete gateway setup below before you can turn this on for checkout.';
+      }
+      return 'Gateway setup is not finished yet. A technical admin can turn this on after they complete the section below.';
+    },
+    /** Supplementary tooltip on the disabled switch (hover or keyboard focus). */
+    statusEnableSwitchTooltip() {
+      if (!this.form || !this.statusEnableSwitchDisabled) return '';
+      if (this.canAccessGatewayConfig) {
+        return 'Choose a provider and finish Gateway configuration first.';
+      }
+      return 'A developer or admin must finish Gateway configuration before this can be enabled.';
     },
     gatewayProviderSelectItems() {
       return GATEWAY_PROVIDER_OPTIONS;
@@ -779,7 +816,7 @@ export default {
       };
     },
     gatewayJsonDetailError() {
-      if (!this.form || !this.form.needsGatewayConfig || !this.canAccessGatewayConfig) return '';
+      if (!this.form || !this.canAccessGatewayConfig) return '';
       const v = this.form.gatewayConfig;
       if (!v || !String(v).trim()) return '';
       try {
@@ -791,8 +828,8 @@ export default {
     },
     jsonRule() {
       return v => {
-        if (!this.form || !this.form.needsGatewayConfig) return true;
-        if (!v || !String(v).trim()) return 'Gateway configuration is required when gateway config is needed';
+        if (!this.form) return true;
+        if (!v || !String(v).trim()) return 'Gateway configuration (JSON) is required';
         try {
           JSON.parse(v);
           return true;
@@ -800,6 +837,10 @@ export default {
           return e.message || 'Invalid JSON format';
         }
       };
+    },
+    providerRule() {
+      return v =>
+        (v !== null && v !== undefined && String(v).trim() !== '') || 'Select a gateway provider';
     },
     shouldShowStripeTitle() {
       if (!this.form) return false;
@@ -837,24 +878,21 @@ export default {
       },
       deep: true
     },
-    'form.needsGatewayConfig'(enabled) {
-      if (this.suspendGatewayEffects || !this.form) return;
-      if (enabled) {
-        if (!this.form.gatewayProvider) {
-          this.form.gatewayProvider = DEFAULT_GATEWAY_PROVIDER;
-        }
-        const t = stringifyGatewayTemplate(this.form.gatewayProvider || DEFAULT_GATEWAY_PROVIDER);
-        if (!this.form.gatewayConfig || !String(this.form.gatewayConfig).trim()) {
-          this.form.gatewayConfig = t;
-        }
-      }
-    },
     'form.gatewayProvider'(newVal, oldVal) {
       if (this.suspendGatewayEffects || !this.form) return;
-      if (oldVal === undefined || newVal === oldVal) return;
-      const hadProvider = oldVal !== '' && oldVal != null;
-      if (!hadProvider) return;
+      if (oldVal === undefined) return;
+      if (newVal === oldVal) return;
+      if (!newVal) {
+        this.form.gatewayConfig = '';
+        return;
+      }
       this.form.gatewayConfig = stringifyGatewayTemplate(newVal);
+    },
+    gatewayConfigReadyForEnable(ok) {
+      if (!this.form || this.suspendGatewayEffects) return;
+      if (!ok && this.form.enabled) {
+        this.form.enabled = false;
+      }
     },
     currentTenant: {
       handler(newTenant, oldTenant) {
@@ -965,15 +1003,18 @@ export default {
         delete gateway.feeSettings.refundable;
       }
 
-      if (gateway.needsGatewayConfig === undefined) gateway.needsGatewayConfig = false;
-      if (gateway.needsGatewayConfig && !gateway.gatewayProvider) {
-        gateway.gatewayProvider = DEFAULT_GATEWAY_PROVIDER;
+      gateway.needsGatewayConfig = true;
+      if (
+        gateway.gatewayProvider === undefined ||
+        gateway.gatewayProvider === null ||
+        gateway.gatewayProvider === ''
+      ) {
+        gateway.gatewayProvider = null;
       }
-      if (!gateway.gatewayProvider) gateway.gatewayProvider = '';
       if (!gateway.stripeTitle) gateway.stripeTitle = gateway.title || '';
-      if (!gateway.gatewayConfig) {
-        if (gateway.needsGatewayConfig) {
-          gateway.gatewayConfig = stringifyGatewayTemplate(gateway.gatewayProvider || DEFAULT_GATEWAY_PROVIDER);
+      if (!gateway.gatewayConfig || !String(gateway.gatewayConfig).trim()) {
+        if (gateway.gatewayProvider) {
+          gateway.gatewayConfig = stringifyGatewayTemplate(gateway.gatewayProvider);
         } else {
           gateway.gatewayConfig = '';
         }
@@ -989,6 +1030,10 @@ export default {
       if (gateway.checkoutBadgeTooltipEnabled === undefined) gateway.checkoutBadgeTooltipEnabled = false;
       if (gateway.checkoutBadgeTooltip === undefined || gateway.checkoutBadgeTooltip === null) {
         gateway.checkoutBadgeTooltip = '';
+      }
+
+      if (!isGatewayConfigJsonReady(gateway)) {
+        gateway.enabled = false;
       }
 
       return gateway;
@@ -1019,13 +1064,14 @@ export default {
         return;
       }
 
-      if (this.form.needsGatewayConfig && this.form.gatewayConfig) {
-        try {
-          JSON.parse(this.form.gatewayConfig);
-        } catch (e) {
-          this.snackbar = { show: true, text: e.message || 'Invalid JSON in gateway configuration' };
-          return;
-        }
+      if (!isGatewayConfigJsonReady(this.form)) {
+        this.snackbar = {
+          show: true,
+          text: this.form.enabled
+            ? 'Complete and validate gateway configuration (JSON) before enabling or saving this method.'
+            : 'Gateway configuration (JSON) is required and must be valid before saving.'
+        };
+        return;
       }
 
       this.saving = true;
@@ -1038,11 +1084,7 @@ export default {
           integrationId: (this.form.integrationId || '').trim()
         };
 
-        if (!payload.needsGatewayConfig) {
-          payload.gatewayConfig = '';
-          payload.stripeTitle = '';
-          payload.gatewayProvider = '';
-        }
+        payload.needsGatewayConfig = true;
 
         if (this.isCreate) {
           store.actions.createPaymentMethod(payload);
@@ -1092,17 +1134,52 @@ export default {
   padding: tokens.$page-padding;
 }
 
-/* Status modal: less gap between hint and StatusCard, and less empty padding under the card. */
+/* Status modal spacing: title ↔ intro 8px; intro ↔ switch 16px; switch ↔ helper 8px */
 .payment-method-detail-wrapper :deep(.payment-method-status-modal.modal-card) {
   padding-bottom: tokens.$space-md;
 }
 
+.payment-method-detail-wrapper :deep(.payment-method-status-modal .modal-card__header) {
+  margin-bottom: tokens.$space-sm;
+}
+
 .payment-method-detail-wrapper :deep(.payment-method-status-modal .modal-card__body) {
-  gap: tokens.$space-sm;
+  gap: tokens.$space-md;
 }
 
 .payment-method-detail-wrapper :deep(.payment-method-status-modal .hint-text) {
   margin-bottom: 0;
+}
+
+.status-enable-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  gap: tokens.$space-sm;
+}
+
+.payment-method-detail-wrapper :deep(.status-enable-block .status-card) {
+  margin-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.status-enable-inline-hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: tokens.$color-text-secondary;
+  /* One line on typical admin widths; earlier break was from max-width ~52ch */
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .status-enable-inline-hint {
+    white-space: normal;
+  }
 }
 
 .payment-method-content {

@@ -17,11 +17,35 @@
         <span class="switch-state" :class="{ 'switch-state--on': enabled }">
           {{ enabled ? enabledLabel || 'Enabled' : disabledLabel || 'Disabled' }}
         </span>
+        <v-tooltip
+          v-if="switchDisabled && switchDisabledHint"
+          location="bottom"
+          max-width="320"
+        >
+          <template #activator="{ props: tooltipProps }">
+            <span
+              v-bind="tooltipProps"
+              class="state-switch-tooltip-activator"
+              tabindex="0"
+            >
+              <v-switch
+                v-model="enabled"
+                inset
+                hide-details
+                class="state-switch"
+                :disabled="switchDisabled"
+              />
+            </span>
+          </template>
+          <span class="text-body-2">{{ switchDisabledHint }}</span>
+        </v-tooltip>
         <v-switch
+          v-else
           v-model="enabled"
           inset
           hide-details
           class="state-switch"
+          :disabled="switchDisabled"
         />
       </div>
     </div>
@@ -54,6 +78,15 @@ export default {
     hideLabel: {
       type: Boolean,
       default: false
+    },
+    switchDisabled: {
+      type: Boolean,
+      default: false
+    },
+    /** Shown as tooltip when the switch is disabled (e.g. hover or keyboard focus on wrapper). */
+    switchDisabledHint: {
+      type: String,
+      default: ''
     }
   },
   emits: ['update:modelValue'],
@@ -113,6 +146,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.state-switch-tooltip-activator {
+  display: inline-flex;
+  align-items: center;
+  outline: none;
+  border-radius: 999px;
+  cursor: help;
 }
 
 .switch-state {
