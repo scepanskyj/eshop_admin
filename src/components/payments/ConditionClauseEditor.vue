@@ -21,7 +21,7 @@
 
       <div v-if="isClauseNode(part)" class="nested-group">
         <div class="nested-header">
-          <span class="nested-label">Group</span>
+          <span class="nested-label">{{ groupLabelAtIndex(i) }}</span>
           <v-btn
             variant="text"
             color="red"
@@ -99,6 +99,14 @@ export default {
   },
   methods: {
     isClauseNode,
+    groupLabelAtIndex(i) {
+      let n = 0;
+      const parts = this.clause.parts || [];
+      for (let k = 0; k <= i && k < parts.length; k++) {
+        if (isClauseNode(parts[k])) n++;
+      }
+      return `Group ${n}`;
+    },
     partKey(part, i) {
       return part && part.id ? part.id : `idx-${i}`;
     },
