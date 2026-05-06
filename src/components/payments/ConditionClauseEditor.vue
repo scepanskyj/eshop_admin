@@ -88,10 +88,9 @@ export default {
     clause() {
       return this.modelValue;
     },
-    /** One group max (root only); no nested groups. */
+    /** Multiple groups allowed at root; never inside a group. */
     canAddGroup() {
-      if (this.depth > 0) return false;
-      return !this.clause.parts.some((p) => isClauseNode(p));
+      return this.depth === 0;
     }
   },
   methods: {
@@ -122,7 +121,7 @@ export default {
       this.emitClause(parts, joins);
     },
     addGroup() {
-      if (this.depth > 0 || this.clause.parts.some((p) => isClauseNode(p))) return;
+      if (this.depth > 0) return;
       const parts = [...this.clause.parts];
       const joins = [...this.clause.joins];
       if (parts.length > 0) joins.push('AND');
