@@ -2,6 +2,8 @@
  * Scope payment method codes to gateways available for a tenant (country).
  */
 
+import { mapClauseLeaves } from '@/utils/conditionClause';
+
 /**
  * @param {string} tenantCode
  * @param {Array<{ code?: string, countries?: string[] }>} gateways
@@ -45,4 +47,19 @@ export function normalizeRuleGroupsForCountry(groups, tenantCode, gateways) {
       return { ...c, value: v.filter(code => valid.has(code)) };
     })
   }));
+}
+
+/**
+ * Same scoping for nested condition clauses (SELECTED_PAYMENT_METHOD only).
+ */
+export function normalizeConditionRootForCountry(conditionRoot, tenantCode, gateways) {
+  if (!conditionRoot || !Array.isArray(conditionRoot.parts)) {
+    return conditionRoot;
+  }
+  const valid = gatewayCodesForTenant(tenantCode, gateways);
+  const mapLeaf = (c) => {
+    if (c.type !== 'SELECTED_PAYMENT_METHOD' || !Array.isArray(c.value)) return c;
+    return { ...c, value: c.value.filter((code) => valid.has(code)) };
+  };
+  return mapClauseLeaves(conditionRoot, mapLeaf);
 }

@@ -139,7 +139,12 @@
             </ModalCard>
 
             <ModalCard title="Condition Builder">
-              <PaymentRestrictionBuilder v-model="ruleForm.groups" />
+              <PaymentRestrictionBuilder v-model="ruleForm.conditionRoot" />
+              <PaymentRestrictionPreview
+                class="restriction-condition-preview mt-4"
+                :payment-methods="ruleForm.paymentMethods"
+                :condition-root="ruleForm.conditionRoot"
+              />
             </ModalCard>
           </v-form>
         </div>
@@ -196,6 +201,7 @@ import Modal from '@/components/common/Modal.vue';
 import ModalCard from '@/components/common/ModalCard.vue';
 import StatusCard from '@/components/common/StatusCard.vue';
 import PaymentRestrictionBuilder from '@/components/payments/PaymentRestrictionBuilder.vue';
+import PaymentRestrictionPreview from '@/components/payments/PaymentRestrictionPreview.vue';
 import RestrictionMethodsListPreview from '@/components/payments/RestrictionMethodsListPreview.vue';
 import PrimaryButton from '@/components/common/PrimaryButton.vue';
 import TertiaryButton from '@/components/common/TertiaryButton.vue';
@@ -204,7 +210,7 @@ import HintText from '@/components/common/HintText.vue';
 import IconButton from '@/components/common/IconButton.vue';
 import store from '@/store/paymentsStore';
 import tenantStore from '@/store/tenantStore';
-import { createConditionGroup } from '@/utils/paymentRestrictionTypes';
+import { createClause, ensureConditionRoot, clauseHasAnyComplete } from '@/utils/conditionClause';
 import { addUserExample } from '@/data/userExampleRules';
 import {
   showShopTypeForTenant,
@@ -213,7 +219,7 @@ import {
 } from '@/utils/shopTypeByTenant';
 import {
   scopedPaymentMethods,
-  normalizeRuleGroupsForCountry
+  normalizeConditionRootForCountry
 } from '@/utils/paymentMethodCountryScope';
 import { expandLegacyPaymentMethodCodes } from '@/utils/ruleMigration';
 
@@ -226,6 +232,7 @@ export default {
     ModalCard,
     StatusCard,
     PaymentRestrictionBuilder,
+    PaymentRestrictionPreview,
     RestrictionMethodsListPreview,
     PrimaryButton,
     TertiaryButton,
@@ -345,10 +352,8 @@ export default {
     setRuleForm(payload) {
       this.suspendDirty = true;
       this.ruleForm = JSON.parse(JSON.stringify(payload));
-      // Ensure groups exist (for migrated rules)
-      if (!this.ruleForm.groups || !Array.isArray(this.ruleForm.groups) || this.ruleForm.groups.length === 0) {
-        this.ruleForm.groups = [createConditionGroup()];
-      }
+      ensureConditionRoot(this.ruleForm);
+      delete this.ruleForm.groups;
       // Migrate reasonDisplayMode to showWhenApplied + showInTooltip
       if (this.ruleForm.reasonDisplayMode !== undefined) {
         this.ruleForm.showWhenApplied = this.ruleForm.reasonDisplayMode !== 'none';
@@ -378,8 +383,8 @@ export default {
         t,
         gw
       );
-      this.ruleForm.groups = normalizeRuleGroupsForCountry(
-        this.ruleForm.groups || [],
+      this.ruleForm.conditionRoot = normalizeConditionRootForCountry(
+        this.ruleForm.conditionRoot,
         t,
         gw
       );
@@ -400,7 +405,7 @@ export default {
         showInTooltip: false,
         reason: '',
         updatedBy: 'you',
-        groups: [createConditionGroup()]
+        conditionRoot: createClause()
       };
     },
     normalizeShopTypeOnForm() {
@@ -436,9 +441,13 @@ export default {
           this.ruleForm.name = preset.name || '';
           this.ruleForm.description = preset.description || '';
           this.ruleForm.paymentMethods = Array.isArray(preset.paymentMethods) ? [...preset.paymentMethods] : [];
-          this.ruleForm.groups = preset.groups && preset.groups.length
-            ? JSON.parse(JSON.stringify(preset.groups))
-            : this.ruleForm.groups;
+          if (preset.conditionRoot && Array.isArray(preset.conditionRoot.parts)) {
+            this.ruleForm.conditionRoot = JSON.parse(JSON.stringify(preset.conditionRoot));
+          } else if (preset.groups && preset.groups.length) {
+            this.ruleForm.groups = JSON.parse(JSON.stringify(preset.groups));
+            ensureConditionRoot(this.ruleForm);
+            delete this.ruleForm.groups;
+          }
           if (preset.showWhenApplied !== undefined) this.ruleForm.showWhenApplied = preset.showWhenApplied;
           if (preset.showInTooltip !== undefined) this.ruleForm.showInTooltip = preset.showInTooltip;
           if (preset.reason !== undefined) this.ruleForm.reason = preset.reason;
@@ -469,9 +478,9 @@ export default {
           name: (this.ruleForm.name || '') + ' (duplicate)',
           description: this.ruleForm.description,
           paymentMethods: Array.isArray(this.ruleForm.paymentMethods) ? [...this.ruleForm.paymentMethods] : [],
-          groups: this.ruleForm.groups && this.ruleForm.groups.length
-            ? JSON.parse(JSON.stringify(this.ruleForm.groups))
-            : [],
+          conditionRoot: this.ruleForm.conditionRoot
+            ? JSON.parse(JSON.stringify(this.ruleForm.conditionRoot))
+            : null,
           showWhenApplied: this.ruleForm.showWhenApplied,
           showInTooltip: this.ruleForm.showInTooltip,
           reason: this.ruleForm.reason || '',
@@ -490,7 +499,9 @@ export default {
         name: this.ruleForm.name,
         description: this.ruleForm.description,
         paymentMethods: this.ruleForm.paymentMethods,
-        groups: this.ruleForm.groups,
+        conditionRoot: this.ruleForm.conditionRoot
+          ? JSON.parse(JSON.stringify(this.ruleForm.conditionRoot))
+          : null,
         showWhenApplied: this.ruleForm.showWhenApplied,
         showInTooltip: this.ruleForm.showInTooltip,
         reason: this.ruleForm.reason,
@@ -516,19 +527,13 @@ export default {
       this.normalizeShopTypeOnForm();
       // Keep reasonDisplayMode in sync for backward compatibility
       this.ruleForm.reasonDisplayMode = !this.ruleForm.showWhenApplied ? 'none' : (this.ruleForm.showInTooltip ? 'tooltip' : 'direct');
-      // Validate that at least one group has at least one condition
-      const hasValidConditions = this.ruleForm.groups && this.ruleForm.groups.some(group =>
-        group.conditions && group.conditions.some(cond => {
-          if (!cond.type || !cond.operator) return false;
-          if (cond.operator === 'equals_zero') return true; // value is implicitly 0
-          return cond.value !== null && cond.value !== undefined && cond.value !== '';
-        })
-      );
+      const hasValidConditions = clauseHasAnyComplete(this.ruleForm.conditionRoot);
       if (!hasValidConditions) {
         this.snackbar = { show: true, text: 'At least one condition is required' };
         return;
       }
-      
+
+      delete this.ruleForm.groups;
       this.saving = true;
       try {
         if (this.isCreate) {

@@ -12,6 +12,31 @@
 <script>
 import store from '@/store/paymentsStore';
 import { getConditionTypeLabel, getOperatorLabel, getOptionsForType } from '@/utils/conditionConfig';
+import { isClauseNode, legacyGroupsToConditionRoot } from '@/utils/conditionClause';
+
+function clauseToPlainSummary(clause, formatLeaf) {
+  if (!clause || !Array.isArray(clause.parts) || clause.parts.length === 0) {
+    return '';
+  }
+  const chunks = [];
+  for (let i = 0; i < clause.parts.length; i++) {
+    const p = clause.parts[i];
+    let text = '';
+    if (isClauseNode(p)) {
+      const inner = clauseToPlainSummary(p, formatLeaf);
+      if (inner) text = `(${inner})`;
+    } else {
+      text = formatLeaf(p);
+    }
+    if (!text) continue;
+    if (chunks.length === 0) {
+      chunks.push(text);
+    } else {
+      chunks.push(clause.joins[i - 1] || 'AND', text);
+    }
+  }
+  return chunks.join(' ');
+}
 
 export default {
   name: 'PaymentRestrictionPreview',
@@ -20,6 +45,12 @@ export default {
       type: Array,
       default: () => []
     },
+    /** Preferred: tree `{ id, parts, joins }` */
+    conditionRoot: {
+      type: Object,
+      default: null
+    },
+    /** Legacy: OR-of-groups; used when conditionRoot is absent */
     groups: {
       type: Array,
       default: () => []
@@ -35,29 +66,15 @@ export default {
       if (titles.length === 1) return titles[0];
       return titles.join(', ');
     },
+    effectiveRoot() {
+      if (this.conditionRoot && Array.isArray(this.conditionRoot.parts)) {
+        return this.conditionRoot;
+      }
+      return legacyGroupsToConditionRoot(this.groups);
+    },
     conditionSummary() {
-      const groups = (this.groups || []).filter(g => g.conditions && g.conditions.length > 0);
-      if (groups.length === 0) return '—';
-
-      const groupSummaries = groups.map(group => {
-        const conditionParts = group.conditions
-          .filter(c => {
-          if (!c.type || !c.operator) return false;
-          const v = c.value;
-          if (v === null || v === undefined || v === '') return false;
-          if (Array.isArray(v) && v.length === 0) return false;
-          return true;
-        })
-          .map(cond => {
-            const typeLabel = getConditionTypeLabel(cond.type);
-            const operatorLabel = getOperatorLabel(cond.type, cond.operator);
-            const valueLabel = this.formatConditionValue(cond.type, cond.value);
-            return `${typeLabel} ${operatorLabel} ${valueLabel}`;
-          });
-        return conditionParts.join(' AND ');
-      });
-
-      return groupSummaries.join(' OR ') || '—';
+      const raw = clauseToPlainSummary(this.effectiveRoot, (c) => this.formatConditionPhrase(c));
+      return raw.trim() || '—';
     },
     conditionSummaryHtml() {
       const raw = this.conditionSummary;
@@ -68,6 +85,21 @@ export default {
     }
   },
   methods: {
+    conditionCompleteForPreview(cond) {
+      if (!cond.type || !cond.operator) return false;
+      if (cond.operator === 'equals_zero') return true;
+      const v = cond.value;
+      if (v === null || v === undefined || v === '') return false;
+      if (Array.isArray(v) && v.length === 0) return false;
+      return true;
+    },
+    formatConditionPhrase(cond) {
+      if (!this.conditionCompleteForPreview(cond)) return '';
+      const typeLabel = getConditionTypeLabel(cond.type);
+      const operatorLabel = getOperatorLabel(cond.type, cond.operator);
+      const valueLabel = this.formatConditionValue(cond.type, cond.value);
+      return `${typeLabel} ${operatorLabel} ${valueLabel}`;
+    },
     formatConditionValue(conditionType, value) {
       if (value === null || value === undefined || value === '') return '';
 

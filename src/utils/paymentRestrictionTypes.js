@@ -74,7 +74,11 @@ export function createEmptyRule() {
     id: generateId(),
     name: '',
     targetPaymentMethods: [],
-    groups: [createConditionGroup()],
+    conditionRoot: {
+      id: generateId(),
+      parts: [],
+      joins: []
+    },
     active: true
   };
 }

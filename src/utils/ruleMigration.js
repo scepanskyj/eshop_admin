@@ -3,48 +3,74 @@
  */
 
 import { createConditionGroup, createCondition } from './paymentRestrictionTypes';
+import { ensureConditionRoot, isClauseNode, mapClauseLeaves } from './conditionClause';
+
+function finalizeRuleWithConditionRoot(rule) {
+  const next = normalizeProductSkuValues({ ...rule });
+  ensureConditionRoot(next);
+  const normalized = normalizeProductSkuValues(next);
+  delete normalized.groups;
+  return normalized;
+}
 
 /**
  * Normalize PRODUCT_SKU condition values to string[] (legacy single string / CSV).
  */
 export function normalizeProductSkuValues(rule) {
-  if (!rule || !rule.groups || !Array.isArray(rule.groups)) {
-    return rule;
-  }
-  return {
-    ...rule,
-    groups: rule.groups.map((g) => ({
-      ...g,
-      conditions: (g.conditions || []).map((c) => {
-        if (c.type !== 'PRODUCT_SKU') return c;
-        let v = c.value;
-        if (typeof v === 'string') {
-          v = v.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
-        } else if (v == null || v === '') {
-          v = [];
-        } else if (!Array.isArray(v)) {
-          v = [String(v)];
-        }
-        return { ...c, value: v };
-      })
-    }))
+  if (!rule) return rule;
+
+  const mapSku = (c) => {
+    if (c.type !== 'PRODUCT_SKU') return c;
+    let v = c.value;
+    if (typeof v === 'string') {
+      v = v.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
+    } else if (v == null || v === '') {
+      v = [];
+    } else if (!Array.isArray(v)) {
+      v = [String(v)];
+    }
+    return { ...c, value: v };
   };
+
+  if (isClauseNode(rule.conditionRoot)) {
+    return {
+      ...rule,
+      conditionRoot: mapClauseLeaves(rule.conditionRoot, mapSku)
+    };
+  }
+
+  if (rule.groups && Array.isArray(rule.groups)) {
+    return {
+      ...rule,
+      groups: rule.groups.map((g) => ({
+        ...g,
+        conditions: (g.conditions || []).map(mapSku)
+      }))
+    };
+  }
+
+  return rule;
 }
 
 /**
  * Migrate a single rule from old format to new format
  * Old format: { conditions: { operator: 'AND'|'OR', conditions: [...] } }
- * New format: { groups: [{ id, conditions: [...] }] }
+ * Stored shape: { conditionRoot: { parts, joins } }
  */
 export function migrateRule(rule) {
-  // If rule already has groups, assume it's already migrated
+  if (isClauseNode(rule.conditionRoot)) {
+    const next = normalizeProductSkuValues({ ...rule });
+    delete next.groups;
+    return next;
+  }
+
   if (rule.groups && Array.isArray(rule.groups)) {
-    return normalizeProductSkuValues({ ...rule });
+    return finalizeRuleWithConditionRoot(rule);
   }
 
   // If no conditions, create empty rule with one empty group
   if (!rule.conditions || !rule.conditions.conditions || !rule.conditions.conditions.length) {
-    return normalizeProductSkuValues({
+    return finalizeRuleWithConditionRoot({
       ...rule,
       groups: [createConditionGroup()]
     });
@@ -52,39 +78,6 @@ export function migrateRule(rule) {
 
   const oldConditions = rule.conditions.conditions || [];
   const operator = rule.conditions.operator || 'AND';
-
-  // Convert old condition format to new format
-  const newConditions = oldConditions.map(oldCond => {
-    // Map old field names to new condition types if needed
-    const typeMapping = {
-      'country': 'MARKET',
-      'cartTotal': 'PAYMENT_AMOUNT',
-      'customerSegment': 'CUSTOMER_TYPE',
-      'paymentMethod': null // This doesn't map directly
-    };
-
-    let conditionType = oldCond.field;
-    if (typeMapping[oldCond.field]) {
-      conditionType = typeMapping[oldCond.field];
-    }
-
-    // Map old comparators to new operators
-    const operatorMapping = {
-      '=': 'is',
-      '!=': 'is_not',
-      '>': 'above',
-      '<': 'under',
-      'in': 'includes',
-      'not in': 'excludes'
-    };
-
-    let operator = oldCond.comparator;
-    if (operatorMapping[oldCond.comparator]) {
-      operator = operatorMapping[oldCond.comparator];
-    }
-
-    return createCondition(conditionType || '');
-  });
 
   // If AND operator, put all conditions in one group
   if (operator === 'AND') {
@@ -103,7 +96,7 @@ export function migrateRule(rule) {
       };
     });
     
-    return normalizeProductSkuValues({
+    return finalizeRuleWithConditionRoot({
       ...rule,
       groups: [{
         ...createConditionGroup(),
@@ -130,8 +123,8 @@ export function migrateRule(rule) {
       }]
     };
   });
-  
-  return normalizeProductSkuValues({
+
+  return finalizeRuleWithConditionRoot({
     ...rule,
     groups: migratedGroups
   });
@@ -222,6 +215,12 @@ export function expandLegacyPaymentMethodCodes(rule) {
         return { ...c, value: expandPaymentMethodCodeList(c.value) };
       })
     }));
+  }
+  if (isClauseNode(next.conditionRoot)) {
+    next.conditionRoot = mapClauseLeaves(next.conditionRoot, (c) => {
+      if (c.type !== 'SELECTED_PAYMENT_METHOD' || !Array.isArray(c.value)) return c;
+      return { ...c, value: expandPaymentMethodCodeList(c.value) };
+    });
   }
   return next;
 }

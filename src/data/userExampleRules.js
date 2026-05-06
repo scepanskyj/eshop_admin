@@ -1,7 +1,9 @@
 /**
  * User-created example rules stored in localStorage per country.
- * Structure: { [countryCode]: [{ id, name, description, paymentMethods, groups, showWhenApplied, showInTooltip, reason }] }
+ * Structure: { [countryCode]: [{ id, name, description, paymentMethods, groups?, conditionRoot?, showWhenApplied, showInTooltip, reason }] }
  */
+import { isClauseNode } from '@/utils/conditionClause';
+
 const USER_EXAMPLES_STORAGE_KEY = 'esa.userExampleRules';
 const HIDDEN_STATIC_PRESETS_KEY = 'esa.hiddenStaticPresets';
 
@@ -40,6 +42,9 @@ export function addUserExample(countryCode, ruleData) {
     description: ruleData.description || '',
     paymentMethods: Array.isArray(ruleData.paymentMethods) ? ruleData.paymentMethods : [],
     groups: ruleData.groups && ruleData.groups.length ? JSON.parse(JSON.stringify(ruleData.groups)) : [],
+    conditionRoot: isClauseNode(ruleData.conditionRoot)
+      ? JSON.parse(JSON.stringify(ruleData.conditionRoot))
+      : null,
     showWhenApplied: ruleData.showWhenApplied ?? false,
     showInTooltip: ruleData.showInTooltip ?? false,
     reason: ruleData.reason || ''

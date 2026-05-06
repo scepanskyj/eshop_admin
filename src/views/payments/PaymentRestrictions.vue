@@ -470,13 +470,15 @@ export default {
           name: preset.name,
           description: preset.description,
           paymentMethods: preset.paymentMethods,
-          groups: preset.groups
+          groups: preset.groups,
+          conditionRoot: preset.conditionRoot
         });
         const payload = {
           name: expanded.name,
           description: expanded.description,
           paymentMethods: expanded.paymentMethods,
-          groups: expanded.groups
+          groups: expanded.groups,
+          conditionRoot: expanded.conditionRoot
         };
         if (preset.showWhenApplied !== undefined) payload.showWhenApplied = preset.showWhenApplied;
         if (preset.showInTooltip !== undefined) payload.showInTooltip = preset.showInTooltip;
