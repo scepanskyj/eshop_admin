@@ -58,6 +58,10 @@ export function normalizeProductSkuValues(rule) {
  * Stored shape: { conditionRoot: { parts, joins } }
  */
 export function migrateRule(rule) {
+  if (rule == null || typeof rule !== 'object') {
+    return rule;
+  }
+
   if (isClauseNode(rule.conditionRoot)) {
     const next = normalizeProductSkuValues({ ...rule });
     delete next.groups;

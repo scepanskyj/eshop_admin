@@ -60,16 +60,16 @@
 </template>
 
 <script>
+import { defineAsyncComponent } from 'vue';
 import { createCondition } from '@/utils/paymentRestrictionTypes';
 import { createClause, isClauseNode } from '@/utils/conditionClause';
 import ConditionRow from './ConditionRow.vue';
-import Self from './ConditionClauseEditor.vue';
 
 export default {
   name: 'ConditionClauseEditor',
   components: {
     ConditionRow,
-    ConditionClauseEditor: Self
+    ConditionClauseEditor: defineAsyncComponent(() => import('./ConditionClauseEditor.vue'))
   },
   props: {
     modelValue: {

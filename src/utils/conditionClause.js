@@ -85,6 +85,7 @@ export function clauseHasAnyComplete(clause) {
  * @param {(c: object) => object} mapLeaf
  */
 export function mapClauseLeaves(clause, mapLeaf) {
+  if (!clause || !Array.isArray(clause.parts)) return clause;
   return {
     ...clause,
     parts: clause.parts.map((p) => {
