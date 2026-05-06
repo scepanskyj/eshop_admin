@@ -161,12 +161,14 @@ export default {
 .clause-editor {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: tokens.$space-sm;
   width: 100%;
 }
 
 .nested-group {
-  margin-bottom: tokens.$space-sm;
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-sm;
   border: 1px solid tokens.$color-border-subtle;
   border-radius: 12px;
   padding: tokens.$space-md;
@@ -183,17 +185,16 @@ export default {
 }
 
 .clause-part {
-  margin-bottom: tokens.$space-xs;
-
-  &:last-of-type {
-    margin-bottom: 0;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-sm;
+  margin: 0;
 }
 
 .join-row {
   display: flex;
   justify-content: center;
-  margin: tokens.$space-xs 0;
+  margin: 0;
 }
 
 .join-chip {
@@ -221,7 +222,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: tokens.$space-sm;
+  margin: 0;
   padding-bottom: tokens.$space-xs;
   border-bottom: 1px solid tokens.$color-border-subtle;
 }
@@ -244,7 +245,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: tokens.$space-sm;
-  margin-top: tokens.$space-sm;
+  margin-top: 0;
 }
 
 .clause-action-btn {

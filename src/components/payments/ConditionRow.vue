@@ -182,7 +182,7 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: tokens.$space-xs;
+  margin-bottom: 0;
 }
 
 .condition-field {
