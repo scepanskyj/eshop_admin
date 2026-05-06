@@ -51,7 +51,12 @@
         <v-icon start>mdi-plus</v-icon>
         Add condition
       </v-btn>
-      <v-btn variant="outlined" class="clause-action-btn" @click="addGroup">
+      <v-btn
+        v-if="canAddGroup"
+        variant="outlined"
+        class="clause-action-btn"
+        @click="addGroup"
+      >
         <v-icon start>mdi-folder-plus-outline</v-icon>
         Add group
       </v-btn>
@@ -85,6 +90,11 @@ export default {
   computed: {
     clause() {
       return this.modelValue;
+    },
+    /** One group max (root only); no nested groups. */
+    canAddGroup() {
+      if (this.depth > 0) return false;
+      return !this.clause.parts.some((p) => isClauseNode(p));
     }
   },
   methods: {
@@ -107,6 +117,7 @@ export default {
       this.emitClause(parts, joins);
     },
     addGroup() {
+      if (this.depth > 0 || this.clause.parts.some((p) => isClauseNode(p))) return;
       const parts = [...this.clause.parts];
       const joins = [...this.clause.joins];
       if (parts.length > 0) joins.push('AND');
@@ -152,7 +163,7 @@ export default {
   &--nested {
     border: 1px solid tokens.$color-border-subtle;
     border-radius: 12px;
-    padding: tokens.$space-lg;
+    padding: tokens.$space-md;
     background-color: tokens.$color-surface-muted;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
@@ -167,7 +178,7 @@ export default {
 }
 
 .clause-part {
-  margin-bottom: tokens.$space-sm;
+  margin-bottom: tokens.$space-xs;
 
   &:last-of-type {
     margin-bottom: 0;
@@ -177,13 +188,13 @@ export default {
 .join-row {
   display: flex;
   justify-content: center;
-  margin: tokens.$space-md 0;
+  margin: tokens.$space-xs 0;
 }
 
 .join-chip {
   cursor: pointer;
   background: tokens.$color-surface-default;
-  padding: 6px 16px;
+  padding: 4px 12px;
   font-size: 11px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.65);
@@ -209,8 +220,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: tokens.$space-md;
-  padding-bottom: tokens.$space-sm;
+  margin-bottom: tokens.$space-sm;
+  padding-bottom: tokens.$space-xs;
   border-bottom: 1px solid tokens.$color-border-subtle;
 }
 
@@ -232,7 +243,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: tokens.$space-sm;
-  margin-top: tokens.$space-md;
+  margin-top: tokens.$space-sm;
 }
 
 .clause-action-btn {

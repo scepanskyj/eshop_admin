@@ -1,6 +1,10 @@
 <template>
   <v-sheet class="modal-card" :class="cardClasses" border>
-    <div v-if="title || subtitle" class="modal-card__header">
+    <div
+      v-if="title || subtitle"
+      class="modal-card__header"
+      :class="{ 'modal-card__header--multiline': subtitle }"
+    >
       <div>
         <div v-if="title" class="modal-card__title">{{ title }}</div>
         <div v-if="subtitle" class="modal-card__subtitle">{{ subtitle }}</div>
@@ -61,6 +65,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: tokens.$space-md;
+}
+
+.modal-card__header--multiline {
+  align-items: flex-start;
 }
 
 .modal-card__title {

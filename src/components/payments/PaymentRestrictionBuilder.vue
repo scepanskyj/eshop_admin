@@ -5,9 +5,6 @@
       :depth="0"
       @update:model-value="onRootUpdate"
     />
-    <p v-if="rootClause.parts.length === 0" class="empty-hint">
-      Add a condition or a group. Use the chips between items to switch between <strong>AND</strong> and <strong>OR</strong>.
-    </p>
   </div>
 </template>
 
@@ -44,16 +41,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/tokens.scss' as tokens;
-
 .payment-restriction-builder {
   width: 100%;
-}
-
-.empty-hint {
-  font: tokens.$text-p2;
-  color: tokens.$color-text-secondary;
-  margin: tokens.$space-md 0 0;
-  line-height: 1.5;
 }
 </style>

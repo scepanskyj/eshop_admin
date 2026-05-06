@@ -138,7 +138,10 @@
               </div>
             </ModalCard>
 
-            <ModalCard title="Condition Builder">
+            <ModalCard
+              title="Condition Builder"
+              subtitle="Add conditions or one group. Nested groups are not available. Click the chips between rows to switch between AND and OR."
+            >
               <PaymentRestrictionBuilder v-model="ruleForm.conditionRoot" />
               <PaymentRestrictionPreview
                 class="restriction-condition-preview mt-4"

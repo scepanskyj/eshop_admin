@@ -181,8 +181,8 @@ export default {
 .condition-row {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: tokens.$space-sm;
+  gap: 8px;
+  margin-bottom: tokens.$space-xs;
 }
 
 .condition-field {
@@ -190,7 +190,7 @@ export default {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .condition-value {
@@ -198,7 +198,7 @@ export default {
 }
 
 .remove-btn {
-  margin-top: 28px;
+  margin-top: 24px;
   flex-shrink: 0;
 }
 
