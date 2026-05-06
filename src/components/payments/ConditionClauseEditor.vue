@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="clause-editor"
-    :class="{ 'clause-editor--nested': depth > 0 }"
-  >
+  <div class="clause-editor">
     <div
       v-for="(part, i) in clause.parts"
       :key="partKey(part, i)"
@@ -167,21 +164,22 @@ export default {
   flex-direction: column;
   gap: 0;
   width: 100%;
+}
 
-  &--nested {
-    border: 1px solid tokens.$color-border-subtle;
-    border-radius: 12px;
-    padding: tokens.$space-md;
-    background-color: tokens.$color-surface-muted;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+.nested-group {
+  margin-bottom: tokens.$space-sm;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: 12px;
+  padding: tokens.$space-md;
+  background-color: tokens.$color-surface-muted;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
-    :deep(.v-field) {
-      background-color: white !important;
-    }
-    :deep(input.native-input),
-    :deep(select.native-select) {
-      background-color: white !important;
-    }
+  :deep(.v-field) {
+    background-color: white !important;
+  }
+  :deep(input.native-input),
+  :deep(select.native-select) {
+    background-color: white !important;
   }
 }
 
@@ -218,10 +216,6 @@ export default {
     background: rgba(71, 133, 10, 0.08);
     border-color: tokens.$color-green;
   }
-}
-
-.nested-group {
-  margin-bottom: tokens.$space-sm;
 }
 
 .nested-header {
