@@ -161,14 +161,14 @@ export default {
 .clause-editor {
   display: flex;
   flex-direction: column;
-  gap: tokens.$space-sm;
+  gap: tokens.$space-md;
   width: 100%;
 }
 
 .nested-group {
   display: flex;
   flex-direction: column;
-  gap: tokens.$space-sm;
+  gap: tokens.$space-md;
   border: 1px solid tokens.$color-border-subtle;
   border-radius: 12px;
   padding: tokens.$space-md;
@@ -187,7 +187,7 @@ export default {
 .clause-part {
   display: flex;
   flex-direction: column;
-  gap: tokens.$space-sm;
+  gap: tokens.$space-md;
   margin: 0;
 }
 
